@@ -1,0 +1,1 @@
+/Users/hapy/Documents/Flutter Projects/pulse_skadi/build/app/intermediates/cxx/RelWithDebInfo/571z464q/obj/arm64-v8a

@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "778635659212",
+    "project_id": "daily-life-14a12",
+    "storage_bucket": "daily-life-14a12.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778635659212:android:08fc615f03202c86efff69",
+        "android_client_info": {
+          "package_name": "com.example.daily_life"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0l0uU6wuYvaSq2dAvFXgumUzrNK-Gk70"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778635659212:android:84699cc283d27311efff69",
+        "android_client_info": {
+          "package_name": "com.the313solutions.tailerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0l0uU6wuYvaSq2dAvFXgumUzrNK-Gk70"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:778635659212:android:5bf6accd317ed25aefff69",
+        "android_client_info": {
+          "package_name": "com.tlc.pulseSkadi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0l0uU6wuYvaSq2dAvFXgumUzrNK-Gk70"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
