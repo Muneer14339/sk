@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Steadiness Trainer (Grip Target App – Revised)</title>
+  <style>
+    :root{
+      --bg:#0b1220;          /* deep navy */
+      --card:#111a2b;        /* slightly lighter */
+      --ink:#e6eefc;         /* near white */
+      --muted:#a8b3c7;
+      --accent:#5ea1ff;
+      --good:#34d399;        /* green */
+      --warn:#f59e0b;        /* amber */
+      --bad:#ef4444;         /* red */
+      --ring:#1e2a44;
+      --trace:#7aa2ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background:radial-gradient(1200px 800px at 80% -10%, #12203a 0%, #0b1220 40%, #0b1220 100%);
+      color:var(--ink);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{max-width:980px; margin:24px auto; padding:16px;}
+    .grid{display:grid; gap:16px; grid-template-columns: 1fr;}
+    @media (min-width:960px){ .grid{ grid-template-columns: 420px 1fr; } }
+
+    .card{background:var(--card); border:1px solid #1a2440; border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,.35);}
+    .pad{padding:16px}
+    h1{font-size:20px; margin:0 0 8px; font-weight:700}
+    p{margin:0 0 10px; color:var(--muted)}
+    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .row > *{flex:0 0 auto}
+
+    button, .btn{
+      appearance:none; border:none; border-radius:12px; padding:10px 14px;
+      background:linear-gradient(180deg,#21345e,#172644); color:var(--ink);
+      font-weight:600; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.35);
+      transition:transform .06s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+    button:hover{ transform:translateY(-1px); box-shadow:0 12px 24px rgba(0,0,0,.38); }
+    button:disabled{ opacity:.5; cursor:not-allowed }
+    .btn-ghost{ background:transparent; border:1px solid #2a3a64 }
+    .btn-good{ background:linear-gradient(180deg,#1e7f59,#165b41) }
+    .btn-bad{ background:linear-gradient(180deg,#7f1d1d,#5b1414) }
+
+    .badge{font-size:12px; padding:4px 8px; border-radius:999px; background:#1b2a48; color:var(--ink);}
+    .badge.good{ background:rgba(52,211,153,.15); color:#5cf1bc }
+    .badge.warn{ background:rgba(245,158,11,.15); color:#ffcf73 }
+    .badge.bad{  background:rgba(239,68,68,.15);  color:#ff8e8e }
+
+    .targetBox{ aspect-ratio:1/1; width:100%; max-width:420px; margin:0 auto; display:grid; place-items:center; }
+    svg{ width:100%; height:100%; display:block; }
+
+    .readouts{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; }
+    .readouts .item{ background:#0f1830; border:1px solid #1a2440; border-radius:12px; padding:10px 12px }
+    .readouts .k{ font-size:12px; color:#93a4c7 }
+    .readouts .v{ font-size:18px; font-weight:700; color:var(--ink) }
+
+    .log{ width:100%; border-collapse:collapse; }
+    .log th,.log td{ text-align:left; padding:8px 10px; border-bottom:1px solid #1a2440; font-size:14px }
+    .log th{ color:#9fb0d4; font-weight:600 }
+    .log tr:hover td{ background:#0f1830 }
+
+    .toast{ position:fixed; inset:auto 16px 16px auto; background:#132143; color:var(--ink);
+      padding:10px 14px; border-radius:12px; border:1px solid #1a2440; box-shadow:0 8px 20px rgba(0,0,0,.35);
+      transform:translateY(10px); opacity:0; transition:opacity .2s, transform .2s }
+    .toast.show{ opacity:1; transform:translateY(0) }
+
+    .muted{ color:#93a4c7 }
+    .subtle{ color:#7f90b1 }
+    .hint{ font-size:12px; color:#8fa3cb }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="grid">
+      <!-- LEFT: TARGET -->
+      <div class="card pad">
+        <h1>Steadiness Trainer</h1>
+        <p class="subtle">Trace visual shows small rotations. <b>Score = current dot position at shot</b> (rings 10–5).</p>
+        <div class="targetBox">
+          <svg id="target" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <!-- rings 10 → 5 (visual ruler: 0.10° maps to ring 5) -->
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#79a9ff" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#79a9ff" stop-opacity="0.0"/>
+              </radialGradient>
+            </defs>
+
+            <rect x="0" y="0" width="400" height="400" fill="#0e1629"/>
+
+            <!-- Ring circles -->
+            <g id="rings" fill="none" stroke="var(--ring)" stroke-width="2">
+              <!-- radii computed in JS for labels -->
+              <circle id="ring10" cx="200" cy="200" r="40" />
+              <circle id="ring9"  cx="200" cy="200" r="70" />
+              <circle id="ring8"  cx="200" cy="200" r="100" />
+              <circle id="ring7"  cx="200" cy="200" r="130" />
+              <circle id="ring6"  cx="200" cy="200" r="160" />
+              <circle id="ring5"  cx="200" cy="200" r="190" />
+            </g>
+
+            <!-- Labels -->
+            <g id="labels" font-size="12" fill="#8ea6d6" text-anchor="middle" dominant-baseline="middle">
+              <text id="lbl10" x="200" y="200">10</text>
+              <text id="lbl9"  x="200" y="200">9</text>
+              <text id="lbl8"  x="200" y="200">8</text>
+              <text id="lbl7"  x="200" y="200">7</text>
+              <text id="lbl6"  x="200" y="200">6</text>
+              <text id="lbl5"  x="200" y="200">5</text>
+            </g>
+
+            <!-- Traceline path -->
+            <path id="tracePath" d="" stroke="var(--trace)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+
+            <!-- Dot (with glow) -->
+            <circle id="dotGlow" cx="200" cy="200" r="14" fill="url(#glow)" opacity="0" />
+            <circle id="traceDot" cx="200" cy="200" r="4.5" fill="#9bc1ff" stroke="#cfe0ff" stroke-width="1" opacity="0" />
+          </svg>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button id="btnEnable" class="btn-good">Enable Motion</button>
+          <button id="btnShot" class="">Shot</button>
+          <button id="btnReset" class="btn-ghost">Reset Trace</button>
+        </div>
+        <p class="hint" style="margin-top:8px">iOS: tap <b>Enable Motion</b> first. Move the phone like a pistol. Tap <b>Shot<\/b> to score by the <b>current dot position<\/b> (rings 10–5).</p>
+
+        <div class="readouts" style="margin-top:12px">
+          <div class="item"><div class="k">θ<sub>inst</sub> (deg, per frame)</div><div class="v" id="rInst">0.00°</div></div>
+          <div class="item"><div class="k">Status</div><div class="v" id="rStatus">Waiting</div></div>
+          <div class="item"><div class="k">Steady Hold</div><div class="v" id="rHold">0 ms</div></div>
+          <div class="item"><div class="k">Last Score</div><div class="v" id="rScore">—</div></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: CONTROLS + LOG -->
+      <div class="card pad">
+        <h1>Controls & Log</h1>
+        <div class="row" style="margin-bottom:8px">
+          <span class="badge">Visual ruler: <b>0.10° → ring 5</b></span>
+          <span class="badge warn">Scoring = dot position at shot<\/span>
+        </div>
+
+        <div class="row" style="gap:12px; margin-bottom:8px">
+          <label class="hint">Trace Length <input id="traceLen" type="range" min="20" max="400" step="10" value="160"/></label>
+          <label class="hint">Dot Easing <input id="easing" type="range" min="0" max="0.5" step="0.01" value="0.15"/></label>
+        </div>
+
+        <div class="row" style="gap:12px; margin-bottom:12px">
+          <label class="hint">Difficulty
+            <select id="difficulty">
+              <option value="pro">Pro (Extreme)</option>
+              <option value="adv">Advanced (Very Hard)</option>
+              <option value="int">Intermediate (Not Easy)</option>
+              <option value="nov" selected>Novice (Easy)</option>
+              <option value="beg">Beginner (Very Easy)</option>
+            </select>
+          </label>
+          <span class="badge">10-ring leniency scales up with level</span>
+        </div>
+
+        <table class="log" id="logTable">
+          <thead>
+            <tr><th>Time<\/th><th>Dot θ (deg)<\/th><th>Score<\/th><\/tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <audio id="beep" preload="auto">
+    <source src="data:audio/wav;base64,UklGRhgAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQgAAAAA" type="audio/wav">
+  </audio>
+
+  <script>
+  // ====== CONFIG ======
+  const RING_RADII_PX = {5:190, 6:null, 7:null, 8:null, 9:null, 10:null}; // ring 5 fixed; others computed from equal-width bands
+  // Scoring radii (can be more lenient than visual rings depending on Difficulty)
+  let SCORE_RADII_PX = {5: null, 6: null, 7: null, 8: null, 9: null, 10: null};
+  const CENTER = {x:200, y:200};
+  const TABLE_REST_DEG = 0.01;  // hide dot if ≤0.01° (table-rest threshold)   // hide dot below this
+  const HOLD_STABLE_DEG = 0.10; // stability threshold (recenter when ≤ 0.10° for ~250 ms)
+  const HOLD_TIME_MS = 250;     // how long to hold to trigger recenter
+  const SHOT_WINDOW_MS = 120;   // pre-shot RMS window
+  // smoothing constants (tunable)
+  const ANG_SMOOTH_TAU = 0.12;  // seconds, bigger = smoother angle
+  const RAD_SMOOTH_TAU = 0.10;  // seconds, bigger = smoother radius
+  const RATE_LIMIT_PX = 28;     // max px jump per frame (anti-jitter)
+  // hysteresis around the 0.10° edge to prevent flicker
+  const HIDE_OVER_DEG = 0.105;   // hide when ≥ 0.105°
+  const SHOW_UNDER_DEG = 0.095;  // re-show when ≤ 0.095°
+  const HYSTERESIS_DWELL_MS = 60; // must sustain edge for this long
+  const LABEL_INSET_PX = 12;     // place labels inside each ring by this many px to avoid clipping
+
+  // ====== STATE ======
+  let isMotionReady = false;
+  let isResetting = false;
+  let lastTS = null;
+  let thetaInstDeg = 0;      // per-frame angular change (deg)
+  let holdStart = null;      // ms timestamp when we entered steady region
+  let readings = [];         // rolling buffer of {ts, theta}
+  let tracePoints = [];      // path points [{x,y}]
+  let lastAngle = 0;  // smoothed heading (radians)
+  let rViz = 0;              // smoothed radius in px
+  let lastDrawX = CENTER.x;  // last drawn point (for rate limiting)
+  let lastDrawY = CENTER.y;
+  // visibility gate state (hysteresis)
+  let visGate = false;     // whether traceline is currently allowed to show
+  let visGateTS = 0;       // timestamp for dwell timer
+
+  // UI Elements
+  const elDot = document.getElementById('traceDot');
+  const elGlow = document.getElementById('dotGlow');
+  const elPath = document.getElementById('tracePath');
+  const elRInst = document.getElementById('rInst');
+  const elStatus = document.getElementById('rStatus');
+  const elRHold = document.getElementById('rHold');
+  const elRScore = document.getElementById('rScore');
+  const elToast = document.getElementById('toast');
+  const elBeep = document.getElementById('beep');
+
+  const elBtnEnable = document.getElementById('btnEnable');
+  const elBtnShot = document.getElementById('btnShot');
+  const elBtnReset = document.getElementById('btnReset');
+
+  const elTraceLen = document.getElementById('traceLen');
+  const elEasing = document.getElementById('easing');
+
+  const ring5RadiusPx = RING_RADII_PX[5];
+  const VISUAL_RING5_DEG = 0.10; // 0.10° maps to ring 5 (outermost ring); >0.10° hides
+
+  // ====== HELPERS ======
+  function fmt(n){ return n.toFixed(2); }
+  function clamp(v,min,max){ return Math.min(max, Math.max(min, v)); }
+
+  function showToast(msg){
+    elToast.textContent = msg;
+    elToast.classList.add('show');
+    setTimeout(()=> elToast.classList.remove('show'), 1600);
+  }
+
+  function hideDot(){ elDot.setAttribute('opacity','0'); elGlow.setAttribute('opacity','0'); }
+  function showDot(){ elDot.setAttribute('opacity','1'); elGlow.setAttribute('opacity','.35'); }
+
+  function clearTraceline(){ tracePoints.length = 0; elPath.setAttribute('d',''); }
+
+  function drawPath(){
+    if (tracePoints.length < 2) { elPath.setAttribute('d',''); return; }
+    const pts = tracePoints;
+    let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+    for (let i=1;i<pts.length;i++) d += ` L ${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
+    elPath.setAttribute('d', d);
+  }
+
+  function placeDotPolar(r, ang){
+    const x = CENTER.x + r * Math.cos(ang);
+    const y = CENTER.y + r * Math.sin(ang);
+    elDot.setAttribute('cx', x);
+    elDot.setAttribute('cy', y);
+    elGlow.setAttribute('cx', x);
+    elGlow.setAttribute('cy', y);
+    return {x,y};
+  }
+
+  function emaAngle(prev, next, alpha){
+    // normalize to avoid wrap jumps
+    const twoPi = Math.PI * 2;
+    let d = next - prev;
+    if (d > Math.PI) next -= twoPi;
+    else if (d < -Math.PI) next += twoPi;
+    return prev + alpha * (next - prev);
+  }
+
+  // ====== SENSOR PIPELINE ======
+  function handleMotion(e){
+    if (!isMotionReady) return;
+    const rr = e.rotationRate || {}; // deg/s
+    const ax = rr.alpha || 0, ay = rr.beta || 0, az = rr.gamma || 0; // z,x,y axes names vary; we'll just use magnitudes
+    const now = Date.now();
+
+    if (lastTS != null){
+      const dt = (now - lastTS) / 1000; // seconds
+      const w = Math.hypot(ax, ay, az); // deg/s magnitude
+      const dtheta = w * dt;            // deg in this frame
+      thetaInstDeg = dtheta;
+
+      // derive a crude 2D heading from axis mix (use ay, az projected)
+      // heading from yaw/pitch rates so phone-right → dot-right
+      const yawRate = ax;   // rotationRate.alpha (deg/s) ~ yaw
+      const pitchRate = ay; // rotationRate.beta  (deg/s) ~ pitch
+      const angleTarget = Math.atan2(-pitchRate, yawRate) || 0; // up from -pitch, right from +yaw
+      const easeSlider = parseFloat(elEasing.value);            // 0..0.5
+      const angAlpha = 1 - Math.exp(-dt / Math.max(0.01, ANG_SMOOTH_TAU * (1 + (0.5 - easeSlider)*1.5)));
+      lastAngle = emaAngle(lastAngle, angleTarget, angAlpha);
+
+      // push reading into 500 ms buffer
+      readings.push({ ts: now, theta: thetaInstDeg });
+      const cutoff = now - 500;
+      while (readings.length && readings[0].ts < cutoff) readings.shift();
+
+      // VISUAL: traceline logic with hysteresis around 0.10°
+      const tableRest = (thetaInstDeg < TABLE_REST_DEG) && !isResetting;
+      const steadyNow = (thetaInstDeg <= HOLD_STABLE_DEG) && !isResetting;
+
+      // update hysteresis state with dwell
+      if (!visGate){
+        if (!tableRest && thetaInstDeg <= SHOW_UNDER_DEG){
+          if (now - visGateTS > HYSTERESIS_DWELL_MS) visGate = true; // allow showing
+        } else {
+          visGateTS = now; // reset dwell timer
+        }
+      } else { // currently visible
+        if (tableRest || thetaInstDeg >= HIDE_OVER_DEG){
+          if (now - visGateTS > HYSTERESIS_DWELL_MS) visGate = false; // force hide
+        } else {
+          visGateTS = now; // reset dwell timer
+        }
+      }
+
+      if (!visGate || isResetting){
+        hideDot();
+        clearTraceline(); // optional: keep last path by removing this line
+        elStatus.textContent = tableRest ? 'Resting' : (thetaInstDeg >= HIDE_OVER_DEG ? 'Too Wobbly' : 'Hidden');
+      } else {
+        const f = clamp(thetaInstDeg / VISUAL_RING5_DEG, 0, 1);
+        const rTarget = f * ring5RadiusPx;
+        const radAlpha = 1 - Math.exp(-dt / Math.max(0.01, RAD_SMOOTH_TAU));
+        rViz = rViz + (rTarget - rViz) * radAlpha;
+        let pt = placeDotPolar(rViz, lastAngle);
+        // rate limit to avoid jumps
+        const dxPix = pt.x - lastDrawX; const dyPix = pt.y - lastDrawY;
+        const dist = Math.hypot(dxPix, dyPix);
+        if (dist > RATE_LIMIT_PX){
+          const k = RATE_LIMIT_PX / dist;
+          pt = { x: lastDrawX + dxPix * k, y: lastDrawY + dyPix * k };
+          elDot.setAttribute('cx', pt.x); elDot.setAttribute('cy', pt.y);
+          elGlow.setAttribute('cx', pt.x); elGlow.setAttribute('cy', pt.y);
+        }
+        lastDrawX = pt.x; lastDrawY = pt.y;
+        showDot();
+
+        const maxPts = parseInt(elTraceLen.value, 10);
+        tracePoints.push(pt);
+        if (tracePoints.length > maxPts) tracePoints.shift();
+        drawPath();
+
+        elStatus.textContent = 'Moving';
+      }
+
+      // steady-hold detection for recenter
+      updateSteadyHold(steadyNow, now);
+    }
+    lastTS = now;
+    elRInst.textContent = fmt(thetaInstDeg) + '°';
+  }
+
+  function updateSteadyHold(steady, now){
+    if (steady){
+      if (holdStart == null) holdStart = now;
+      const held = now - holdStart;
+      elRHold.textContent = held + ' ms';
+      if (held >= HOLD_TIME_MS) {
+        startCenterReset();
+        holdStart = null;
+      }
+    } else {
+      holdStart = null;
+      elRHold.textContent = '0 ms';
+    }
+  }
+
+  function startCenterReset(){
+    if (isResetting) return;
+    isResetting = true;
+    hideDot();
+    clearTraceline();
+
+    // quick glide to center WITHOUT drawing path
+    const startX = parseFloat(elDot.getAttribute('cx')) || CENTER.x;
+    const startY = parseFloat(elDot.getAttribute('cy')) || CENTER.y;
+    const dur = 200; // ms
+    const t0 = performance.now();
+
+    function step(t){
+      const u = clamp((t - t0) / dur, 0, 1);
+      const e = 1 - Math.pow(1 - u, 3); // ease-out cubic
+      const x = startX + (CENTER.x - startX) * e;
+      const y = startY + (CENTER.y - startY) * e;
+      elDot.setAttribute('cx', x); elDot.setAttribute('cy', y);
+      elGlow.setAttribute('cx', x); elGlow.setAttribute('cy', y);
+      if (u < 1) requestAnimationFrame(step);
+      else {
+        isResetting = false;
+        // leave dot at center but hidden; it will reappear when moving again
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ====== SHOT & SCORING (dot-position at shot) ======
+  // Keep RMS helper around for future comparisons (not used for scoring now)
+  function computeThetaRms(windowMs){
+    const now = Date.now();
+    const from = now - windowMs;
+    let sumSq = 0, n = 0;
+    for (let i = readings.length - 1; i >= 0; i--){
+      const r = readings[i];
+      if (r.ts < from) break;
+      sumSq += r.theta * r.theta; n++;
+    }
+    if (!n) return 0;
+    return Math.sqrt(sumSq / n);
+  }
+
+  function scoreFromDotRadius(rPx){
+    if (rPx <= SCORE_RADII_PX[10]) return 10;
+    if (rPx <= SCORE_RADII_PX[9])  return 9;
+    if (rPx <= SCORE_RADII_PX[8])  return 8;
+    if (rPx <= SCORE_RADII_PX[7])  return 7;
+    if (rPx <= SCORE_RADII_PX[6])  return 6;
+    if (rPx <= SCORE_RADII_PX[5])  return 5;
+    return 0;
+  }
+
+  function appendLogTheta(thetaDeg, score){
+    const tbody = document.getElementById('logBody');
+    const tr = document.createElement('tr');
+    const t = new Date();
+    const thetaTxt = isNaN(thetaDeg) ? '—' : `${fmt(thetaDeg)}°`;
+    tr.innerHTML = `<td>${t.toLocaleTimeString()}</td><td>${thetaTxt}</td><td>${score}</td>`;
+    tbody.prepend(tr);
+  }
+
+  function onShot(){
+    if (!isMotionReady){ showToast('Enable motion first'); return; }
+
+    const isRest = (thetaInstDeg <= TABLE_REST_DEG);
+    const tooWobbly = (thetaInstDeg >= HIDE_OVER_DEG) || isResetting;
+
+    // If dot is hidden due to wobble, treat as no score (0) to signal off-window
+    if (tooWobbly && !isRest && !visGate){
+      elBeep.currentTime = 0; try{ elBeep.play(); }catch{}
+      elRScore.textContent = `0  (Too Wobbly)`;
+      appendLogTheta(NaN, 0);
+      showToast(`No score • Too Wobbly`);
+      return;
+    }
+
+    // Get current dot radius from center
+    const cx = parseFloat(elDot.getAttribute('cx')) || CENTER.x;
+    const cy = parseFloat(elDot.getAttribute('cy')) || CENTER.y;
+    const rPx = Math.hypot(cx - CENTER.x, cy - CENTER.y);
+
+    // Convert to equivalent angle for the log (visual ruler)
+    const f = clamp(rPx / RING_RADII_PX[5], 0, 1);
+    const thetaDot = f * VISUAL_RING5_DEG;
+
+    // Score by ring bands; if resting (center & hidden) count as 10
+    let score = scoreFromDotRadius(rPx);
+    if (isRest) score = 10;
+
+    elBeep.currentTime = 0; try{ elBeep.play(); }catch{}
+    elRScore.textContent = `${score}  (dot θ ${fmt(thetaDot)}°)`;
+    appendLogTheta(thetaDot, score);
+    showToast(`Score ${score}  •  dot θ ${fmt(thetaDot)}°`);
+  }
+
+  // ====== SETUP ======
+  function enableMotion(){
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
+      DeviceMotionEvent.requestPermission().then(state => {
+        if (state === 'granted') startMotion(); else showToast('Motion permission denied');
+      }).catch(()=> showToast('Motion permission error'));
+    } else {
+      // non-iOS or already allowed
+      startMotion();
+    }
+  }
+
+  function startMotion(){
+    if (isMotionReady) return;
+    window.addEventListener('devicemotion', handleMotion, {passive:true});
+    isMotionReady = true;
+    showToast('Motion enabled');
+  }
+
+  function resetTrace(){
+    clearTraceline();
+    hideDot();
+    readings.length = 0;
+    elRInst.textContent = '0.00°';
+    elRHold.textContent = '0 ms';
+    elStatus.textContent = 'Waiting';
+  }
+
+  // EVENTS
+  elBtnEnable.addEventListener('click', enableMotion);
+  elBtnShot.addEventListener('click', onShot);
+  elBtnReset.addEventListener('click', resetTrace);
+
+  // init
+  // compute ring radii so each band (5–9) has equal width, and ring 10 diameter equals one band width
+  ;(function computeRingRadii(){
+    const w = RING_RADII_PX[5] / 5.5; // band width in px
+    const r10 = w / 2;             // ring 10 radius
+    const radii = {
+      10: r10,
+      9:  r10 + 1*w,
+      8:  r10 + 2*w,
+      7:  r10 + 3*w,
+      6:  r10 + 4*w,
+      5:  r10 + 5*w
+    };
+    for (const k of [10,9,8,7,6,5]){
+      const el = document.getElementById('ring'+k);
+      if (el) el.setAttribute('r', radii[k]);
+      RING_RADII_PX[k] = radii[k];
+      const lbl = document.getElementById('lbl'+k);
+      if (lbl){
+        lbl.setAttribute('x', CENTER.x);
+        lbl.setAttribute('y', CENTER.y - Math.max(0, radii[k] - LABEL_INSET_PX));
+      }
+    }
+  })();
+
+  // scoring radii follow difficulty leniency
+  const elDifficulty = document.getElementById('difficulty');
+  function recomputeScoreRadii(){
+    const mode = (elDifficulty.value || 'pro');
+
+    // Base visual thresholds from center→outer: r10 < r9 < r8 < r7 < r6 < r5
+    const base = [RING_RADII_PX[10], RING_RADII_PX[9], RING_RADII_PX[8], RING_RADII_PX[7], RING_RADII_PX[6], RING_RADII_PX[5]];
+    const scores = [10,9,8,7,6,5];
+
+    // Map difficulty to an outward step in the base array (can be fractional)
+    // pro = 0 (exact geometry)
+    // adv = 0.5 (very difficult)
+    // int = 1 (not easy) → 10 at visual 9
+    // nov = 2 (easy)     → 10 at visual 8
+    // beg = 3 (very easy)→ 10 at visual 7
+    const step = (
+      mode === 'pro' ? 0 :
+      mode === 'adv' ? 0.5 :
+      mode === 'int' ? 1 :
+      mode === 'nov' ? 2 :
+      /* beg */        3
+    );
+
+    // Interpolate thresholds with the given step; clamp to r5 so they never exceed outer ring
+    for (let i = 0; i < scores.length; i++){
+      let pos = i + step;
+      if (pos >= base.length - 1){
+        SCORE_RADII_PX[scores[i]] = base[base.length - 1]; // r5
+        continue;
+      }
+      const lo = Math.floor(pos), hi = Math.ceil(pos), t = pos - lo;
+      const r = base[lo] + (base[hi] - base[lo]) * t;
+      SCORE_RADII_PX[scores[i]] = Math.min(r, base[base.length - 1]);
+    }
+  }
+  elDifficulty.addEventListener('change', ()=>{ recomputeScoreRadii(); const map={pro:'Pro',adv:'Advanced',int:'Intermediate',nov:'Novice',beg:'Beginner'}; showToast(`Difficulty: ${map[elDifficulty.value]||'Pro'}`); });
+
+  // first boot
+  recomputeScoreRadii();
+
+  hideDot();
+  clearTraceline();
+  </script>
+</body>
+</html>

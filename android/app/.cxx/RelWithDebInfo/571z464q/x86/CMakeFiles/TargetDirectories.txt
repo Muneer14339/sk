@@ -1,0 +1,2 @@
+/Users/hapy/Documents/Flutter Projects/pulse_skadi/android/app/.cxx/RelWithDebInfo/571z464q/x86/CMakeFiles/edit_cache.dir
+/Users/hapy/Documents/Flutter Projects/pulse_skadi/android/app/.cxx/RelWithDebInfo/571z464q/x86/CMakeFiles/rebuild_cache.dir
