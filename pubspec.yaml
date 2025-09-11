@@ -1,0 +1,85 @@
+name: pulse_skadi
+description: "PulseSkadi - Advanced Shooting Training App"
+publish_to: 'none'
+version: 1.0.0+1
+environment:
+  sdk: ^3.6.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  percent_indicator: ^4.2.5
+  vibration: ^3.1.3
+  
+  # State Management
+  flutter_bloc: ^8.1.4
+  equatable: ^2.0.5
+  get_it: ^7.6.7
+  injectable: ^2.1.5
+  
+  
+  connectivity_plus: ^6.1.4
+  
+  # Local Storage
+  shared_preferences: ^2.2.2
+  
+  # Utils
+  intl: ^0.18.1
+  logger: ^1.4.0
+  url_launcher: ^6.2.2
+  
+  # Form Validation
+  formz: ^0.7.0
+  
+  
+  # UI Components
+  flutter_svg: ^2.0.10+1
+  shimmer: ^3.0.0
+  auto_size_text: ^3.0.0
+  
+  # Animation
+  flutter_animate: ^4.2.0
+  dartz: ^0.10.1
+  flutter_blue_plus: ^1.35.5
+  sqflite: ^2.4.2
+  cloud_firestore: ^5.6.10
+  firebase_auth: ^5.6.1
+  another_flushbar: ^1.12.30
+  
+  # Permissions
+  permission_handler: ^11.0.1
+  scroll_date_picker: ^3.8.0
+  
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.6
+  injectable_generator: ^2.1.5
+  json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.2
+
+flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/database/
+  
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700
+
