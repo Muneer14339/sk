@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RifleAxis Shot Detection — UI Demo</title>
+  <style>
+    :root{
+      --bg:#0b0f14;--card:#111823;--muted:#7b8a9a;--text:#e9f0f7;--green:#16a34a;--red:#dc2626;--yellow:#eab308;--btn:#1f2937;--btn-hover:#374151
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#0b0f14,#0b1220);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    .wrap{max-width:860px;margin:40px auto;padding:0 16px}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .card{background:var(--card);border:1px solid #1e293b;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:18px}
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    h1{font-size:22px;margin:0}
+    .sub{color:var(--muted);font-size:13px}
+    .status{padding:10px 12px;border-radius:12px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+    .status.green{background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.35)}
+    .status.red{background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35)}
+    .status.yellow{background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.35)}
+
+    .btn{appearance:none;border:1px solid #2b3647;background:var(--btn);color:var(--text);padding:10px 14px;border-radius:12px;font-weight:600;cursor:pointer;transition:.15s}
+    .btn:hover{background:var(--btn-hover)}
+    .btn.primary{border-color:rgba(22,163,74,.5)}
+    .btn.ghost{background:transparent}
+    .btn.success{background:rgba(22,163,74,.15);border-color:rgba(22,163,74,.35)}
+    .btn.warn{background:rgba(234,179,8,.15);border-color:rgba(234,179,8,.35)}
+    .btn.danger{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.35)}
+
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+    @media (max-width:800px){.grid{grid-template-columns:1fr}}
+
+    .log{max-height:360px;overflow:auto;padding-right:8px}
+    .log-item{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed #223049;padding:10px 0}
+    .pill{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #2b3647;color:var(--muted)}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Roboto Mono",monospace;background:#0e141f;border:1px solid #1f2a3d;border-radius:8px;padding:4px 8px;color:#bcd0e5}
+    .num{font-weight:800}
+
+    .panel{display:flex;gap:8px;flex-wrap:wrap}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1>RifleAxis — Shot Detection (User UI Demo)</h1>
+      <div class="sub">Minimal flow: <b>Detected → YES/NO</b>, or <b>Missed → NO / Add Manual</b></div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Interaction -->
+      <section class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+          <div>
+            <div style="font-size:14px;color:var(--muted)">Next Shot Number</div>
+            <div style="font-size:28px;font-weight:900" id="shotNum">#1</div>
+          </div>
+          <div id="status" class="status yellow">Waiting for event…</div>
+        </div>
+
+        <div class="panel" role="group" aria-label="Simulator controls">
+          <button class="btn primary" onclick="simulateDetected()">▶️ Simulate: Detected</button>
+          <button class="btn" onclick="simulateLowConf()">🟡 Simulate: Possible (Low Conf)</button>
+          <button class="btn ghost" onclick="simulateMissed()">⏱️ Simulate: No Detection</button>
+        </div>
+        <div class="hint">Use these three to mimic real-world cases from the sensor.</div>
+
+        <hr style="border-color:#223049;border-style:solid;border-width:1px;margin:16px 0"/>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:18px;font-weight:700">Shot Detected?</div>
+            <div id="promptDetail" class="sub">—</div>
+          </div>
+          <div class="panel">
+            <button class="btn success" id="yesBtn" onclick="confirmYes()" disabled>YES</button>
+            <button class="btn danger" id="noBtn" onclick="confirmNo()" disabled>NO</button>
+            <button class="btn warn" id="manualBtn" onclick="addManual()" disabled>+ Add Shot Manually</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Log -->
+      <section class="card">
+        <div class="header">
+          <div style="font-weight:700">Session Log</div>
+          <div class="pill" id="totals">0 shots</div>
+        </div>
+        <div id="log" class="log" aria-live="polite"></div>
+        <div class="hint">Log tracks source: Auto (YES), False (NO), Manual (Missed).</div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    let nextShot = 1;
+    let pendingEvent = null; // {confidence:0..1, auto:true|false}
+    let totals = 0;
+
+    const $ = sel => document.querySelector(sel);
+    const statusEl = $('#status');
+    const shotNumEl = $('#shotNum');
+    const promptDetailEl = $('#promptDetail');
+    const yesBtn = $('#yesBtn');
+    const noBtn = $('#noBtn');
+    const manualBtn = $('#manualBtn');
+    const logEl = $('#log');
+    const totalsEl = $('#totals');
+
+    function setStatus(text, tone){
+      statusEl.className = 'status ' + tone; // green | red | yellow
+      statusEl.textContent = text;
+    }
+    function setPrompt(detail){
+      promptDetailEl.textContent = detail || '—';
+    }
+    function refreshShotNumber(){
+      shotNumEl.textContent = `#${nextShot}`;
+    }
+    function enableButtons(cfg){
+      yesBtn.disabled = !cfg.yes;
+      noBtn.disabled = !cfg.no;
+      manualBtn.disabled = !cfg.manual;
+    }
+    function appendLog({num, kind, note}){
+      totals++;
+      totalsEl.textContent = `${totals} shot${totals===1?'':'s'}`;
+      const row = document.createElement('div');
+      row.className = 'log-item';
+      row.innerHTML = `
+        <div><span class="num">#${num}</span> — ${kind}</div>
+        <div class="pill">${note}</div>
+      `;
+      logEl.prepend(row);
+    }
+
+    // ---- Simulations
+    function simulateDetected(){
+      pendingEvent = {confidence:0.98, auto:true};
+      setStatus('Shot detected (99%)', 'green');
+      setPrompt('System saw a confident event. Confirm?');
+      enableButtons({yes:true, no:true, manual:false});
+    }
+    function simulateLowConf(){
+      pendingEvent = {confidence:0.45, auto:true};
+      setStatus('Possible shot? (45%)', 'yellow');
+      setPrompt('Uncertain event. Please choose YES or NO.');
+      enableButtons({yes:true, no:true, manual:false});
+    }
+    function simulateMissed(){
+      pendingEvent = null;
+      setStatus('No shot detected', 'yellow');
+      setPrompt('If a shot happened, tap NO or Add Shot Manually.');
+      enableButtons({yes:false, no:true, manual:true});
+    }
+
+    // ---- User actions
+    function confirmYes(){
+      if(!pendingEvent){
+        // Edge: user presses YES with no event (should be disabled)
+        return;
+      }
+      appendLog({num: nextShot, kind: 'CONFIRMED', note: pendingEvent.confidence>=0.8? 'Auto • High conf':'Auto • Low conf'});
+      nextShot++;
+      pendingEvent = null;
+      setStatus('Waiting for event…', 'yellow');
+      setPrompt('—');
+      enableButtons({yes:false, no:false, manual:false});
+      refreshShotNumber();
+    }
+    function confirmNo(){
+      // Two cases: false trigger (pendingEvent exists) OR missed detection (no event)
+      const note = pendingEvent ? 'Auto • Discarded (false trigger)' : 'Missed • Added by user';
+      appendLog({num: nextShot, kind: pendingEvent ? 'DISCARDED' : 'MISSED', note});
+      nextShot++;
+      pendingEvent = null;
+      setStatus('Waiting for event…', 'yellow');
+      setPrompt('—');
+      enableButtons({yes:false, no:false, manual:false});
+      refreshShotNumber();
+    }
+    function addManual(){
+      appendLog({num: nextShot, kind: 'MANUAL', note: 'No detection • User added'});
+      nextShot++;
+      setStatus('Waiting for event…', 'yellow');
+      setPrompt('—');
+      enableButtons({yes:false, no:false, manual:false});
+      refreshShotNumber();
+    }
+
+    // init
+    refreshShotNumber();
+    setStatus('Waiting for event…', 'yellow');
+    setPrompt('—');
+    enableButtons({yes:false, no:false, manual:false});
+  </script>
+</body>
+</html>
