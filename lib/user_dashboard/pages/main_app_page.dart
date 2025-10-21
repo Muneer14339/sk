@@ -8,9 +8,9 @@ import '../../../authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import '../../../authentication/presentation/bloc/login_bloc/auth_event.dart';
 import '../../../authentication/presentation/bloc/login_bloc/auth_state.dart';
 import '../../../authentication/presentation/pages/login_page.dart';
-import '../bloc/armory_bloc.dart';
-import '../core/theme/user_app_theme.dart';
-import '../widgets/tab_widgets/enhanced_armory_tab_view.dart';
+import '../../armory/presentation/bloc/armory_bloc.dart';
+import '../../armory/presentation/core/theme/user_app_theme.dart';
+import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
 import 'placeholder_tabs.dart';
 
 class MainAppPage extends StatelessWidget {

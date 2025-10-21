@@ -1,7 +1,8 @@
 // lib/user_dashboard/presentation/widgets/placeholder_tabs/home_tab_widget.dart
 import 'package:flutter/material.dart';
 
-import '../core/theme/user_app_theme.dart';
+import '../../armory/presentation/core/theme/user_app_theme.dart';
+
 
 class HomeTabWidget extends StatelessWidget {
   const HomeTabWidget({super.key});
