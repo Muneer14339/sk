@@ -5,6 +5,30 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 // Authentication imports
+import 'armory/data/datasources/armory_remote_datasource.dart';
+import 'armory/data/repositories/armory_repository_impl.dart';
+import 'armory/domain/repositories/armory_repository.dart';
+import 'armory/domain/services/armory_cache_service.dart';
+import 'armory/domain/usecases/add_ammunition_usecase.dart' as user_add_ammo;
+import 'armory/domain/usecases/add_firearm_usecase.dart';
+import 'armory/domain/usecases/add_gear_usecase.dart';
+import 'armory/domain/usecases/add_loadout_usecase.dart';
+import 'armory/domain/usecases/add_maintenance_usecase.dart';
+import 'armory/domain/usecases/add_tool_usecase.dart';
+import 'armory/domain/usecases/delete_ammunition_usecase.dart';
+import 'armory/domain/usecases/delete_firearm_usecase.dart';
+import 'armory/domain/usecases/delete_gear_usecase.dart';
+import 'armory/domain/usecases/delete_loadout_usecase.dart';
+import 'armory/domain/usecases/delete_maintenance_usecase.dart';
+import 'armory/domain/usecases/delete_tool_usecase.dart';
+import 'armory/domain/usecases/get_ammunition_usecase.dart' as user_ammo;
+import 'armory/domain/usecases/get_dropdown_options_usecase.dart';
+import 'armory/domain/usecases/get_firearms_usecase.dart' as user_firearms;
+import 'armory/domain/usecases/get_gear_usecase.dart';
+import 'armory/domain/usecases/get_loadouts_usecase.dart';
+import 'armory/domain/usecases/get_maintenance_usecase.dart';
+import 'armory/domain/usecases/get_tools_usecase.dart';
+import 'armory/presentation/bloc/armory_bloc.dart';
 import 'authentication/data/datasources/auth_remote_datasource.dart';
 import 'authentication/data/repositories/auth_repository_impl.dart';
 import 'authentication/domain/repositories/auth_repository.dart';
@@ -16,31 +40,7 @@ import 'authentication/domain/usecases/signup_usecase.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/signup_bloc/signup_bloc.dart';
 
-// User Dashboard imports
-import 'user_dashboard/data/datasources/armory_remote_datasource.dart';
-import 'user_dashboard/data/repositories/armory_repository_impl.dart';
-import 'user_dashboard/domain/repositories/armory_repository.dart';
-import 'user_dashboard/domain/services/armory_cache_service.dart';
-import 'user_dashboard/domain/usecases/add_maintenance_usecase.dart';
-import 'user_dashboard/domain/usecases/delete_ammunition_usecase.dart';
-import 'user_dashboard/domain/usecases/delete_firearm_usecase.dart';
-import 'user_dashboard/domain/usecases/delete_gear_usecase.dart';
-import 'user_dashboard/domain/usecases/delete_loadout_usecase.dart';
-import 'user_dashboard/domain/usecases/delete_maintenance_usecase.dart';
-import 'user_dashboard/domain/usecases/delete_tool_usecase.dart';
-import 'user_dashboard/domain/usecases/get_firearms_usecase.dart' as user_firearms;
-import 'user_dashboard/domain/usecases/add_firearm_usecase.dart';
-import 'user_dashboard/domain/usecases/get_ammunition_usecase.dart' as user_ammo;
-import 'user_dashboard/domain/usecases/add_ammunition_usecase.dart' as user_add_ammo;
-import 'user_dashboard/domain/usecases/get_gear_usecase.dart';
-import 'user_dashboard/domain/usecases/add_gear_usecase.dart';
-import 'user_dashboard/domain/usecases/get_maintenance_usecase.dart';
-import 'user_dashboard/domain/usecases/get_tools_usecase.dart';
-import 'user_dashboard/domain/usecases/add_tool_usecase.dart';
-import 'user_dashboard/domain/usecases/get_loadouts_usecase.dart';
-import 'user_dashboard/domain/usecases/add_loadout_usecase.dart';
-import 'user_dashboard/domain/usecases/get_dropdown_options_usecase.dart';
-import 'user_dashboard/presentation/bloc/armory_bloc.dart';
+
 import 'core/usecases/usecase.dart';
 
 final sl = GetIt.instance;

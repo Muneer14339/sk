@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
-import '../../user_dashboard/domain/entities/armory_ammunition.dart';
-import '../../user_dashboard/domain/entities/armory_firearm.dart';
-import '../../user_dashboard/domain/entities/armory_gear.dart';
-import '../../user_dashboard/domain/entities/armory_loadout.dart';
-import '../../user_dashboard/domain/entities/armory_maintenance.dart';
-import '../../user_dashboard/domain/entities/armory_tool.dart';
+import '../../armory/domain/entities/armory_ammunition.dart';
+import '../../armory/domain/entities/armory_firearm.dart';
+import '../../armory/domain/entities/armory_gear.dart';
+import '../../armory/domain/entities/armory_loadout.dart';
+import '../../armory/domain/entities/armory_maintenance.dart';
+import '../../armory/domain/entities/armory_tool.dart';
 import '../error/failures.dart';
 
 abstract class UseCase<Type, Params> {

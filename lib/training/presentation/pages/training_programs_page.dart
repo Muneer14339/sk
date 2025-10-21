@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/toast_utils.dart';
 import '../../../core/widgets/custom_appbar.dart';
+import '../../../core/widgets/custom_dialog.dart';
 import '../../../core/widgets/icon_container.dart';
 import '../../data/model/programs_model.dart';
 import '../bloc/ble_scan/ble_scan_bloc.dart';
@@ -16,6 +17,10 @@ import '../bloc/ble_scan/ble_scan_state.dart';
 import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_event.dart';
 import '../widgets/device_calibration_dialog.dart';
+import '../widgets/matrics_section_card.dart';
+import '../widgets/program_stats_card.dart';
+import 'steadiness_trainer_page.dart';
+import 'training_program_builder.dart';
 
 class TrainingProgramsPage extends StatefulWidget {
   const TrainingProgramsPage({super.key});

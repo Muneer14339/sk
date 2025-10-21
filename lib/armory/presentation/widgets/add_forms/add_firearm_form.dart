@@ -1,7 +1,6 @@
 // lib/user_dashboard/presentation/widgets/add_firearm_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pa_sreens/user_dashboard/presentation/widgets/common/common_widgets.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/validators/caliber_validator.dart';
 import '../../../domain/entities/armory_firearm.dart';
@@ -10,6 +9,7 @@ import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
 import '../../core/theme/user_app_theme.dart';
+import '../common/common_widgets.dart';
 import '../common/dialog_widgets.dart';
 import '../common/enhanced_dialog_widgets.dart';
 
