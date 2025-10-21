@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ShoQ — Enhanced App with Level 3 Schema</title>
+  <style>
+    :root{
+      --bg:#0f1115;
+      --panel:#151923;
+      --muted:#9aa4b2;
+      --text:#e8eef7;
+      --accent:#57b7ff;
+      --border:#222838;
+      --chip:#1b2130;
+      --shadow:0 10px 24px rgba(0,0,0,.35);
+      --radius:14px;
+      --error:#ff6b6b;
+      --success:#51cf66;
+      --warning:#ffd43b;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); }
+    header{
+      position:sticky; top:0; z-index:20;
+      background:linear-gradient(180deg, rgba(15,17,21,.95), rgba(15,17,21,.85));
+      border-bottom:1px solid var(--border);
+    }
+    .topbar{ display:flex; align-items:center; gap:12px; padding:14px 16px; }
+    .app-title{ font-weight:800; letter-spacing:.3px; font-size:18px; flex:1; }
+    .subtitle{ color:var(--muted); font-size:12px; }
+
+    /* App sections */
+    main{ padding:16px; padding-bottom:88px; }
+    section.appview{ display:none; }
+    section.appview.active{ display:block; }
+
+    /* Armory tabs */
+    nav.tabs{
+      display:grid; grid-template-columns:repeat(6,1fr);
+      border-top:1px solid var(--border);
+    }
+    nav.tabs button{
+      appearance:none; border:0; background:transparent; color:var(--muted);
+      padding:12px 4px; font-weight:700; font-size:12px; letter-spacing:.2px; cursor:pointer;
+    }
+    nav.tabs button[aria-current="page"]{ color:var(--accent); border-bottom:2px solid var(--accent); }
+
+    /* ---- CRITICAL FIX ---- */
+    .hidden{ display:none !important; }
+
+    /* Cards + lists */
+    .card{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); margin-bottom:12px; }
+    .card h3{ margin:0 0 6px 0; font-size:15px; display:flex; align-items:center; gap:8px; }
+    .desc{ color:var(--muted); font-size:12px; margin-bottom:10px; }
+
+    .btn{ display:inline-flex; align-items:center; gap:8px; background:var(--chip); color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-weight:700; font-size:13px; cursor:pointer; text-decoration:none; }
+    .btn.primary{ background:linear-gradient(180deg, #2a3bff22, #2a3bff11); border-color:#3050ff55; color:#dbe6ff; }
+    .btn.icon{ padding:8px; border-radius:10px; }
+    .btn.small{ font-size:12px; padding:6px 8px; border-radius:10px; }
+    .row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .spacer{ flex:1; }
+    .list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+    .item{ background:#0e1220; border:1px solid var(--border); border-radius:12px; padding:10px; }
+    .title{ font-weight:800; font-size:14px; }
+    .meta{ color:var(--muted); font-size:12px; margin-top:4px; display:flex; gap:10px; flex-wrap:wrap; }
+    .chip{ background:#0b1320; border:1px solid var(--border); padding:4px 8px; border-radius:999px; font-size:11px; color:var(--muted); }
+
+    /* Accordion (Gear subtypes) */
+    .accordion{ border-top:1px solid var(--border); margin-top:8px; }
+    .acc{ border-bottom:1px solid var(--border); }
+    .acc button{ width:100%; background:transparent; border:0; color:var(--text); text-align:left; padding:12px; font-weight:800; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+    .acc button .muted{ color:var(--muted); font-weight:600; font-size:12px; }
+    .acc .panel{ display:none; padding:0 0 12px 12px; }
+    .acc.open .panel{ display:block; }
+
+    /* Report table */
+    table{ width:100%; border-collapse:collapse; }
+    th, td{ text-align:left; padding:8px 8px; border-bottom:1px solid var(--border); font-size:13px; }
+    th{ color:#cfe0ff; font-weight:800; background:#101522; position:sticky; top:0; z-index:1; }
+
+    /* Modals */
+    dialog{ border:1px solid var(--border); border-radius:16px; padding:0; background:var(--panel); color:var(--text); width:min(720px, 92vw); box-shadow:0 30px 60px rgba(0,0,0,.55); }
+    dialog::backdrop{ background:rgba(0,0,0,.55); backdrop-filter:blur(2px); }
+    .modal-head{ padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .modal-body{ padding:14px 16px; display:grid; gap:12px; }
+    .modal-actions{ padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+    label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px; font-weight:600; }
+    input, select, textarea{ width:100%; padding:10px 12px; border-radius:10px; background:#0b1020; color:var(--text); border:1px solid var(--border); font-size:14px; transition:border-color 0.2s; }
+    input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); }
+    input.error, select.error{ border-color:var(--error); }
+    .row-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .row-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    @media (max-width:520px){ .row-2, .row-3{ grid-template-columns:1fr; } }
+    .empty{ color:var(--muted); font-size:13px; padding:10px 0; }
+
+    /* Bottom app nav */
+    .appnav{
+      position:fixed; left:0; right:0; bottom:0; z-index:40;
+      background:#0c111d; border-top:1px solid var(--border);
+      display:grid; grid-template-columns:repeat(5,1fr);
+    }
+    .appnav button{
+      appearance:none; background:transparent; border:0; color:var(--muted);
+      font-weight:700; font-size:12px; padding:10px 6px; cursor:pointer;
+    }
+    .appnav button[aria-current="page"]{ color:var(--accent); }
+
+    /* Report styles */
+    .report-container{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:0;
+      margin:0 auto;
+      box-shadow:var(--shadow);
+    }
+
+    .report-header{
+      padding:20px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:15px;
+    }
+
+    .report-title{
+      font-size:24px;
+      font-weight:800;
+      color:var(--text);
+    }
+
+    .report-summary{
+      display:flex;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+
+    .summary-stat{
+      text-align:center;
+    }
+
+    .stat-number{
+      font-size:20px;
+      font-weight:700;
+      color:var(--accent);
+    }
+
+    .stat-label{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .export-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    /* Collapsible sections */
+    .report-section{
+      border-bottom:1px solid var(--border);
+    }
+
+    .section-header{
+      padding:16px 20px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:transparent;
+      border:none;
+      color:var(--text);
+      font-size:16px;
+      font-weight:700;
+      width:100%;
+      text-align:left;
+      transition:background-color 0.2s;
+    }
+
+    .section-header:hover{
+      background:rgba(87,183,255,0.05);
+    }
+
+    .section-info{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .section-count{
+      background:var(--chip);
+      color:var(--muted);
+      padding:3px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:600;
+    }
+
+    .chevron{
+      font-size:12px;
+      color:var(--muted);
+      transition:transform 0.2s;
+    }
+
+    .section-header[aria-expanded="true"] .chevron{
+      transform:rotate(180deg);
+    }
+
+    .section-content{
+      display:none;
+      padding:0 20px 20px 20px;
+    }
+
+    .section-content.show{
+      display:block;
+    }
+
+    /* Tables */
+    .table-container{
+      overflow-x:auto;
+      border-radius:8px;
+      border:1px solid var(--border);
+    }
+
+    .status-available{ color:var(--success); }
+    .status-in-use{ color:var(--warning); }
+    .status-maintenance{ color:#ff6b6b; }
+    .status-low-stock{ color:var(--warning); }
+    .status-out-of-stock{ color:#ff6b6b; }
+
+    /* Error messages */
+    .error-message{
+      color:var(--error);
+      font-size:12px;
+      margin-top:4px;
+      display:none;
+    }
+    .error-message.show{
+      display:block;
+    }
+
+    /* Status indicators */
+    .status-indicator{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:600;
+    }
+    .status-available{
+      background:rgba(81,207,102,0.1);
+      color:var(--success);
+      border:1px solid rgba(81,207,102,0.2);
+    }
+    .status-in-use{
+      background:rgba(255,212,59,0.1);
+      color:var(--warning);
+      border:1px solid rgba(255,212,59,0.2);
+    }
+    .status-maintenance{
+      background:rgba(255,107,107,0.1);
+      color:var(--error);
+      border:1px solid rgba(255,107,107,0.2);
+    }
+    .status-low-stock{
+      background:rgba(255,212,59,0.1);
+      color:var(--warning);
+      border:1px solid rgba(255,212,59,0.2);
+    }
+    .status-out-of-stock{
+      background:rgba(255,107,107,0.1);
+      color:var(--error);
+      border:1px solid rgba(255,107,107,0.2);
+    }
+
+    /* Level indicator */
+    .level-indicator{
+      background:rgba(87,183,255,0.1);
+      border:1px solid rgba(87,183,255,0.2);
+      color:var(--accent);
+      padding:4px 8px;
+      border-radius:6px;
+      font-size:11px;
+      font-weight:600;
+      margin-left:8px;
+    }
+
+    /* Compatibility warning */
+    .compatibility-warning{
+      background:rgba(255,212,59,0.1);
+      border:1px solid rgba(255,212,59,0.2);
+      color:var(--warning);
+      padding:8px 12px;
+      border-radius:8px;
+      font-size:12px;
+      margin-top:8px;
+      display:none;
+    }
+    .compatibility-warning.show{
+      display:block;
+    }
+
+    /* Responsive */
+    @media (max-width:768px){
+      .report-header{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      
+      .export-actions{
+        justify-content:stretch;
+      }
+      
+      .export-actions .btn{
+        flex:1;
+        justify-content:center;
+      }
+      
+      .report-summary{
+        justify-content:space-around;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .report-container, .report-container * {
+        visibility: visible;
+      }
+      .report-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none;
+        border: none;
+      }
+      .section-content {
+        display: block !important;
+      }
+      .export-actions, .section-header {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="app-title">PulseAim</div>
+      <div class="subtitle">Enhanced with Level 3 Schema</div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Armory Sections" id="armory-tabs" style="display:none;">
+      <button role="tab" aria-selected="true" aria-controls="tab-firearms" id="tabbtn-firearms" aria-current="page">Firearms</button>
+      <button role="tab" aria-controls="tab-ammo" id="tabbtn-ammo">Ammo</button>
+      <button role="tab" aria-controls="tab-gear" id="tabbtn-gear">Gear</button>
+      <button role="tab" aria-controls="tab-tools" id="tabbtn-tools">Tools & Maint.</button>
+      <button role="tab" aria-controls="tab-loadouts" id="tabbtn-loadouts">Loadouts</button>
+      <button role="tab" aria-controls="tab-report" id="tabbtn-report">Report</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="appview active" id="view-home" aria-labelledby="nav-home">
+      <article class="card">
+        <h3>Home</h3>
+        <p class="desc">Quick actions and recent items.</p>
+        <div class="row">
+          <button class="btn" data-goto="armory">Open Armory</button>
+          <button class="btn" data-goto="training">Open Training</button>
+          <button class="btn" data-goto="history">Open History</button>
+          <button class="btn" data-goto="profile">Open Profile</button>
+        </div>
+      </article>
+      <article class="card">
+        <h3>Recently Added</h3>
+        <div id="recent-list" class="list"></div>
+      </article>
+    </section>
+
+    <section class="appview" id="view-armory" aria-labelledby="nav-armory">
+      <section id="tab-firearms" role="tabpanel" aria-labelledby="tabbtn-firearms">
+        <article class="card">
+          <h3>Firearms</h3>
+          <p class="desc">Track each gun as an asset (serial/nickname) or keep a simple quantity and split into assets later.</p>
+          <div class="row">
+            <button class="btn primary" data-open="addFirearm">+ Add Firearm</button>
+            <span class="spacer"></span>
+            <span class="chip" id="firearm-count">0 items</span>
+          </div>
+          <div class="list" id="firearm-list"></div>
+        </article>
+      </section>
+
+      <section id="tab-ammo" role="tabpanel" aria-labelledby="tabbtn-ammo" class="hidden">
+        <article class="card">
+          <h3>Ammunition</h3>
+          <p class="desc">Catalog brands and track lots with chrono data for better analytics.</p>
+          <div class="row">
+            <button class="btn primary" data-open="addAmmo">+ Add Ammo/Lot</button>
+            <span class="spacer"></span>
+            <span class="chip" id="ammo-count">0 lots</span>
+          </div>
+          <div class="list" id="ammo-list"></div>
+        </article>
+      </section>
+
+      <section id="tab-gear" role="tabpanel" aria-labelledby="tabbtn-gear" class="hidden">
+        <article class="card">
+          <h3>Gear</h3>
+          <p class="desc">Optics, supports, sensors, attachments, and more — organized as collapsible sections.</p>
+          <div class="row">
+            <button class="btn primary" data-open="addGear">+ Add Gear</button>
+            <span class="spacer"></span>
+            <span class="chip" id="gear-count">0 items</span>
+          </div>
+          <div class="accordion" id="gear-accordion">
+            <div class="acc" data-type="optics">
+              <button type="button" class="acc-btn" aria-expanded="false">Optics & Sights <span class="muted">scopes, RDS, irons</span></button>
+              <div class="panel list" id="gear-optics"></div>
+            </div>
+            <div class="acc" data-type="supports">
+              <button type="button" class="acc-btn" aria-expanded="false">Supports <span class="muted">bipods, tripods, rests</span></button>
+              <div class="panel list" id="gear-supports"></div>
+            </div>
+            <div class="acc" data-type="attachments">
+              <button type="button" class="acc-btn" aria-expanded="false">Attachments <span class="muted">suppressors, brakes, lights</span></button>
+              <div class="panel list" id="gear-attachments"></div>
+            </div>
+            <div class="acc" data-type="sensors">
+              <button type="button" class="acc-btn" aria-expanded="false">Sensors & Electronics <span class="muted">ShotPulse, RifleAxis, PulseSkadi</span></button>
+              <div class="panel list" id="gear-sensors"></div>
+            </div>
+            <div class="acc" data-type="misc">
+              <button type="button" class="acc-btn" aria-expanded="false">Misc. Gear <span class="muted">slings, cases, ear/eye pro</span></button>
+              <div class="panel list" id="gear-misc"></div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="tab-tools" role="tabpanel" aria-labelledby="tabbtn-tools" class="hidden">
+        <article class="card">
+          <h3>Tools & Maintenance</h3>
+          <p class="desc">Cleaning kits, torque tools, chronographs — plus per-asset maintenance logs.</p>
+          <div class="row">
+            <button class="btn primary" data-open="addTool">+ Add Tool</button>
+            <button class="btn" data-open="addMaintenance">+ Log Maintenance</button>
+            <span class="spacer"></span>
+            <span class="chip" id="tool-count">0 items</span>
+          </div>
+          <div class="list" id="tool-list"></div>
+        </article>
+      </section>
+
+      <section id="tab-loadouts" role="tabpanel" aria-labelledby="tabbtn-loadouts" class="hidden">
+        <article class="card">
+          <h3>Loadouts</h3>
+          <p class="desc">Create named bundles of your gear to speed up Training setup.</p>
+          <div class="row">
+            <button class="btn primary" data-open="addLoadout">+ Add Loadout</button>
+            <span class="spacer"></span>
+            <span class="chip" id="loadout-count">0 loadouts</span>
+          </div>
+          <div class="list" id="loadout-list"></div>
+        </article>
+      </section>
+
+      <section id="tab-report" role="tabpanel" aria-labelledby="tabbtn-report" class="hidden">
+        <div class="report-container">
+          <div class="report-header">
+            <div>
+              <div class="report-title">Inventory Report</div>
+              <div class="report-summary">
+                <div class="summary-stat">
+                  <div class="stat-number" id="total-firearms">0</div>
+                  <div class="stat-label">Firearms</div>
+                </div>
+                <div class="summary-stat">
+                  <div class="stat-number" id="total-ammo">0</div>
+                  <div class="stat-label">Ammo Lots</div>
+                </div>
+                <div class="summary-stat">
+                  <div class="stat-number" id="total-gear">0</div>
+                  <div class="stat-label">Gear Items</div>
+                </div>
+                <div class="summary-stat">
+                  <div class="stat-number" id="total-tools">0</div>
+                  <div class="stat-label">Tools</div>
+                </div>
+                <div class="summary-stat">
+                  <div class="stat-number" id="total-loadouts">0</div>
+                  <div class="stat-label">Loadouts</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="export-actions">
+              <button class="btn" id="print-report">Print Report</button>
+            </div>
+          </div>
+
+          <div class="report-section">
+            <button class="section-header" aria-expanded="false">
+              <div class="section-info">
+                <span>Firearms</span>
+                <span class="section-count" id="section-firearm-count">0 items</span>
+              </div>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="section-content" id="section-firearms">
+              <div class="table-container">
+                <table id="tbl-firearms">
+                  <thead>
+                    <tr>
+                      <th>Make</th>
+                      <th>Model</th>
+                      <th>Caliber</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Serial</th>
+                      <th>Nickname</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-section">
+            <button class="section-header" aria-expanded="false">
+              <div class="section-info">
+                <span>Ammunition</span>
+                <span class="section-count" id="section-ammo-count">0 lots</span>
+              </div>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="section-content" id="section-ammunition">
+              <div class="table-container">
+                <table id="tbl-ammo">
+                  <thead>
+                    <tr>
+                      <th>Brand</th>
+                      <th>Line</th>
+                      <th>Caliber</th>
+                      <th>Bullet</th>
+                      <th>Status</th>
+                      <th>Quantity</th>
+                      <th>Lot</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-section">
+            <button class="section-header" aria-expanded="false">
+              <div class="section-info">
+                <span>Gear & Accessories</span>
+                <span class="section-count" id="section-gear-count">0 items</span>
+              </div>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="section-content" id="section-gear">
+              <div class="table-container">
+                <table id="tbl-gear">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Model</th>
+                      <th>Serial</th>
+                      <th>Qty</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-section">
+            <button class="section-header" aria-expanded="false">
+              <div class="section-info">
+                <span>Tools & Equipment</span>
+                <span class="section-count" id="section-tool-count">0 items</span>
+              </div>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="section-content" id="section-tools">
+              <div class="table-container">
+                <table id="tbl-tools">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Status</th>
+                      <th>Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-section">
+            <button class="section-header" aria-expanded="false">
+              <div class="section-info">
+                <span>Maintenance History</span>
+                <span class="section-count" id="section-maint-count">0 entries</span>
+              </div>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="section-content" id="section-maintenance">
+              <div class="table-container">
+                <table id="tbl-maint">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Asset</th>
+                      <th>Type</th>
+                      <th>Rounds</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-section">
+            <button class="section-header" aria-expanded="false">
+              <div class="section-info">
+                <span>Loadouts</span>
+                <span class="section-count" id="section-loadout-count">0 loadouts</span>
+              </div>
+              <span class="chevron">▼</span>
+            </button>
+            <div class="section-content" id="section-loadouts">
+              <div class="table-container">
+                <table id="tbl-loadouts">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Firearm</th>
+                      <th>Ammo</th>
+                      <th>Gear</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="appview" id="view-training" aria-labelledby="nav-training">
+      <article class="card">
+        <h3>Training</h3>
+        <p class="desc">Connect Bluetooth camera/sensors and start a session. (Stubbed for now.)</p>
+        <div class="row">
+          <button class="btn">Connect Camera</button>
+          <button class="btn">Connect Sensors</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="appview" id="view-history" aria-labelledby="nav-history">
+      <article class="card">
+        <h3>History</h3>
+        <p class="desc">See past sessions and results. (Stubbed for now.)</p>
+      </article>
+    </section>
+
+    <section class="appview" id="view-profile" aria-labelledby="nav-profile">
+      <article class="card">
+        <h3>Profile</h3>
+        <p class="desc">Account and preferences. (Stubbed for now.)</p>
+      </article>
+    </section>
+  </main>
+
+  <nav class="appnav" role="navigation" aria-label="App Navigation">
+    <button id="nav-home" aria-current="page" data-view="home">Home</button>
+    <button id="nav-armory" data-view="armory">Armory</button>
+    <button id="nav-training" data-view="training">Training</button>
+    <button id="nav-history" data-view="history">History</button>
+    <button id="nav-profile" data-view="profile">Profile</button>
+  </nav>
+
+  <dialog id="modal-addFirearm">
+    <form id="firearm-form">
+      <div class="modal-head">
+        <strong>Add Firearm</strong>
+        <span class="level-indicator">Level 1 UI</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn icon" data-close>✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label>Firearm Type *</label>
+          <select id="fm-type" required>
+            <option value="">Select firearm type…</option>
+            <option value="rifle">Rifle</option>
+            <option value="pistol">Pistol</option>
+            <option value="revolver">Revolver</option>
+            <option value="shotgun">Shotgun</option>
+          </select>
+          <div class="error-message" id="error-type">Firearm type is required for loadout compatibility</div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>Make *</label>
+            <input required id="fm-make" placeholder="e.g., Ruger" />
+            <div class="error-message" id="error-make">Make is required</div>
+          </div>
+          <div>
+            <label>Model *</label>
+            <input required id="fm-model" placeholder="e.g., 10/22" />
+            <div class="error-message" id="error-model">Model is required</div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>Caliber *</label>
+            <select id="fm-caliber" required>
+              <option value="">Select caliber…</option>
+              <optgroup label="Rifle Calibers">
+                <option value=".17 HMR">.17 HMR</option>
+                <option value=".22 LR">.22 LR</option>
+                <option value=".22 WMR">.22 WMR</option>
+                <option value=".223 Remington">.223 Remington</option>
+                <option value="5.56x45mm NATO">5.56x45mm NATO</option>
+                <option value=".243 Winchester">.243 Winchester</option>
+                <option value="6mm Creedmoor">6mm Creedmoor</option>
+                <option value="6.5 Grendel">6.5 Grendel</option>
+                <option value="6.5 Creedmoor">6.5 Creedmoor</option>
+                <option value=".270 Winchester">.270 Winchester</option>
+                <option value="7mm-08 Remington">7mm-08 Remington</option>
+                <option value="7mm Remington Magnum">7mm Remington Magnum</option>
+                <option value=".308 Winchester">.308 Winchester</option>
+                <option value="7.62x51mm NATO">7.62x51mm NATO</option>
+                <option value=".30-06 Springfield">.30-06 Springfield</option>
+                <option value=".300 Winchester Magnum">.300 Winchester Magnum</option>
+                <option value=".300 Blackout">.300 Blackout</option>
+                <option value=".338 Lapua Magnum">.338 Lapua Magnum</option>
+                <option value=".50 BMG">.50 BMG</option>
+              </optgroup>
+              <optgroup label="Pistol Calibers">
+                <option value=".22 LR">.22 LR</option>
+                <option value=".380 ACP">.380 ACP</option>
+                <option value="9mm Luger">9mm Luger</option>
+                <option value=".40 S&W">.40 S&W</option>
+                <option value=".45 ACP">.45 ACP</option>
+                <option value="10mm Auto">10mm Auto</option>
+                <option value=".357 SIG">.357 SIG</option>
+              </optgroup>
+              <optgroup label="Revolver Calibers">
+                <option value=".22 LR">.22 LR</option>
+                <option value=".22 WMR">.22 WMR</option>
+                <option value=".32 H&R Magnum">.32 H&R Magnum</option>
+                <option value=".38 Special">.38 Special</option>
+                <option value=".357 Magnum">.357 Magnum</option>
+                <option value=".41 Magnum">.41 Magnum</option>
+                <option value=".44 Special">.44 Special</option>
+                <option value=".44 Magnum">.44 Magnum</option>
+                <option value=".45 Colt">.45 Colt</option>
+                <option value=".454 Casull">.454 Casull</option>
+                <option value=".460 S&W Magnum">.460 S&W Magnum</option>
+                <option value=".500 S&W Magnum">.500 S&W Magnum</option>
+              </optgroup>
+              <optgroup label="Shotgun Gauges">
+                <option value="10 gauge">10 gauge</option>
+                <option value="12 gauge">12 gauge</option>
+                <option value="16 gauge">16 gauge</option>
+                <option value="20 gauge">20 gauge</option>
+                <option value="28 gauge">28 gauge</option>
+                <option value=".410 bore">.410 bore</option>
+              </optgroup>
+            </select>
+            <div class="error-message" id="error-caliber">Caliber is required</div>
+          </div>
+          <div>
+            <label>Nickname/Identifier *</label>
+            <input required id="fm-nickname" placeholder="e.g., Training Rifle A" />
+            <div class="error-message" id="error-nickname">Nickname is required and must be unique</div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>Status *</label>
+            <select id="fm-status" required>
+              <option value="">Select status…</option>
+              <option value="available">Available</option>
+              <option value="in-use">In Use</option>
+              <option value="maintenance">Maintenance</option>
+            </select>
+            <div class="error-message" id="error-status">Status is required</div>
+          </div>
+          <div>
+            <label>Serial Number</label>
+            <input id="fm-serial" placeholder="Optional - for individual tracking" />
+          </div>
+        </div>
+
+        <input type="hidden" id="fm-detailed-type" value="" />
+        <input type="hidden" id="fm-purpose" value="" />
+        <input type="hidden" id="fm-condition" value="good" />
+        <input type="hidden" id="fm-purchase-date" value="" />
+        <input type="hidden" id="fm-purchase-price" value="" />
+        <input type="hidden" id="fm-current-value" value="" />
+        <input type="hidden" id="fm-ffl-dealer" value="" />
+        <input type="hidden" id="fm-manufacturer-pn" value="" />
+        <input type="hidden" id="fm-finish" value="" />
+        <input type="hidden" id="fm-stock-material" value="" />
+        <input type="hidden" id="fm-trigger-type" value="" />
+        <input type="hidden" id="fm-safety-type" value="" />
+        <input type="hidden" id="fm-feed-system" value="" />
+        <input type="hidden" id="fm-magazine-capacity" value="" />
+        <input type="hidden" id="fm-twist-rate" value="" />
+        <input type="hidden" id="fm-thread-pattern" value="" />
+        <input type="hidden" id="fm-overall-length" value="" />
+        <input type="hidden" id="fm-weight" value="" />
+        <input type="hidden" id="fm-barrel-length" value="" />
+        <input type="hidden" id="fm-action-type" value="" />
+        <input type="hidden" id="fm-round-count" value="0" />
+        <input type="hidden" id="fm-last-cleaned" value="" />
+        <input type="hidden" id="fm-zero-distance" value="" />
+        <input type="hidden" id="fm-modifications" value="" />
+        <input type="hidden" id="fm-accessories-included" value="" />
+        <input type="hidden" id="fm-storage-location" value="" />
+        <input type="hidden" id="fm-photos" value="[]" />
+
+        <div>
+          <label>Notes</label>
+          <textarea id="fm-notes" rows="3" placeholder="Purpose, setup, special considerations, etc."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="fm-save">Save Firearm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modal-addAmmo">
+    <form id="ammo-form">
+      <div class="modal-head">
+        <strong>Add Ammunition</strong>
+        <span class="level-indicator">Level 1 UI</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn icon" data-close>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="row-2">
+          <div>
+            <label>Brand *</label>
+            <select id="am-brand" required>
+              <option value="">Select brand…</option>
+              <option value="Federal Premium">Federal Premium</option>
+              <option value="Hornady">Hornady</option>
+              <option value="Winchester">Winchester</option>
+              <option value="Remington">Remington</option>
+              <option value="CCI">CCI</option>
+              <option value="Lapua">Lapua</option>
+              <option value="Norma">Norma</option>
+              <option value="Berger">Berger</option>
+              <option value="Sierra">Sierra</option>
+              <option value="Nosler">Nosler</option>
+              <option value="Barnes">Barnes</option>
+              <option value="Black Hills">Black Hills</option>
+              <option value="Speer">Speer</option>
+              <option value="PMC">PMC</option>
+              <option value="Fiocchi">Fiocchi</option>
+              <option value="Sellier & Bellot">Sellier & Bellot</option>
+              <option value="Aguila">Aguila</option>
+              <option value="Wolf">Wolf</option>
+              <option value="Tula">Tula</option>
+              <option value="Handloaded">Handloaded</option>
+              <option value="Other">Other</option>
+            </select>
+            <div class="error-message" id="error-brand">Brand is required</div>
+          </div>
+          <div>
+            <label>Product Line</label>
+            <input id="am-line" placeholder="e.g., Gold Medal Match, V-Max" />
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>Caliber *</label>
+            <select id="am-caliber" required>
+              <option value="">Select caliber…</option>
+              <optgroup label="Rifle Calibers">
+                <option value=".17 HMR">.17 HMR</option>
+                <option value=".22 LR">.22 LR</option>
+                <option value=".22 WMR">.22 WMR</option>
+                <option value=".223 Remington">.223 Remington</option>
+                <option value="5.56x45mm NATO">5.56x45mm NATO</option>
+                <option value=".243 Winchester">.243 Winchester</option>
+                <option value="6mm Creedmoor">6mm Creedmoor</option>
+                <option value="6.5 Grendel">6.5 Grendel</option>
+                <option value="6.5 Creedmoor">6.5 Creedmoor</option>
+                <option value=".270 Winchester">.270 Winchester</option>
+                <option value="7mm-08 Remington">7mm-08 Remington</option>
+                <option value="7mm Remington Magnum">7mm Remington Magnum</option>
+                <option value=".308 Winchester">.308 Winchester</option>
+                <option value="7.62x51mm NATO">7.62x51mm NATO</option>
+                <option value=".30-06 Springfield">.30-06 Springfield</option>
+                <option value=".300 Winchester Magnum">.300 Winchester Magnum</option>
+                <option value=".300 Blackout">.300 Blackout</option>
+                <option value=".338 Lapua Magnum">.338 Lapua Magnum</option>
+                <option value=".50 BMG">.50 BMG</option>
+              </optgroup>
+              <optgroup label="Pistol Calibers">
+                <option value=".22 LR">.22 LR</option>
+                <option value=".380 ACP">.380 ACP</option>
+                <option value="9mm Luger">9mm Luger</option>
+                <option value=".40 S&W">.40 S&W</option>
+                <option value=".45 ACP">.45 ACP</option>
+                <option value="10mm Auto">10mm Auto</option>
+                <option value=".357 SIG">.357 SIG</option>
+              </optgroup>
+              <optgroup label="Revolver Calibers">
+                <option value=".22 LR">.22 LR</option>
+                <option value=".22 WMR">.22 WMR</option>
+                <option value=".32 H&R Magnum">.32 H&R Magnum</option>
+                <option value=".38 Special">.38 Special</option>
+                <option value=".357 Magnum">.357 Magnum</option>
+                <option value=".41 Magnum">.41 Magnum</option>
+                <option value=".44 Special">.44 Special</option>
+                <option value=".44 Magnum">.44 Magnum</option>
+                <option value=".45 Colt">.45 Colt</option>
+                <option value=".454 Casull">.454 Casull</option>
+                <option value=".460 S&W Magnum">.460 S&W Magnum</option>
+                <option value=".500 S&W Magnum">.500 S&W Magnum</option>
+              </optgroup>
+              <optgroup label="Shotgun Gauges">
+                <option value="10 gauge">10 gauge</option>
+                <option value="12 gauge">12 gauge</option>
+                <option value="16 gauge">16 gauge</option>
+                <option value="20 gauge">20 gauge</option>
+                <option value="28 gauge">28 gauge</option>
+                <option value=".410 bore">.410 bore</option>
+              </optgroup>
+            </select>
+            <div class="error-message" id="error-caliber">Caliber is required</div>
+            <div class="compatibility-warning" id="caliber-warning">
+              This caliber doesn't match any of your firearms. Consider adding a compatible firearm first.
+            </div>
+          </div>
+          <div>
+            <label>Bullet Weight & Type *</label>
+            <input required id="am-bullet" placeholder="e.g., 168 gr HPBT, 55 gr FMJ" />
+            <div class="error-message" id="error-bullet">Bullet weight and type are required</div>
+          </div>
+        </div>
+
+        <div class="row-3">
+          <div>
+            <label>Quantity (rounds) *</label>
+            <input required id="am-qty" type="number" min="0" placeholder="20" />
+            <div class="error-message" id="error-qty">Quantity is required</div>
+          </div>
+          <div>
+            <label>Status *</label>
+            <select id="am-status" required>
+              <option value="">Select status…</option>
+              <option value="available">Available</option>
+              <option value="low-stock">Low Stock</option>
+              <option value="out-of-stock">Out of Stock</option>
+            </select>
+            <div class="error-message" id="error-status">Status is required</div>
+          </div>
+          <div>
+            <label>Lot Number</label>
+            <input id="am-lot" placeholder="ABC1234" />
+          </div>
+        </div>
+
+        <input type="hidden" id="am-primer-type" value="" />
+        <input type="hidden" id="am-powder-type" value="" />
+        <input type="hidden" id="am-powder-weight" value="" />
+        <input type="hidden" id="am-case-material" value="brass" />
+        <input type="hidden" id="am-case-condition" value="new" />
+        <input type="hidden" id="am-headstamp" value="" />
+        <input type="hidden" id="am-ballistic-coefficient" value="" />
+        <input type="hidden" id="am-muzzle-energy" value="" />
+        <input type="hidden" id="am-velocity" value="" />
+        <input type="hidden" id="am-temperature-tested" value="" />
+        <input type="hidden" id="am-standard-deviation" value="" />
+        <input type="hidden" id="am-extreme-spread" value="" />
+        <input type="hidden" id="am-group-size" value="" />
+        <input type="hidden" id="am-test-distance" value="" />
+        <input type="hidden" id="am-test-firearm" value="" />
+        <input type="hidden" id="am-storage-location" value="" />
+        <input type="hidden" id="am-purchase-date" value="" />
+        <input type="hidden" id="am-purchase-price" value="" />
+        <input type="hidden" id="am-cost-per-round" value="" />
+        <input type="hidden" id="am-expiration-date" value="" />
+        <input type="hidden" id="am-performance-notes" value="" />
+        <input type="hidden" id="am-environmental-conditions" value="" />
+        <input type="hidden" id="am-is-handloaded" value="false" />
+        <input type="hidden" id="am-load-data" value="" />
+
+        <div>
+          <label>Notes</label>
+          <textarea id="am-notes" rows="3" placeholder="Performance notes, accuracy, reliability, etc."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="am-save">Save Ammunition</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modal-addGear">
+    <div class="modal-head">
+      <strong>Add Gear</strong>
+      <span class="spacer"></span>
+      <button type="button" class="btn icon" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label>Category *</label>
+        <select id="gr-category" required>
+          <option value="">Select category...</option>
+          <option value="optics">Optics</option>
+          <option value="supports">Supports</option>
+          <option value="attachments">Attachments</option>
+          <option value="sensors">Sensors</option>
+          <option value="misc">Miscellaneous</option>
+        </select>
+      </div>
+      <div>
+        <label>Model/Name *</label>
+        <input id="gr-model" placeholder="e.g., Vortex Razor HD" required />
+      </div>
+      <div class="row-2">
+        <div>
+          <label>Serial Number</label>
+          <input id="gr-serial" placeholder="Optional" />
+        </div>
+        <div>
+          <label>Quantity</label>
+          <input id="gr-qty" type="number" min="1" value="1" />
+        </div>
+      </div>
+      <div>
+        <label>Notes</label>
+        <textarea id="gr-notes" rows="3" placeholder="Details about this gear"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="gr-save">Save Gear</button>
+    </div>
+  </dialog>
+
+  <dialog id="modal-addTool">
+    <div class="modal-head">
+      <strong>Add Tool</strong>
+      <span class="spacer"></span>
+      <button type="button" class="btn icon" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label>Name *</label>
+        <input id="tl-name" placeholder="e.g., Wheeler FAT Wrench" required />
+      </div>
+      <div class="row-2">
+        <div>
+          <label>Category</label>
+          <select id="tl-category">
+            <option value="">Select category...</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="measurement">Measurement</option>
+            <option value="reloading">Reloading</option>
+            <option value="safety">Safety</option>
+          </select>
+        </div>
+        <div>
+          <label>Quantity</label>
+          <input id="tl-qty" type="number" min="1" value="1" />
+        </div>
+      </div>
+      <div>
+        <label>Notes</label>
+        <textarea id="tl-notes" rows="3" placeholder="Details about this tool"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="tl-save">Save Tool</button>
+    </div>
+  </dialog>
+
+  <dialog id="modal-addMaintenance">
+    <div class="modal-head">
+      <strong>Log Maintenance</strong>
+      <span class="spacer"></span>
+      <button type="button" class="btn icon" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="row-2">
+        <div>
+          <label>Asset Type *</label>
+          <select id="mt-type" required>
+            <option value="">Select type...</option>
+            <option value="firearm">Firearm</option>
+            <option value="gear">Gear</option>
+          </select>
+        </div>
+        <div>
+          <label>Asset *</label>
+          <select id="mt-asset" required>
+            <option value="">Select asset...</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-2">
+        <div>
+          <label>Maintenance Type *</label>
+          <select id="mt-kind" required>
+            <option value="">Select type...</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="lubrication">Lubrication</option>
+            <option value="inspection">Inspection</option>
+            <option value="repair">Repair</option>
+            <option value="replacement">Part Replacement</option>
+          </select>
+        </div>
+        <div>
+          <label>Date</label>
+          <input id="mt-date" type="date" />
+        </div>
+      </div>
+      <div>
+        <label>Rounds Fired (if applicable)</label>
+        <input id="mt-rounds" type="number" min="0" placeholder="0" />
+      </div>
+      <div>
+        <label>Notes</label>
+        <textarea id="mt-notes" rows="3" placeholder="Details of maintenance performed"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="mt-save">Save Log</button>
+    </div>
+  </dialog>
+
+  <dialog id="modal-addLoadout">
+    <div class="modal-head">
+      <strong>Create Loadout</strong>
+      <span class="spacer"></span>
+      <button type="button" class="btn icon" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label>Name *</label>
+        <input id="loadout-name" placeholder="e.g., Precision .308" required />
+      </div>
+      <div>
+        <label>Firearm</label>
+        <select id="loadout-firearm">
+          <option value="">Select firearm...</option>
+        </select>
+      </div>
+      <div>
+        <label>Ammunition</label>
+        <select id="loadout-ammo">
+          <option value="">Select ammo...</option>
+        </select>
+      </div>
+      <div>
+        <label>Gear (Hold Ctrl/Cmd to select multiple)</label>
+        <select id="loadout-gear" multiple size="4">
+        </select>
+      </div>
+      <div>
+        <label>Notes</label>
+        <textarea id="loadout-notes" rows="3" placeholder="Purpose, conditions, etc."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn primary" id="loadout-save">Save Loadout</button>
+    </div>
+  </dialog>
+
+  <script>
+    // ===== Utilities =====
+    const KEY = {
+      FIREARMS: 'firearms',
+      AMMO: 'ammo',
+      GEAR: 'gear',
+      TOOLS: 'tools',
+      MAINTENANCE: 'maintenance',
+      LOADOUTS: 'loadouts'
+    };
+    
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const defaultState = { firearms:[], ammo:[], gear:[], tools:[], maintenance:[], loadouts:[] };
+    
+    function loadState(){ 
+      try { 
+        const loaded = JSON.parse(localStorage.getItem('shoq-app-v1')) || {};
+        // BUG FIX: Merge loaded state with default state to ensure all keys exist
+        // This prevents errors if stored data is from an older version of the app.
+        return { ...structuredClone(defaultState), ...loaded };
+      } catch(e){ 
+        return structuredClone(defaultState); 
+      } 
+    }
+    
+    function saveState(s){ localStorage.setItem('shoq-app-v1', JSON.stringify(s)); }
+    let state = loadState();
+
+    // ===== App Nav =====
+    function setView(viewId){
+      $$('.appview').forEach(v => v.classList.remove('active'));
+      $('#view-' + viewId).classList.add('active');
+      $$('.appnav button').forEach(b=> b.setAttribute('aria-current', b.dataset.view===viewId ? 'page' : 'false'));
+      // Show Armory tabs only on Armory view
+      $('#armory-tabs').style.display = (viewId==='armory') ? 'grid' : 'none';
+    }
+    
+    $$('.appnav button').forEach(b=> b.addEventListener('click', ()=> setView(b.dataset.view) ));
+    
+    // quick links
+    document.body.addEventListener('click', (e)=>{
+      const goto = e.target.closest('[data-goto]');
+      if(goto){ setView(goto.dataset.goto); }
+    });
+
+    // ===== Armory Tabs =====
+    const tabButtons = $$('#armory-tabs button');
+    const tabPanels = ['firearms','ammo','gear','tools','loadouts','report'].map(id => $('#tab-'+id));
+    
+    function setTab(id){
+      tabButtons.forEach(btn=>{
+        const isActive = btn.id === 'tabbtn-'+id;
+        btn.setAttribute('aria-current', isActive ? 'page' : '');
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      tabPanels.forEach(sec=>sec.classList.add('hidden'));
+      $('#tab-'+id).classList.remove('hidden');
+      if(id==='report') updateReport();
+      if(id==='loadouts') refreshLoadoutSelectors();
+    }
+    
+    tabButtons.forEach(btn => btn.addEventListener('click', ()=> setTab(btn.id.replace('tabbtn-','')) ));
+
+    // ===== Accordions (Gear) =====
+    function wireAccordions(){
+      $$('#gear-accordion .acc').forEach(acc=>{
+        const btn = acc.querySelector('.acc-btn');
+        btn.addEventListener('click', ()=>{
+          const isOpen = acc.classList.toggle('open');
+          btn.setAttribute('aria-expanded', String(isOpen));
+        });
+      });
+    }
+
+    // ===== Render lists =====
+    function fmtCount(n, word){ return n + ' ' + (n===1? word : word+'s'); }
+    
+    function render(){
+      // counts
+      $('#firearm-count').textContent = fmtCount(state.firearms.length, 'item');
+      $('#ammo-count').textContent = fmtCount(state.ammo.length, 'lot');
+      $('#gear-count').textContent = fmtCount(state.gear.length, 'item');
+      $('#tool-count').textContent = fmtCount(state.tools.length, 'item');
+      $('#loadout-count').textContent = fmtCount(state.loadouts.length, 'loadout');
+
+      // recent list on Home
+      const r = $('#recent-list'); 
+      if(r){ 
+        r.innerHTML=''; 
+        const recent = []
+          .concat(state.firearms.slice(-2).map(x=>({type:'Firearm', name:(x.make+' '+x.model)})))
+          .concat(state.ammo.slice(-2).map(x=>({type:'Ammo', name:(x.brand+' '+(x.line||''))})))
+          .concat(state.gear.slice(-2).map(x=>({type:'Gear', name:x.model})))
+          .concat(state.tools.slice(-2).map(x=>({type:'Tool', name:x.name})))
+          .slice(-6).reverse();
+        
+        if(recent.length===0){ 
+          r.innerHTML = '<div class="empty">Nothing added yet.</div>'; 
+        } else {
+          recent.forEach(it=>{
+            const el=document.createElement('div'); 
+            el.className='item';
+            el.innerHTML='<div class="title">'+it.type+': '+it.name+'</div>';
+            r.appendChild(el);
+          });
+        }
+      }
+
+      // firearms
+      const fList = $('#firearm-list'); 
+      fList.innerHTML='';
+      if(state.firearms.length===0){ 
+        fList.innerHTML='<div class="empty">No firearms yet.</div>'; 
+      } else {
+        state.firearms.slice().reverse().forEach(f=>{
+          const el = document.createElement('div'); 
+          el.className='item';
+          el.innerHTML =
+            '<div class="title">'+(f.make||'')+' '+(f.model||'')+' <span class="chip">'+(f.caliber||'')+'</span></div>'+
+            '<div class="meta"><span>Qty: '+(f.qty||1)+'</span>'+
+            (f.serial? '<span>SN: '+f.serial+'</span>':'')+
+            (f.nickname? '<span>"'+f.nickname+'"</span>':'')+
+            '</div>';
+          fList.appendChild(el);
+        });
+      }
+
+      // ammo
+      const aList = $('#ammo-list'); 
+      aList.innerHTML='';
+      if(state.ammo.length===0){ 
+        aList.innerHTML='<div class="empty">No ammo lots yet.</div>'; 
+      } else {
+        state.ammo.slice().reverse().forEach(a=>{
+          const el = document.createElement('div'); 
+          el.className='item';
+          el.innerHTML =
+            '<div class="title">'+(a.brand||'')+' '+(a.line||'')+' <span class="chip">'+(a.caliber||'')+'</span></div>'+
+            '<div class="meta"><span>Lot: '+(a.lot||'-')+'</span>'+
+            (a.qty? '<span>Qty: '+a.qty+' rds</span>':'')+
+            '<span class="status-indicator status-' + (a.status || 'available').replace(' ', '-') + '">' + (a.status || 'Available') + '</span>' +
+            '</div>';
+          aList.appendChild(el);
+        });
+      }
+
+      // gear categories
+      ['optics','supports','attachments','sensors','misc'].forEach(cat=>{
+        const container = $('#gear-'+cat); 
+        if(!container) return; 
+        container.innerHTML='';
+        const items = state.gear.filter(g=>g.category===cat);
+        if(items.length===0){ 
+          container.innerHTML='<div class="empty">No items.</div>'; 
+        } else {
+          items.slice().reverse().forEach(g=>{
+            const el = document.createElement('div'); 
+            el.className='item';
+            el.innerHTML =
+              '<div class="title">'+(g.model||'')+' <span class="chip">'+(g.category||'')+'</span></div>'+
+              '<div class="meta">'+
+              (g.serial? '<span>SN: '+g.serial+'</span>':'')+
+              '<span>Qty: '+(g.qty||1)+'</span>'+
+              '</div>';
+            container.appendChild(el);
+          });
+        }
+      });
+
+      // tools
+      const tList = $('#tool-list'); 
+      tList.innerHTML='';
+      if(state.tools.length===0){ 
+        tList.innerHTML='<div class="empty">No tools yet.</div>'; 
+      } else {
+        state.tools.slice().reverse().forEach(t=>{
+          const el=document.createElement('div'); 
+          el.className='item';
+          el.innerHTML = '<div class="title">'+t.name+'</div><div class="meta"><span>Qty: '+(t.qty||1)+'</span>'+(t.notes? '<span>'+t.notes+'</span>':'')+'</div>';
+          tList.appendChild(el);
+        });
+      }
+
+      // loadouts
+      const lList = $('#loadout-list'); 
+      lList.innerHTML='';
+      if(state.loadouts.length===0){ 
+        lList.innerHTML='<div class="empty">No loadouts yet.</div>'; 
+      } else {
+        state.loadouts.slice().reverse().forEach(l=>{
+          const el=document.createElement('div'); 
+          el.className='item';
+          el.innerHTML = '<div class="title">'+l.name+'</div><div class="meta">'+(l.notes? '<span>'+l.notes+'</span>':'')+'</div>';
+          lList.appendChild(el);
+        });
+      }
+
+      refreshMaintenanceAssetOptions();
+    }
+
+    // ===== Report =====
+    function updateReport() {
+      // Update summary counts
+      $('#total-firearms').textContent = state.firearms.length;
+      $('#total-ammo').textContent = state.ammo.length;
+      $('#total-gear').textContent = state.gear.length;
+      $('#total-tools').textContent = state.tools.length;
+      $('#total-loadouts').textContent = state.loadouts.length;
+      
+      // Update section counts
+      $('#section-firearm-count').textContent = `${state.firearms.length} items`;
+      $('#section-ammo-count').textContent = `${state.ammo.length} lots`;
+      $('#section-gear-count').textContent = `${state.gear.length} items`;
+      $('#section-tool-count').textContent = `${state.tools.length} items`;
+      $('#section-maint-count').textContent = `${state.maintenance.length} entries`;
+      $('#section-loadout-count').textContent = `${state.loadouts.length} loadouts`;
+      
+      // Render tables
+      renderFirearmsTable();
+      renderAmmoTable();
+      renderGearTable();
+      renderToolsTable();
+      renderMaintenanceTable();
+      renderLoadoutsTable();
+    }
+
+    function renderFirearmsTable() {
+      const firearms = state.firearms;
+      const tbody = $('#tbl-firearms tbody');
+      tbody.innerHTML = '';
+      
+      firearms.forEach(firearm => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${firearm.make || ''}</td>
+          <td>${firearm.model || ''}</td>
+          <td>${firearm.caliber || ''}</td>
+          <td>${firearm.type || ''}</td>
+          <td class="status-${firearm.status || 'available'}">${firearm.status || 'Available'}</td>
+          <td>${firearm.serial || ''}</td>
+          <td>${firearm.nickname || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderAmmoTable() {
+      const ammo = state.ammo;
+      const tbody = $('#tbl-ammo tbody');
+      tbody.innerHTML = '';
+      
+      ammo.forEach(lot => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${lot.brand || ''}</td>
+          <td>${lot.line || ''}</td>
+          <td>${lot.caliber || ''}</td>
+          <td>${lot.bullet || ''}</td>
+          <td class="status-${lot.status || 'available'}">${lot.status || 'Available'}</td>
+          <td>${lot.qty || ''}</td>
+          <td>${lot.lot || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderGearTable() {
+      const gear = state.gear;
+      const tbody = $('#tbl-gear tbody');
+      tbody.innerHTML = '';
+      
+      gear.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.category || ''}</td>
+          <td>${item.model || ''}</td>
+          <td>${item.serial || ''}</td>
+          <td>${item.qty || 1}</td>
+          <td>${item.notes || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderToolsTable() {
+      const tools = state.tools;
+      const tbody = $('#tbl-tools tbody');
+      tbody.innerHTML = '';
+      
+      tools.forEach(tool => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${tool.name || ''}</td>
+          <td>${tool.category || ''}</td>
+          <td>${tool.status || 'Available'}</td>
+          <td>${tool.qty || 1}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderMaintenanceTable() {
+      const maintenance = state.maintenance;
+      const tbody = $('#tbl-maint tbody');
+      tbody.innerHTML = '';
+      
+      maintenance.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.date || ''}</td>
+          <td>${entry.asset || ''}</td>
+          <td>${entry.kind || ''}</td>
+          <td>${entry.rounds || 0}</td>
+          <td>${entry.notes || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderLoadoutsTable() {
+      const loadouts = state.loadouts;
+      const tbody = $('#tbl-loadouts tbody');
+      tbody.innerHTML = '';
+      
+      loadouts.forEach(loadout => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${loadout.name || ''}</td>
+          <td>${loadout.firearm || ''}</td>
+          <td>${loadout.ammo || ''}</td>
+          <td>${loadout.gear ? loadout.gear.length : 0} items</td>
+          <td>${loadout.notes || ''}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // ===== Print Report =====
+    function printReport() {
+      // Expand all sections for printing
+      const allSections = document.querySelectorAll('.report-section');
+      allSections.forEach(section => {
+        const header = section.querySelector('.section-header');
+        const content = section.querySelector('.section-content');
+        header.setAttribute('aria-expanded', 'true');
+        content.classList.add('show');
+      });
+      
+      // Wait a moment for the DOM to update, then print
+      setTimeout(() => {
+        window.print();
+      }, 100);
+    }
+
+    // ===== Modals control =====
+    const modals = {
+      addFirearm: $('#modal-addFirearm'),
+      addAmmo: $('#modal-addAmmo'),
+      addGear: $('#modal-addGear'),
+      addTool: $('#modal-addTool'),
+      addMaintenance: $('#modal-addMaintenance'),
+      addLoadout: $('#modal-addLoadout')
+    };
+    
+    document.body.addEventListener('click', function(e){
+      const openBtn = e.target.closest('[data-open]');
+      const closeBtn = e.target.closest('[data-close]');
+      
+      if(openBtn){
+        e.preventDefault();
+        const m = modals[openBtn.dataset.open];
+        if(m){ 
+          m.showModal(); 
+          // Special setup for certain modals
+          if (openBtn.dataset.open === 'addMaintenance') {
+            updateMaintenanceAssets();
+          } else if (openBtn.dataset.open === 'addLoadout') {
+            updateLoadoutOptions();
+          } else if (openBtn.dataset.open === 'addAmmo') {
+            checkCaliberCompatibility();
+          }
+        }
+      }
+      
+      if(closeBtn){
+        e.preventDefault();
+        const d = e.target.closest('dialog');
+        if(d && d.close) d.close('close');
+        clearErrors();
+      }
+    });
+    
+    // backdrop close
+    Object.values(modals).forEach(function(m){
+      if(!m) return;
+      m.addEventListener('click', function(e){
+        const r = m.getBoundingClientRect();
+        if(e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom){
+          m.close('backdrop');
+          clearErrors();
+        }
+      });
+    });
+
+    // ===== Form validation helpers =====
+    function clearErrors() {
+      const errorElements = document.querySelectorAll('.error-message, .compatibility-warning');
+      errorElements.forEach(el => el.classList.remove('show'));
+      
+      const inputElements = document.querySelectorAll('input.error, select.error');
+      inputElements.forEach(el => el.classList.remove('error'));
+    }
+
+    function showError(fieldId, messageId, message) {
+      const field = document.getElementById(fieldId);
+      const errorEl = document.getElementById(messageId);
+      
+      if (field) field.classList.add('error');
+      if (message && errorEl) errorEl.textContent = message;
+      if (errorEl) errorEl.classList.add('show');
+    }
+
+    // ===== Save handlers =====
+    document.addEventListener('click', function(e){
+      // Firearm save
+      if(e.target && e.target.id==='fm-save'){
+        e.preventDefault();
+        
+        // Validate form
+        clearErrors();
+        let isValid = true;
+
+        // Validate required fields
+        if (!document.getElementById('fm-type').value) {
+          showError('fm-type', 'error-type');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('fm-make').value.trim()) {
+          showError('fm-make', 'error-make');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('fm-model').value.trim()) {
+          showError('fm-model', 'error-model');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('fm-caliber').value) {
+          showError('fm-caliber', 'error-caliber');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('fm-nickname').value.trim()) {
+          showError('fm-nickname', 'error-nickname');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('fm-status').value) {
+          showError('fm-status', 'error-status');
+          isValid = false;
+        }
+        
+        // Check for duplicate nickname
+        const nickname = document.getElementById('fm-nickname').value.trim();
+        const isDuplicate = state.firearms.some(f => 
+          f.nickname && f.nickname.toLowerCase() === nickname.toLowerCase()
+        );
+        
+        if (isDuplicate) {
+          showError('fm-nickname', 'error-nickname', 'This nickname is already in use. Please choose a unique identifier.');
+          isValid = false;
+        }
+
+        if (!isValid) return;
+
+        const f = {
+          type: $('#fm-type').value,
+          make: $('#fm-make').value.trim(),
+          model: $('#fm-model').value.trim(),
+          caliber: $('#fm-caliber').value,
+          nickname: $('#fm-nickname').value.trim(),
+          status: $('#fm-status').value,
+          serial: $('#fm-serial').value.trim(),
+          // BUG FIX: Removed reference to non-existent 'fm-qty' input.
+          // The UI is designed to add one asset at a time.
+          qty: 1,
+          notes: $('#fm-notes').value.trim(),
+          // Level 3 fields
+          detailedType: $('#fm-detailed-type').value,
+          purpose: $('#fm-purpose').value,
+          condition: $('#fm-condition').value,
+          purchaseDate: $('#fm-purchase-date').value,
+          purchasePrice: $('#fm-purchase-price').value,
+          currentValue: $('#fm-current-value').value,
+          fflDealer: $('#fm-ffl-dealer').value,
+          manufacturerPN: $('#fm-manufacturer-pn').value,
+          finish: $('#fm-finish').value,
+          stockMaterial: $('#fm-stock-material').value,
+          triggerType: $('#fm-trigger-type').value,
+          safetyType: $('#fm-safety-type').value,
+          feedSystem: $('#fm-feed-system').value,
+          magazineCapacity: $('#fm-magazine-capacity').value,
+          twistRate: $('#fm-twist-rate').value,
+          threadPattern: $('#fm-thread-pattern').value,
+          overallLength: $('#fm-overall-length').value,
+          weight: $('#fm-weight').value,
+          barrelLength: $('#fm-barrel-length').value,
+          actionType: $('#fm-action-type').value,
+          roundCount: parseInt($('#fm-round-count').value||'0',10),
+          lastCleaned: $('#fm-last-cleaned').value,
+          zeroDistance: $('#fm-zero-distance').value,
+          modifications: $('#fm-modifications').value,
+          accessoriesIncluded: $('#fm-accessories-included').value,
+          storageLocation: $('#fm-storage-location').value,
+          photos: JSON.parse($('#fm-photos').value || '[]'),
+          dateAdded: new Date().toISOString()
+        };
+        
+        state.firearms.push(f); 
+        saveState(state);
+        $('#modal-addFirearm').close('confirm'); 
+        render(); 
+        refreshLoadoutSelectors();
+      }
+      
+      // Ammo save
+      if(e.target && e.target.id==='am-save'){
+        e.preventDefault();
+        
+        // Validate form
+        clearErrors();
+        let isValid = true;
+
+        // Validate required fields
+        if (!document.getElementById('am-brand').value) {
+          showError('am-brand', 'error-brand');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('am-caliber').value) {
+          showError('am-caliber', 'error-caliber');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('am-bullet').value.trim()) {
+          showError('am-bullet', 'error-bullet');
+          isValid = false;
+        }
+        
+        const qty = parseInt(document.getElementById('am-qty').value);
+        if (isNaN(qty) || qty < 0) {
+          showError('am-qty', 'error-qty', 'Quantity must be a valid number.');
+          isValid = false;
+        }
+        
+        if (!document.getElementById('am-status').value) {
+          showError('am-status', 'error-status');
+          isValid = false;
+        }
+
+        if (!isValid) return;
+
+        const a = {
+          brand: $('#am-brand').value,
+          line: $('#am-line').value.trim(),
+          caliber: $('#am-caliber').value,
+          bullet: $('#am-bullet').value.trim(),
+          qty: parseInt($('#am-qty').value||'0',10) || 0,
+          status: $('#am-status').value,
+          lot: $('#am-lot').value.trim(),
+          notes: $('#am-notes').value.trim(),
+          // Level 3 fields
+          primerType: $('#am-primer-type').value,
+          powderType: $('#am-powder-type').value,
+          powderWeight: $('#am-powder-weight').value,
+          caseMaterial: $('#am-case-material').value,
+          caseCondition: $('#am-case-condition').value,
+          headstamp: $('#am-headstamp').value,
+          ballisticCoefficient: $('#am-ballistic-coefficient').value,
+          muzzleEnergy: $('#am-muzzle-energy').value,
+          velocity: $('#am-velocity').value,
+          temperatureTested: $('#am-temperature-tested').value,
+          standardDeviation: $('#am-standard-deviation').value,
+          extremeSpread: $('#am-extreme-spread').value,
+          groupSize: $('#am-group-size').value,
+          testDistance: $('#am-test-distance').value,
+          testFirearm: $('#am-test-firearm').value,
+          storageLocation: $('#am-storage-location').value,
+          purchaseDate: $('#am-purchase-date').value,
+          purchasePrice: $('#am-purchase-price').value,
+          costPerRound: $('#am-cost-per-round').value,
+          expirationDate: $('#am-expiration-date').value,
+          performanceNotes: $('#am-performance-notes').value,
+          environmentalConditions: $('#am-environmental-conditions').value,
+          isHandloaded: $('#am-is-handloaded').value === 'true',
+          loadData: $('#am-load-data').value,
+          dateAdded: new Date().toISOString()
+        };
+        
+        state.ammo.push(a); 
+        saveState(state);
+        $('#modal-addAmmo').close('confirm'); 
+        render(); 
+        refreshLoadoutSelectors();
+      }
+      
+      // Gear save
+      if(e.target && e.target.id==='gr-save'){
+        e.preventDefault();
+        const g = {
+          category: $('#gr-category').value,
+          model: $('#gr-model').value.trim(),
+          serial: $('#gr-serial').value.trim(),
+          qty: parseInt($('#gr-qty').value||'1',10),
+          notes: $('#gr-notes').value.trim()
+        };
+        
+        if(!g.category || !g.model) return;
+        state.gear.push(g); 
+        saveState(state);
+        $('#modal-addGear').close('confirm'); 
+        render(); 
+        refreshLoadoutSelectors();
+      }
+      
+      // Tool save
+      if(e.target && e.target.id==='tl-save'){
+        e.preventDefault();
+        const t = {
+          name: $('#tl-name').value.trim(),
+          category: $('#tl-category').value,
+          qty: parseInt($('#tl-qty').value||'1',10),
+          notes: $('#tl-notes').value.trim()
+        };
+        
+        if(!t.name) return;
+        state.tools.push(t); 
+        saveState(state);
+        $('#modal-addTool').close('confirm'); 
+        render();
+      }
+      
+      // Maintenance save
+      if(e.target && e.target.id==='mt-save'){
+        e.preventDefault();
+        const m = {
+          type: $('#mt-type').value,
+          asset: $('#mt-asset').value,
+          kind: $('#mt-kind').value,
+          rounds: parseInt($('#mt-rounds').value||'0',10),
+          date: $('#mt-date').value,
+          notes: $('#mt-notes').value.trim()
+        };
+        
+        if(!m.asset) return;
+        state.maintenance.push(m); 
+        saveState(state);
+        $('#modal-addMaintenance').close('confirm'); 
+        render();
+      }
+      
+      // Loadout save
+      if(e.target && e.target.id==='loadout-save'){
+        e.preventDefault();
+        const ld = {
+          name: $('#loadout-name').value.trim(),
+          notes: $('#loadout-notes').value.trim(),
+          firearm: $('#loadout-firearm').value,
+          ammo: $('#loadout-ammo').value,
+          gear: Array.from($('#loadout-gear').selectedOptions).map(function(o){ return o.value; })
+        };
+        
+        if(!ld.name) return;
+        state.loadouts.push(ld); 
+        saveState(state);
+        $('#modal-addLoadout').close('confirm'); 
+        render();
+      }
+      
+      // Print report
+      if(e.target && e.target.id==='print-report'){
+        printReport();
+      }
+    });
+
+    function refreshMaintenanceAssetOptions(){
+      const assetSel = $('#mt-asset');
+      const typeSel = $('#mt-type');
+      if(!assetSel || !typeSel) return;
+      
+      assetSel.innerHTML = '<option value="">Select asset…</option>';
+      
+      if (typeSel.value === 'firearm') {
+        state.firearms.forEach(function(f,i){
+          const o=document.createElement('option');
+          o.value = f.nickname || `${f.make} ${f.model}`;
+          o.textContent = 'Firearm — ' + (f.nickname || `${f.make} ${f.model}`);
+          assetSel.appendChild(o);
+        });
+      } else if (typeSel.value === 'gear') {
+        state.gear.forEach(function(g,i){
+          const o=document.createElement('option');
+          o.value = g.model;
+          o.textContent = 'Gear — ' + g.model;
+          assetSel.appendChild(o);
+        });
+      }
+    }
+
+    function refreshLoadoutSelectors(){
+      const fSel = $('#loadout-firearm'); 
+      if(fSel){ 
+        fSel.innerHTML='<option value="">Select firearm…</option>'; 
+        state.firearms.forEach(function(f){ 
+          const o=document.createElement('option');
+          o.value = f.nickname || `${f.make} ${f.model}`;
+          o.textContent = f.nickname || `${f.make} ${f.model}`;
+          fSel.appendChild(o); 
+        }); 
+      }
+      
+      const aSel = $('#loadout-ammo'); 
+      if(aSel){ 
+        aSel.innerHTML='<option value="">Select ammo lot…</option>'; 
+        state.ammo.forEach(function(a){ 
+          const o=document.createElement('option');
+          o.value = `${a.brand} ${a.line || ''} (${a.caliber})`;
+          o.textContent = `${a.brand} ${a.line || ''} (${a.caliber})`;
+          aSel.appendChild(o); 
+        }); 
+      }
+      
+      const gSel = $('#loadout-gear'); 
+      if(gSel){ 
+        gSel.innerHTML=''; 
+        state.gear.forEach(function(g){ 
+          const o=document.createElement('option');
+          o.value = g.model;
+          o.textContent = '['+g.category+'] '+g.model;
+          gSel.appendChild(o); 
+        }); 
+      }
+    }
+
+    // ===== Ammo compatibility checking =====
+    function checkCaliberCompatibility() {
+      const selectedCaliber = document.getElementById('am-caliber').value;
+      const warningEl = document.getElementById('caliber-warning');
+      
+      if (selectedCaliber && warningEl) {
+        const hasCompatibleFirearm = state.firearms.some(f => f.caliber === selectedCaliber);
+        if (!hasCompatibleFirearm) {
+          warningEl.classList.add('show');
+        } else {
+          warningEl.classList.remove('show');
+        }
+      }
+    }
+
+    // ===== Event listeners for form interactions =====
+    document.getElementById('mt-type')?.addEventListener('change', refreshMaintenanceAssetOptions);
+    document.getElementById('am-caliber')?.addEventListener('change', checkCaliberCompatibility);
+    
+    // Auto-set ammo status based on quantity
+    document.getElementById('am-qty')?.addEventListener('change', function() {
+      const qty = parseInt(this.value) || 0;
+      const statusField = document.getElementById('am-status');
+      
+      if (statusField) {
+        if (qty === 0) {
+          statusField.value = 'out-of-stock';
+        } else if (qty < 50) { // Configurable threshold
+          statusField.value = 'low-stock';
+        } else {
+          statusField.value = 'available';
+        }
+      }
+    });
+
+    // Clear error when user starts typing
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+      element.addEventListener('input', function() {
+        if (this.classList.contains('error')) {
+          this.classList.remove('error');
+          const parts = this.id.split('-');
+          if (parts.length > 1) {
+            const errorId = 'error-' + parts.slice(1).join('-');
+            const errorEl = document.getElementById(errorId);
+            if (errorEl) {
+              errorEl.classList.remove('show');
+            }
+          }
+        }
+      });
+    });
+
+    // ===== Report section toggles =====
+    document.querySelectorAll('.section-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const expanded = header.getAttribute('aria-expanded') === 'true';
+        header.setAttribute('aria-expanded', !expanded);
+        const content = header.nextElementSibling;
+        content.classList.toggle('show', !expanded);
+      });
+    });
+
+    // ===== Init =====
+    wireAccordions();
+    render();
+    setView('home');
+    setTab('firearms');
+  </script>
+</body>
+</html>
