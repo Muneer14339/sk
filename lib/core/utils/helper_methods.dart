@@ -62,16 +62,6 @@ Future<DateTime?> selectDate(
                     options: const DatePickerOptions(
                         diameterRatio: 6, itemExtent: 40)),
               ),
-              // Padding(
-              //   padding: hPadding, // EdgeInsets.symmetric(horizontal: 12),
-              //   child: PrimaryButton(
-              //     title: 'Done',
-              //     addBottomMargin: true,
-              //     onTap: () {
-              //       Navigator.pop(context, valueListenable.value);
-              //     },
-              //   ),
-              // ),
             ],
           ),
         );

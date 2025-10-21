@@ -56,10 +56,6 @@ class CustomTextField extends StatelessWidget {
         maxLines: maxLines ?? 1,
         maxLength: maxLength,
         style: Theme.of(context).textTheme.bodyLarge,
-        // TextStyle(
-        //     color: AppColors.black,
-        //     fontSize: 14,
-        //     fontFamily: AppFontFamily.regular),
         onChanged: onChanged,
         onTap: onTap,
         readOnly: isReadOnly ?? false,

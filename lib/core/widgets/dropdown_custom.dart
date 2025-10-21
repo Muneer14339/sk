@@ -33,7 +33,6 @@ class _DropdownCustomState extends State<DropdownCustom> {
       child: InkWell(
         onTap: () {
           widget.onTap();
-          // context.read<TextFieldCubit>().validate(widget.controller.text);
         },
         child: CustomTextField(
           controller: widget.controller,

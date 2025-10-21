@@ -2,7 +2,6 @@
 
 
 import '../../../core/error/exceptions.dart';
-import '../../../core/network/api_client.dart';
 import '../models/session_details_model.dart';
 
 abstract class SessionDetailsRemoteDataSource {
@@ -14,17 +13,12 @@ abstract class SessionDetailsRemoteDataSource {
 
 class SessionDetailsRemoteDataSourceImpl
     implements SessionDetailsRemoteDataSource {
-  final ApiClient apiClient;
 
-  SessionDetailsRemoteDataSourceImpl(this.apiClient);
+  SessionDetailsRemoteDataSourceImpl();
 
   @override
   Future<SessionDetailsModel> getSessionDetails(String sessionId) async {
     try {
-      // For now, return mock data. In a real app, this would make an API call
-      // final response = await apiClient.get('/sessions/$sessionId');
-      // return SessionDetailsModel.fromJson(response.data);
-
       // Mock data for demonstration
       return _getMockSessionDetails(sessionId);
     } catch (e) {

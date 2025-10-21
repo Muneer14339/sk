@@ -11,8 +11,6 @@ abstract class SessionDetailsLocalDataSource {
 
 class SessionDetailsLocalDataSourceImpl
     implements SessionDetailsLocalDataSource {
-  // In a real app, this would use SharedPreferences, Hive, or SQLite
-  // For now, we'll use in-memory storage for demonstration
 
   SessionDetailsModel? _cachedSessionDetails;
   List<SessionDetailsModel> _cachedSessions = [];

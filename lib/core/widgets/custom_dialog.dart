@@ -136,24 +136,6 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
               ],
             ),
           ),
-          // IconButton(
-          //   onPressed: () {
-          //     context.read<BleScanBloc>().add(StopBleScan());
-          //     Navigator.of(context).pop();
-          //   },
-          //   icon: Container(
-          //     padding: const EdgeInsets.all(8),
-          //     decoration: BoxDecoration(
-          //       color: Colors.grey.withValues(alpha: 0.1),
-          //       borderRadius: BorderRadius.circular(8),
-          //     ),
-          //     child: const Icon(
-          //       Icons.close_rounded,
-          //       size: 20,
-          //       color: Color(0xFF6B7280),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
