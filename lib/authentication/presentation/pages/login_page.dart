@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../armory/presentation/core/theme/user_app_theme.dart';
-import '../../../armory/presentation/pages/user_dashboard_page.dart';
+import '../../../armory/presentation/pages/armory_page.dart';
 import '../../../injection_container.dart';
 import '../bloc/login_bloc/auth_bloc.dart';
 import '../bloc/login_bloc/auth_event.dart';
@@ -49,7 +49,7 @@ class _LoginFormState extends State<LoginForm> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          final route = MaterialPageRoute(builder: (_) => const UserDashboardPage());
+          final route = MaterialPageRoute(builder: (_) => const ArmoryPage());
           Navigator.pushReplacement(context, route);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(

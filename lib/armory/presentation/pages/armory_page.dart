@@ -1,4 +1,4 @@
-// lib/user_dashboard/presentation/pages/user_dashboard_page.dart
+// lib/user_dashboard/presentation/pages/armory_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,8 +13,8 @@ import '../core/theme/user_app_theme.dart';
 import '../widgets/common/common_widgets.dart';
 import '../widgets/tab_widgets/enhanced_armory_tab_view.dart';
 
-class UserDashboardPage extends StatelessWidget {
-  const UserDashboardPage({super.key});
+class ArmoryPage extends StatelessWidget {
+  const ArmoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,19 +23,19 @@ class UserDashboardPage extends StatelessWidget {
         BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
         BlocProvider<ArmoryBloc>(create: (_) => sl<ArmoryBloc>()),
       ],
-      child: const UserDashboardView(),
+      child: const ArmoryPageView(),
     );
   }
 }
 
-class UserDashboardView extends StatefulWidget {
-  const UserDashboardView({super.key});
+class ArmoryPageView extends StatefulWidget {
+  const ArmoryPageView({super.key});
 
   @override
-  State<UserDashboardView> createState() => _UserDashboardViewState();
+  State<ArmoryPageView> createState() => _ArmoryPageViewState();
 }
 
-class _UserDashboardViewState extends State<UserDashboardView> {
+class _ArmoryPageViewState extends State<ArmoryPageView> {
   String? userId;
 
   @override
