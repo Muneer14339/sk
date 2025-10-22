@@ -5,11 +5,11 @@ import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
 import '../add_forms/add_ammunition_form.dart';
 import '../ammunition_item_card.dart';
+import '../common/common_delete_dilogue.dart';
 import '../common/common_widgets.dart';
 import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
 import '../empty_state_widget.dart';
-import 'enhanced_armory_tab_view.dart';
 import 'firearms_tab_widget.dart';
 
 class AmmunitionTabWidget extends StatelessWidget {

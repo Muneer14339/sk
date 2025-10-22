@@ -1,13 +1,13 @@
-// lib/user_dashboard/presentation/pages/main_app_page.dart
+// lib/user_dashboard/pages/main_app_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../injection_container.dart';
-import '../../../core/config/app_config.dart'; // Add this import
-import '../../../authentication/presentation/bloc/login_bloc/auth_bloc.dart';
-import '../../../authentication/presentation/bloc/login_bloc/auth_event.dart';
-import '../../../authentication/presentation/bloc/login_bloc/auth_state.dart';
-import '../../../authentication/presentation/pages/login_page.dart';
+import '../../injection_container.dart';
+import '../../core/config/app_config.dart';
+import '../../authentication/presentation/bloc/login_bloc/auth_bloc.dart';
+import '../../authentication/presentation/bloc/login_bloc/auth_event.dart';
+import '../../authentication/presentation/bloc/login_bloc/auth_state.dart';
+import '../../authentication/presentation/pages/login_page.dart';
 import '../../armory/presentation/bloc/armory_bloc.dart';
 import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
 import '../../core/theme/app_theme.dart';
@@ -15,7 +15,7 @@ import '../../training/presentation/pages/training_programs_page.dart';
 import 'placeholder_tabs.dart';
 
 class MainAppPage extends StatelessWidget {
-  const MainAppPage({super.key}); // Remove navigation style parameter
+  const MainAppPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,13 +24,13 @@ class MainAppPage extends StatelessWidget {
         BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
         BlocProvider<ArmoryBloc>(create: (_) => sl<ArmoryBloc>()),
       ],
-      child: const MainAppView(), // Remove navigation style parameter
+      child: const MainAppView(),
     );
   }
 }
 
 class MainAppView extends StatefulWidget {
-  const MainAppView({super.key}); // Remove navigation style parameter
+  const MainAppView({super.key});
 
   @override
   State<MainAppView> createState() => _MainAppViewState();
@@ -38,7 +38,7 @@ class MainAppView extends StatefulWidget {
 
 class _MainAppViewState extends State<MainAppView> {
   String? userId;
-  int _currentIndex = 1; // Start with Armory tab (index 1)
+  int _currentIndex = 1;
 
   final List<BottomNavTab> _tabs = [
     const BottomNavTab(assetPath: 'assets/icons/bottom_navigation/home.png'),
@@ -66,7 +66,7 @@ class _MainAppViewState extends State<MainAppView> {
         }
       },
       child: Scaffold(
-        //backgroundColor: AppColors.primaryBackground,
+        backgroundColor: AppTheme.background(context),
         appBar: _buildAppBar(),
         body: userId == null ? _buildUnauthenticatedView() : _buildBody(),
         bottomNavigationBar: _buildBottomNavigation(),
@@ -76,19 +76,18 @@ class _MainAppViewState extends State<MainAppView> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppTheme.primary(context).withValues(alpha: .22),
+      backgroundColor: AppTheme.primary(context).withOpacity(0.22),
       elevation: 0,
       title: Text(
-        AppConfig.appName, // Use config app name
-        style: AppTextStyles.pageTitle,
+        AppConfig.appName,
+        style: AppTheme.headingMedium(context),
       ),
       actions: [
-        // Remove navigation style selector - no conditional logic needed
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.logout,
-            color: AppColors.primaryText,
-            size: AppSizes.mediumIcon,
+            color: AppTheme.textPrimary(context),
+            size: AppTheme.iconMedium,
           ),
           onPressed: () {
             context.read<AuthBloc>().add(const LogoutRequested());
@@ -103,7 +102,7 @@ class _MainAppViewState extends State<MainAppView> {
       case 0:
         return const HomeTabWidget();
       case 1:
-        return const EnhancedArmoryTabView(); // Remove navigation style parameter
+        return const EnhancedArmoryTabView();
       case 2:
         return const TrainingProgramsPage();
       case 3:
@@ -119,15 +118,15 @@ class _MainAppViewState extends State<MainAppView> {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: AppTheme.primary(context).withValues(alpha: 0.1),
+        color: AppTheme.primary(context).withOpacity(0.1),
         border: Border(
           top: BorderSide(
-            color: AppTheme.surfaceVariant(context).withValues(alpha: 0.1),
+            color: AppTheme.surfaceVariant(context).withOpacity(0.1),
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary(context).withValues(alpha: 0.1),
+            color: AppTheme.primary(context).withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -151,7 +150,7 @@ class _MainAppViewState extends State<MainAppView> {
                 child: Center(
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    width: isActive ? 40: 35,
+                    width: isActive ? 40 : 35,
                     height: isActive ? 40 : 35,
                     child: Opacity(
                       opacity: isActive ? 1.0 : 0.6,
@@ -177,15 +176,14 @@ class _MainAppViewState extends State<MainAppView> {
         children: [
           Icon(
             Icons.error_outline,
-            color: AppColors.errorColor,
-            size: AppSizes.largeIcon,
+            color: AppTheme.error(context),
+            size: AppTheme.iconXLarge,
           ),
-          const SizedBox(height: AppSizes.itemSpacing),
+          SizedBox(height: AppTheme.spacingMedium),
           Text(
             'User not authenticated',
-            style: TextStyle(
-              color: AppColors.errorColor,
-              fontSize: 16,
+            style: AppTheme.bodyMedium(context).copyWith(
+              color: AppTheme.error(context),
             ),
           ),
         ],

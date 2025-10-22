@@ -1,6 +1,7 @@
-// lib/user_dashboard/presentation/widgets/common/item_details_dialog.dart
+// lib/armory/presentation/widgets/common/item_details_dialog.dart
 import 'package:flutter/material.dart';
-import 'dialog_widgets.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'armory_constants.dart';
 import 'entity_field_helper.dart';
 
 class ItemDetailsDialog extends StatefulWidget {
@@ -29,35 +30,32 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
     final orientation = MediaQuery.of(context).orientation;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Determine layout strategy
     final isLandscape = orientation == Orientation.landscape;
-    final isMobile = screenWidth < AppBreakpoints.mobile;
-    final isTablet = screenWidth >= AppBreakpoints.tablet && screenWidth < AppBreakpoints.desktop;
+    final isMobile = screenWidth < 400;
+    final isTablet = screenWidth >= 520 && screenWidth < 800;
 
     return Dialog(
-      backgroundColor: AppColors.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.cardBorderRadius)),
+      backgroundColor: AppTheme.surface(context),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ArmoryConstants.cardBorderRadius),
+      ),
       child: Container(
         constraints: BoxConstraints(
           maxWidth: isLandscape ? 750 : (isTablet ? 600 : screenWidth * 0.95),
-          maxHeight: MediaQuery.of(context).size.height * (isLandscape ? 0.85 : (_isExpanded ? 0.85 : 0.5)),
+          maxHeight: MediaQuery.of(context).size.height *
+              (isLandscape ? 0.85 : (_isExpanded ? 0.85 : 0.5)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Header
             _buildHeader(details, context),
-            // Content
             Flexible(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
                 child: _buildContent(details, isLandscape, isMobile),
               ),
             ),
-            // Expandable Widget at bottom (only in portrait)
             if (!isLandscape) _buildExpandableWidget(details),
-            // Footer
-            //_buildFooter(context),
           ],
         ),
       ),
@@ -67,7 +65,11 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
   Widget _buildHeader(EntityDetailsData details, BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-      decoration: AppDecorations.headerBorderDecoration,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppTheme.border(context)),
+        ),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -77,18 +79,15 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
               children: [
                 Text(
                   details.title,
-                  style: AppTextStyles.dialogTitle.copyWith(
-                    fontSize: 15,
-                    color: AppColors.primaryText,
-                  ),
+                  style: AppTheme.titleMedium(context).copyWith(fontSize: 15),
                   maxLines: 2,
                 ),
                 if (details.subtitle.isNotEmpty) ...[
                   const SizedBox(height: 1),
                   Text(
                     details.subtitle,
-                    style: AppTextStyles.itemSubtitle.copyWith(
-                      color: AppColors.accentText,
+                    style: AppTheme.labelMedium(context).copyWith(
+                      color: AppTheme.secondary(context),
                       fontWeight: FontWeight.w500,
                       fontSize: 11,
                     ),
@@ -100,7 +99,11 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
           ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: AppColors.primaryText, size: 18),
+            icon: Icon(
+              Icons.close,
+              color: AppTheme.textPrimary(context),
+              size: 18,
+            ),
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             padding: EdgeInsets.zero,
           ),
@@ -121,7 +124,6 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
           const SizedBox(height: 4),
           _buildFieldsGrid(requiredFields, isLandscape, isMobile, isRequired: true),
         ],
-        // Show additional fields in landscape OR when expanded in portrait
         if (additionalFields.isNotEmpty && (isLandscape || _isExpanded)) ...[
           if (requiredFields.isNotEmpty) const SizedBox(height: 12),
           _buildSectionHeader('Additional Details'),
@@ -139,8 +141,10 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
 
     return Container(
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.primaryBorder.withOpacity(0.3))),
-        color: AppColors.accentBackgroundWithOpacity,
+        border: Border(
+          top: BorderSide(color: AppTheme.border(context).withOpacity(0.3)),
+        ),
+        color: AppTheme.secondary(context).withOpacity(0.1),
       ),
       child: InkWell(
         onTap: () => setState(() => _isExpanded = !_isExpanded),
@@ -148,12 +152,11 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           child: Row(
             children: [
-
               const SizedBox(width: 8),
               Text(
                 _isExpanded ? 'Show Less' : 'Show More Details',
-                style: AppTextStyles.fieldLabel.copyWith(
-                  color: AppColors.accentText,
+                style: AppTheme.labelMedium(context).copyWith(
+                  color: AppTheme.secondary(context),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -162,13 +165,13 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.accentText.withOpacity(0.15),
+                  color: AppTheme.secondary(context).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${additionalFields.length}',
                   style: TextStyle(
-                    color: AppColors.accentText,
+                    color: AppTheme.secondary(context),
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -176,7 +179,7 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
               ),
               Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
-                color: AppColors.accentText,
+                color: AppTheme.secondary(context),
                 size: 20,
               ),
             ],
@@ -190,33 +193,38 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 4),
-      decoration: AppDecorations.sectionBorderDecoration,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppTheme.border(context)),
+        ),
+      ),
       child: Text(
         title,
-        style: AppTextStyles.fieldLabel.copyWith(
+        style: AppTheme.labelMedium(context).copyWith(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: AppColors.primaryText,
         ),
       ),
     );
   }
 
-  Widget _buildFieldsGrid(List<EntityField> fields, bool isLandscape, bool isMobile, {bool isRequired = false}) {
-    // Determine columns based on layout
+  Widget _buildFieldsGrid(
+      List<EntityField> fields, bool isLandscape, bool isMobile,
+      {bool isRequired = false}) {
     int columns;
     if (isMobile) {
-      columns = 1; // Single column on small screens
+      columns = 1;
     } else if (isLandscape) {
-      columns = 3; // Three columns in landscape
+      columns = 3;
     } else {
-      columns = 2; // Two columns in portrait
+      columns = 2;
     }
 
     return _buildGridLayout(fields, columns, isRequired);
   }
 
-  Widget _buildGridLayout(List<EntityField> fields, int columns, bool isRequired) {
+  Widget _buildGridLayout(
+      List<EntityField> fields, int columns, bool isRequired) {
     final rows = <Widget>[];
     for (int i = 0; i < fields.length; i += columns) {
       final rowChildren = <Widget>[];
@@ -250,9 +258,13 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isRequired ? AppColors.accentBackgroundWithOpacity : AppColors.inputBackground,
+        color: isRequired
+            ? AppTheme.secondary(context).withOpacity(0.1)
+            : AppTheme.surfaceVariant(context),
         border: Border.all(
-          color: isRequired ? AppColors.accentBorderWithOpacity : AppColors.primaryBorder,
+          color: isRequired
+              ? AppTheme.secondary(context).withOpacity(0.2)
+              : AppTheme.border(context),
         ),
         borderRadius: BorderRadius.circular(6),
       ),
@@ -261,8 +273,10 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
         children: [
           Text(
             field.label,
-            style: AppTextStyles.fieldLabel.copyWith(
-              color: isRequired ? AppColors.accentText : AppColors.secondaryText,
+            style: AppTheme.labelSmall(context).copyWith(
+              color: isRequired
+                  ? AppTheme.secondary(context)
+                  : AppTheme.textSecondary(context),
               fontWeight: FontWeight.w600,
               fontSize: 10,
             ),
@@ -278,8 +292,8 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
     if (field.value == null || field.value!.trim().isEmpty) {
       return Text(
         '—',
-        style: AppTextStyles.inputText.copyWith(
-          color: AppColors.secondaryText,
+        style: AppTheme.bodySmall(context).copyWith(
+          color: AppTheme.textSecondary(context),
           fontStyle: FontStyle.italic,
           fontSize: 13,
         ),
@@ -287,7 +301,7 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
     }
 
     final String value = field.value!.trim();
-    final baseStyle = AppTextStyles.inputText.copyWith(
+    final baseStyle = AppTheme.bodySmall(context).copyWith(
       fontWeight: isRequired ? FontWeight.w600 : FontWeight.normal,
       fontSize: 13,
     );
@@ -296,10 +310,16 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
       case EntityFieldType.status:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: AppDecorations.getStatusDecoration(value),
+          decoration: BoxDecoration(
+            color: value.statusColor(context).withOpacity(0.1),
+            border: Border.all(
+              color: value.statusColor(context).withOpacity(0.2),
+            ),
+            borderRadius: BorderRadius.circular(999),
+          ),
           child: Text(
             value,
-            style: value.statusTextStyle.copyWith(
+            style: value.statusTextStyle(context).copyWith(
               fontWeight: isRequired ? FontWeight.w600 : FontWeight.w500,
               fontSize: 10,
             ),
@@ -310,7 +330,7 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
           width: double.infinity,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: AppColors.sectionBackground,
+            color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(value, style: baseStyle),
@@ -322,39 +342,18 @@ class _ItemDetailsDialogState extends State<ItemDetailsDialog> {
             Icon(
               Icons.calendar_today_outlined,
               size: 12,
-              color: isRequired ? AppColors.accentText : AppColors.secondaryText,
+              color: isRequired
+                  ? AppTheme.secondary(context)
+                  : AppTheme.textSecondary(context),
             ),
             const SizedBox(width: 3),
             Expanded(child: Text(value, style: baseStyle)),
           ],
         );
       case EntityFieldType.number:
-        return Text(
-          value,
-          // style: baseStyle.copyWith(
-          //   fontVariant: [FontVariant.tabularNums],
-          // ),
-        );
       case EntityFieldType.text:
       default:
         return Text(value, style: baseStyle);
     }
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      decoration: AppDecorations.footerBorderDecoration,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: AppButtonStyles.cancelButtonStyle,
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
   }
 }

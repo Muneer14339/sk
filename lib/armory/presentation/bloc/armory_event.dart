@@ -8,7 +8,7 @@ import '../../domain/entities/armory_maintenance.dart';
 import '../../domain/entities/armory_tool.dart';
 import '../../domain/entities/armory_loadout.dart';
 import '../../domain/usecases/get_dropdown_options_usecase.dart';
-import '../widgets/tab_widgets/armory_tab_view.dart';
+import '../widgets/common/common_delete_dilogue.dart';
 
 abstract class ArmoryEvent extends Equatable {
   const ArmoryEvent();

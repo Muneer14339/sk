@@ -2,12 +2,12 @@
 import 'package:flutter/material.dart';
 import '../../bloc/armory_state.dart';
 import '../add_forms/add_loadout_form.dart';
+import '../common/common_delete_dilogue.dart';
 import '../common/common_widgets.dart';
 import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
 import '../empty_state_widget.dart';
 import '../loadout_item_card.dart';
-import 'enhanced_armory_tab_view.dart';
 
 class LoadoutsTabWidget extends StatelessWidget {
   final String userId;

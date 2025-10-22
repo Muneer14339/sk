@@ -7,7 +7,7 @@ import '../../domain/entities/armory_maintenance.dart';
 import '../../domain/entities/armory_tool.dart';
 import '../../domain/entities/armory_loadout.dart';
 import '../../domain/entities/dropdown_option.dart';
-import '../widgets/tab_widgets/armory_tab_view.dart';
+import '../widgets/common/common_delete_dilogue.dart';
 
 abstract class ArmoryState extends Equatable {
   const ArmoryState();

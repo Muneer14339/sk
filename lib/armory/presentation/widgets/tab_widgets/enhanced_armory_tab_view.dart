@@ -1,8 +1,9 @@
-// lib/user_dashboard/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart
+// lib/armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
@@ -28,9 +29,8 @@ class EnhancedArmoryTabView extends StatefulWidget {
 class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
   String? userId;
   int _selectedTabIndex = 0;
-  bool _showListContent = false; // For list navigation mode
+  bool _showListContent = false;
 
-  // Yeh map hamesha har tab ke counts store karega
   Map<ArmoryTabType, int> _counts = {
     ArmoryTabType.firearms: 0,
     ArmoryTabType.ammunition: 0,
@@ -50,13 +50,8 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
   ];
 
   bool _shouldUseSidebarLayout(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final orientation = MediaQuery.of(context).orientation;
-
-    // Only use sidebar for landscape WITH sufficient width (tablets/desktops)
-    // Not for small landscape phones
     return orientation == Orientation.landscape;
-    return orientation == Orientation.landscape && size.width >= 700;
   }
 
   @override
@@ -65,10 +60,8 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
     userId = FirebaseAuth.instance.currentUser?.uid;
 
     if (userId != null) {
-      // Load all data initially for counts
       _loadAllData();
 
-      // Load first tab data for grid mode
       if (AppConfig.navigationStyle == NavigationStyle.grid) {
         _loadDataForTab(_tabs[0].tabType);
       }
@@ -116,7 +109,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
     setState(() {
       _selectedTabIndex = index;
       if (AppConfig.navigationStyle == NavigationStyle.list) {
-        _showListContent = true; // Show content, hide list
+        _showListContent = true;
       }
     });
     _loadDataForTab(_tabs[index].tabType);
@@ -156,7 +149,6 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
             } else if (state is LoadoutsLoaded) {
               _counts[ArmoryTabType.loadouts] = state.loadouts.length;
             }
-            // Report ka count = sum of all
             _counts[ArmoryTabType.report] =
                 _counts[ArmoryTabType.firearms]! +
                     _counts[ArmoryTabType.ammunition]! +
@@ -167,7 +159,6 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         },
         child: BlocBuilder<ArmoryBloc, ArmoryState>(
           builder: (context, state) {
-            // Check layout type
             if (_shouldUseSidebarLayout(context)) {
               return _buildSidebarLayout(state);
             }
@@ -183,21 +174,18 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
     );
   }
 
-  // enhanced_armory_tab_view.dart mein _buildSidebarLayout ko replace karein:
-
   Widget _buildSidebarLayout(ArmoryState state) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start, // 👈 Yeh important hai
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left Sidebar Navigation (20% width)
         Container(
           width: MediaQuery.of(context).size.width * 0.20,
-          height: double.infinity, // 👈 Full height
+          height: double.infinity,
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
+            color: AppTheme.surface(context),
             border: Border(
               right: BorderSide(
-                color: AppColors.primaryBorder,
+                color: AppTheme.border(context),
                 width: 1,
               ),
             ),
@@ -209,12 +197,12 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
             counts: _counts,
           ),
         ),
-
-        // Right Content Area (80% width)
         Expanded(
           child: Container(
-            decoration: AppDecorations.pageDecoration,
-            alignment: Alignment.topLeft, // 👈 Content left se start ho
+            decoration: BoxDecoration(
+              color: AppTheme.background(context),
+            ),
+            alignment: Alignment.topLeft,
             child: RefreshIndicator(
               onRefresh: () async {
                 _loadDataForTab(_tabs[_selectedTabIndex].tabType);
@@ -222,10 +210,10 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: AppSizes.pageMargin,
+                padding: AppTheme.paddingLarge,
                 child: Container(
-                  width: double.infinity, // 👈 Full width le
-                  alignment: Alignment.topLeft, // 👈 Left aligned
+                  width: double.infinity,
+                  alignment: Alignment.topLeft,
                   child: _buildTabContent(_tabs[_selectedTabIndex].tabType),
                 ),
               ),
@@ -235,34 +223,6 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
       ],
     );
   }
-
-// Aur yeh bhi add karein - list content view fix:
-
-  Widget _buildListContentView() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, // 👈 Left aligned
-      children: [
-        // Content
-        Expanded(
-          child: Container(
-            alignment: Alignment.topLeft, // 👈 Top-left se start
-            child: RefreshIndicator(
-              onRefresh: () async {
-                _loadDataForTab(_tabs[_selectedTabIndex].tabType);
-                await Future.delayed(const Duration(milliseconds: 400));
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: AppSizes.pageMargin,
-                child: _buildTabContent(_tabs[_selectedTabIndex].tabType),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
 
   Widget _buildGridLayout(ArmoryState state) {
     return Column(
@@ -274,7 +234,9 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         ),
         Expanded(
           child: Container(
-            decoration: AppDecorations.pageDecoration,
+            decoration: BoxDecoration(
+              color: AppTheme.background(context),
+            ),
             child: RefreshIndicator(
               onRefresh: () async {
                 _loadDataForTab(_tabs[_selectedTabIndex].tabType);
@@ -282,7 +244,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
               },
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: AppSizes.pageMargin,
+                padding: AppTheme.paddingLarge,
                 child: _buildTabContent(_tabs[_selectedTabIndex].tabType),
               ),
             ),
@@ -294,7 +256,9 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
 
   Widget _buildListLayout(ArmoryState state) {
     return Container(
-      decoration: AppDecorations.pageDecoration,
+      decoration: BoxDecoration(
+        color: AppTheme.background(context),
+      ),
       child: _showListContent
           ? _buildListContentView()
           : _buildListNavigationView(state),
@@ -306,10 +270,33 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
       selectedTabIndex: -1,
       onTabChanged: _onTabChanged,
       state: state,
-      counts: _counts,   // 👈 yahan bhej diya
+      counts: _counts,
     );
   }
 
+  Widget _buildListContentView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Container(
+            alignment: Alignment.topLeft,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _loadDataForTab(_tabs[_selectedTabIndex].tabType);
+                await Future.delayed(const Duration(milliseconds: 400));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: AppTheme.paddingLarge,
+                child: _buildTabContent(_tabs[_selectedTabIndex].tabType),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildTabContent(ArmoryTabType tabType) {
     if (userId == null) {

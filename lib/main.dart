@@ -26,28 +26,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) =>
-                BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()),
-          ),
-          BlocProvider(
-            create: (_) => di.sl<AuthBloc>()..add(const CheckLoginStatus()),
-          ),
-          BlocProvider(
-              create: (context) => TrainingSessionBloc(bleRepository: sl())),
-
-        ],
-        child: MaterialApp(
-            title: 'PulseSkadi',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme(),
-            navigatorKey: EnhancedDialogWidgets.navigatorKey,
-            home:const AuthWrapper()));
+      providers: [
+        BlocProvider(
+          create: (context) => BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<AuthBloc>()..add(const CheckLoginStatus()),
+        ),
+        BlocProvider(
+          create: (context) => TrainingSessionBloc(bleRepository: sl()),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'PulseSkadi',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.darkTheme(),
+        home: const AuthWrapper(),
+      ),
+    );
   }
 }
-
-
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -57,11 +55,11 @@ class AuthWrapper extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is AuthLoading || state is AuthInitial) {
-          return const Scaffold(
-            backgroundColor: Color(0xFF0F1115),
+          return Scaffold(
+            backgroundColor: AppTheme.background(context),
             body: Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF57B7FF),
+                color: AppTheme.primary(context),
               ),
             ),
           );

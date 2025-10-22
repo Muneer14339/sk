@@ -88,33 +88,3 @@ class AmmunitionItemCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ===== PATTERN FOR FORMS =====
-// All forms use DialogWidgets methods
-// Example: DialogWidgets.buildTextField(), DialogWidgets.buildDropdownField()
-// All use AppTheme.method(context) for styling
-// All use ArmoryConstants for sizes/spacing
-
-// ===== NOTES =====
-// 1. Replace all AppColors with AppTheme.method(context)
-// 2. Replace all AppTextStyles with AppTheme.method(context)
-// 3. Replace all AppSizes/AppBreakpoints with ArmoryConstants
-// 4. Replace all AppDecorations with BoxDecoration using AppTheme
-// 5. Merge dialog_widgets.dart, enhanced_dialog_widgets.dart, common_dialog_widgets.dart into single dialog_widgets.dart
-// 6. All functionality remains 100% same

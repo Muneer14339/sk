@@ -1,21 +1,20 @@
-// lib/user_dashboard/presentation/widgets/tab_widgets/gear_tab_widget.dart
+// lib/armory/presentation/widgets/tab_widgets/gear_tab_widget.dart
 import 'package:flutter/material.dart';
 import '../../../domain/entities/armory_gear.dart';
 import '../../bloc/armory_state.dart';
 import '../add_forms/add_gear_form.dart';
+import '../common/common_delete_dilogue.dart';
 import '../common/common_widgets.dart';
 import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
 import '../empty_state_widget.dart';
 import '../gear_item_card.dart';
-import 'enhanced_armory_tab_view.dart';
 
 class GearTabWidget extends StatelessWidget {
   final String userId;
 
   GearTabWidget({super.key, required this.userId});
 
-  // Cache for previously loaded gear categories
   Map<String, List<ArmoryGear>> _lastGearByCategory = {};
 
   @override
@@ -34,10 +33,8 @@ class GearTabWidget extends StatelessWidget {
     );
   }
 
-  /// Build accordion sections based on current state or cache
   Widget _buildGearAccordion(ArmoryState state) {
     if (state is ArmoryLoading) {
-      // Show cached accordion if available while loading
       return _lastGearByCategory.isNotEmpty
           ? _buildAccordionFromCache()
           : CommonWidgets.buildLoading(message: 'Loading gear...');
@@ -51,14 +48,13 @@ class GearTabWidget extends StatelessWidget {
       }
 
       if (gearByCategory.isEmpty) {
-        _lastGearByCategory = {}; // Clear cache when actual data empty
+        _lastGearByCategory = {};
         return const EmptyStateWidget(
           message: 'No gear items yet.',
           icon: Icons.add_circle_outline,
         );
       }
 
-      // Update cache and build sections
       _lastGearByCategory = gearByCategory;
       return _buildAccordionFromMap(gearByCategory);
     }
@@ -67,7 +63,6 @@ class GearTabWidget extends StatelessWidget {
       return CommonWidgets.buildError(state.message);
     }
 
-    // Unknown state: use cache if available
     return _lastGearByCategory.isNotEmpty
         ? _buildAccordionFromCache()
         : const EmptyStateWidget(
@@ -76,10 +71,8 @@ class GearTabWidget extends StatelessWidget {
     );
   }
 
-  /// Build accordion from cached data
   Widget _buildAccordionFromCache() => _buildAccordionFromMap(_lastGearByCategory);
 
-  /// Build accordion sections from a given category map
   Widget _buildAccordionFromMap(Map<String, List<ArmoryGear>> gearByCategory) {
     return Column(
       children: [
@@ -97,22 +90,23 @@ class GearTabWidget extends StatelessWidget {
     );
   }
 
-  /// Count cached items for getItemCount fallback
   int _countCachedItems() =>
       _lastGearByCategory.values.fold(0, (sum, list) => sum + list.length);
 
-  /// Build a single gear section with expandable UI
   Widget _buildGearSection(
       String categoryKey, String title, String subtitle, List<ArmoryGear> items) {
     final gearCards =
     items.map((gear) => GearItemCard(gear: gear, userId: userId)).toList();
 
-    return CommonWidgets.buildExpandableSection(
-      title: title,
-      subtitle: subtitle,
-      children: [
-        ResponsiveGridWidget(children: gearCards),
-      ],
+    return Builder(
+      builder: (context) => CommonWidgets.buildExpandableSection(
+        context: context,
+        title: title,
+        subtitle: subtitle,
+        children: [
+          ResponsiveGridWidget(children: gearCards),
+        ],
+      ),
     );
   }
 }
