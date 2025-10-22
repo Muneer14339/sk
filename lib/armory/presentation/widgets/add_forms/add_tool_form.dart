@@ -1,16 +1,15 @@
-// lib/user_dashboard/presentation/widgets/add_ammunition_dialog.dart
+// lib/armory/presentation/widgets/add_forms/add_tool_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
+import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_tool.dart';
 import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 import '../common/dialog_widgets.dart';
-
 
 class AddToolForm extends StatefulWidget {
   final String userId;
@@ -70,27 +69,27 @@ class _AddToolFormState extends State<AddToolForm> {
 
   Widget _buildActions(ArmoryState state) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
             onPressed: () => context.read<ArmoryBloc>().add(const HideFormEvent()),
-            style: AppButtonStyles.cancelButtonStyle,
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: state is ArmoryLoadingAction ? null : _saveTool,
-            style: AppButtonStyles.primaryButtonStyle,
             child: state is ArmoryLoadingAction
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Save Tool'),
@@ -102,46 +101,50 @@ class _AddToolFormState extends State<AddToolForm> {
 
   Widget _buildForm() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Name *',
               controller: _controllers['name']!,
               isRequired: true,
-              maxLength: 30, // Add this
+              maxLength: 30,
               hintText: 'e.g., Wheeler FAT Wrench',
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            CommonDialogWidgets.buildResponsiveRow([
-              CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildResponsiveRow(context, [
+              DialogWidgets.buildDropdownField(
+                context: context,
                 label: 'Category',
                 value: _category,
-                options: [
-                  const DropdownOption(value: 'cleaning', label: 'Cleaning'),
-                  const DropdownOption(value: 'maintenance', label: 'Maintenance'),
-                  const DropdownOption(value: 'measurement', label: 'Measurement'),
-                  const DropdownOption(value: 'reloading', label: 'Reloading'),
-                  const DropdownOption(value: 'safety', label: 'Safety'),
+                options: const [
+                  DropdownOption(value: 'cleaning', label: 'Cleaning'),
+                  DropdownOption(value: 'maintenance', label: 'Maintenance'),
+                  DropdownOption(value: 'measurement', label: 'Measurement'),
+                  DropdownOption(value: 'reloading', label: 'Reloading'),
+                  DropdownOption(value: 'safety', label: 'Safety'),
                 ],
                 onChanged: (value) => setState(() => _category = value),
               ),
-              CommonDialogWidgets.buildTextField(
+              DialogWidgets.buildTextField(
+                context: context,
                 label: 'Quantity',
                 controller: _controllers['quantity']!,
                 keyboardType: TextInputType.number,
               ),
             ]),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Notes',
               controller: _controllers['notes']!,
               maxLines: 3,
-              maxLength: 200, // Add this
+              maxLength: 200,
               hintText: 'Details about this tool',
             ),
           ],

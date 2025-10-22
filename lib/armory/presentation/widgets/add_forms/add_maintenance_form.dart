@@ -1,8 +1,8 @@
-// lib/user_dashboard/presentation/widgets/add_ammunition_dialog.dart
+// lib/armory/presentation/widgets/add_forms/add_maintenance_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
+import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_firearm.dart';
 import '../../../domain/entities/armory_gear.dart';
 import '../../../domain/entities/armory_maintenance.dart';
@@ -10,7 +10,7 @@ import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 import '../common/dialog_widgets.dart';
 
 class AddMaintenanceForm extends StatefulWidget {
@@ -63,15 +63,19 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
   void _updateAssetOptions() {
     setState(() {
       if (_dropdownValues['assetType'] == 'firearm') {
-        _assetOptions = _allFirearms.map((firearm) => DropdownOption(
+        _assetOptions = _allFirearms
+            .map((firearm) => DropdownOption(
           value: firearm.id!,
           label: '${firearm.nickname} (${firearm.make} ${firearm.model})',
-        )).toList();
+        ))
+            .toList();
       } else if (_dropdownValues['assetType'] == 'gear') {
-        _assetOptions = _allGear.map((gear) => DropdownOption(
+        _assetOptions = _allGear
+            .map((gear) => DropdownOption(
           value: gear.id!,
           label: '${gear.model} (${gear.category})',
-        )).toList();
+        ))
+            .toList();
       } else {
         _assetOptions.clear();
       }
@@ -126,27 +130,27 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
 
   Widget _buildActions(ArmoryState state) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
             onPressed: () => context.read<ArmoryBloc>().add(const HideFormEvent()),
-            style: AppButtonStyles.cancelButtonStyle,
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: state is ArmoryLoadingAction ? null : _saveMaintenance,
-            style: AppButtonStyles.primaryButtonStyle,
             child: state is ArmoryLoadingAction
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Save Maintenance'),
@@ -158,24 +162,25 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
 
   Widget _buildForm() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            // Asset Type and Asset
-            CommonDialogWidgets.buildResponsiveRow([
-              CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildResponsiveRow(context, [
+              DialogWidgets.buildDropdownField(
+                context: context,
                 label: 'Asset Type *',
                 value: _dropdownValues['assetType'],
-                options: [
-                  const DropdownOption(value: 'firearm', label: 'Firearm'),
-                  const DropdownOption(value: 'gear', label: 'Gear'),
+                options: const [
+                  DropdownOption(value: 'firearm', label: 'Firearm'),
+                  DropdownOption(value: 'gear', label: 'Gear'),
                 ],
                 onChanged: _handleAssetTypeChange,
                 isRequired: true,
               ),
-              CommonDialogWidgets.buildDropdownField(
+              DialogWidgets.buildDropdownField(
+                context: context,
                 label: 'Asset *',
                 value: _dropdownValues['asset'],
                 options: _assetOptions,
@@ -184,42 +189,42 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
                 enabled: _dropdownValues['assetType'] != null && _assetOptions.isNotEmpty,
               ),
             ]),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            // Maintenance Type and Date
-            CommonDialogWidgets.buildResponsiveRow([
-              CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildResponsiveRow(context, [
+              DialogWidgets.buildDropdownField(
+                context: context,
                 label: 'Maintenance Type *',
                 value: _dropdownValues['maintenanceType'],
-                options: [
-                  const DropdownOption(value: 'cleaning', label: 'Cleaning'),
-                  const DropdownOption(value: 'lubrication', label: 'Lubrication'),
-                  const DropdownOption(value: 'inspection', label: 'Inspection'),
-                  const DropdownOption(value: 'repair', label: 'Repair'),
-                  const DropdownOption(value: 'replacement', label: 'Part Replacement'),
+                options: const [
+                  DropdownOption(value: 'cleaning', label: 'Cleaning'),
+                  DropdownOption(value: 'lubrication', label: 'Lubrication'),
+                  DropdownOption(value: 'inspection', label: 'Inspection'),
+                  DropdownOption(value: 'repair', label: 'Repair'),
+                  DropdownOption(value: 'replacement', label: 'Part Replacement'),
                 ],
                 onChanged: (value) => setState(() => _dropdownValues['maintenanceType'] = value),
                 isRequired: true,
               ),
               _buildDatePickerField(),
             ]),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            // Rounds Fired
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Rounds Fired (if applicable)',
               controller: _controllers['rounds']!,
               keyboardType: TextInputType.number,
               hintText: '0',
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            // Notes
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Notes',
               controller: _controllers['notes']!,
               maxLines: 3,
-              maxLength: 200, // Add this
+              maxLength: 200,
               hintText: 'Details of maintenance performed',
             ),
           ],
@@ -232,7 +237,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Date', style: AppTextStyles.fieldLabel),
+        Text('Date', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         InkWell(
           onTap: () async {
@@ -244,9 +249,9 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
               builder: (context, child) {
                 return Theme(
                   data: Theme.of(context).copyWith(
-                    colorScheme: const ColorScheme.dark(
-                      primary: AppColors.accentText,
-                      surface: AppColors.cardBackground,
+                    colorScheme: ColorScheme.dark(
+                      primary: AppTheme.primary(context),
+                      surface: AppTheme.surface(context),
                     ),
                   ),
                   child: child!,
@@ -261,19 +266,23 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.inputBackground,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-              border: Border.all(color: AppColors.primaryBorder),
+              color: AppTheme.surfaceVariant(context),
+              borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
+              border: Border.all(color: AppTheme.border(context)),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                    style: const TextStyle(color: AppColors.primaryText, fontSize: 14),
+                    style: AppTheme.bodyMedium(context),
                   ),
                 ),
-                const Icon(Icons.calendar_today, color: AppColors.secondaryText, size: 16),
+                Icon(
+                  Icons.calendar_today,
+                  color: AppTheme.textSecondary(context),
+                  size: 16,
+                ),
               ],
             ),
           ),
@@ -285,24 +294,32 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
   void _saveMaintenance() {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validation
     if (_dropdownValues['assetType'] == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Asset type is required'), backgroundColor: AppColors.errorColor),
+        SnackBar(
+          content: const Text('Asset type is required'),
+          backgroundColor: AppTheme.error(context),
+        ),
       );
       return;
     }
 
     if (_dropdownValues['asset'] == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Asset selection is required'), backgroundColor: AppColors.errorColor),
+        SnackBar(
+          content: const Text('Asset selection is required'),
+          backgroundColor: AppTheme.error(context),
+        ),
       );
       return;
     }
 
     if (_dropdownValues['maintenanceType'] == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maintenance type is required'), backgroundColor: AppColors.errorColor),
+        SnackBar(
+          content: const Text('Maintenance type is required'),
+          backgroundColor: AppTheme.error(context),
+        ),
       );
       return;
     }

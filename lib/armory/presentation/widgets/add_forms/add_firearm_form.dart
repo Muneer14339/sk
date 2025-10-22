@@ -1,6 +1,7 @@
-// lib/user_dashboard/presentation/widgets/add_firearm_dialog.dart
+// lib/armory/presentation/widgets/add_forms/add_firearm_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../core/validators/caliber_validator.dart';
 import '../../../domain/entities/armory_firearm.dart';
@@ -8,10 +9,9 @@ import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 import '../common/common_widgets.dart';
 import '../common/dialog_widgets.dart';
-import '../common/enhanced_dialog_widgets.dart';
 
 class AddFirearmForm extends StatefulWidget {
   final String userId;
@@ -28,7 +28,6 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
   final _dropdownValues = <String, String?>{};
   final _errors = <String, String?>{};
 
-  // Dropdown options
   List<DropdownOption> _firearmBrands = [];
   List<DropdownOption> _firearmModels = [];
   List<DropdownOption> _firearmGenerations = [];
@@ -36,7 +35,6 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
   List<DropdownOption> _firearmMechanisms = [];
   List<DropdownOption> _calibers = [];
 
-  // Loading states
   bool _loadingBrands = false;
   bool _loadingModels = false;
   bool _loadingGenerations = false;
@@ -50,7 +48,6 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     _initializeControllers();
   }
 
-  // Helper method to determine if we should use grid layout
   bool get _shouldUseGridLayout {
     final orientation = MediaQuery.of(context).orientation;
     return orientation == Orientation.landscape;
@@ -284,27 +281,27 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
 
   Widget _buildActions(ArmoryState state) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
             onPressed: () => context.read<ArmoryBloc>().add(const HideFormEvent()),
-            style: AppButtonStyles.cancelButtonStyle,
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: state is ArmoryLoadingAction ? null : _saveFirearm,
-            style: AppButtonStyles.primaryButtonStyle,
             child: state is ArmoryLoadingAction
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Save Firearm'),
@@ -316,19 +313,19 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
 
   Widget _buildForm() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
         key: _formKey,
-        child: CommonWidgets.buildResponsiveLayout([
-          // Firearm Type
-          CommonDialogWidgets.buildDropdownField(
+        child: CommonWidgets.buildResponsiveLayout(context, [
+          DialogWidgets.buildDropdownField(
+            context: context,
             label: 'Firearm Type *',
             value: _dropdownValues['type'],
-            options: [
-              const DropdownOption(value: 'Rifle', label: 'Rifle'),
-              const DropdownOption(value: 'Pistol', label: 'Pistol'),
-              const DropdownOption(value: 'Revolver', label: 'Revolver'),
-              const DropdownOption(value: 'Shotgun', label: 'Shotgun'),
+            options: const [
+              DropdownOption(value: 'Rifle', label: 'Rifle'),
+              DropdownOption(value: 'Pistol', label: 'Pistol'),
+              DropdownOption(value: 'Revolver', label: 'Revolver'),
+              DropdownOption(value: 'Shotgun', label: 'Shotgun'),
             ],
             onChanged: (value) {
               setState(() => _dropdownValues['type'] = value);
@@ -337,8 +334,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             isRequired: true,
           ),
 
-          // Brand
-          EnhancedDialogWidgets.buildDropdownFieldWithCustom(
+          DialogWidgets.buildDropdownFieldWithCustom(
+            context: context,
             label: 'Brand *',
             value: _dropdownValues['brand'],
             options: _firearmBrands,
@@ -350,8 +347,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             enabled: _dropdownValues['type'] != null,
           ),
 
-          // Model
-          EnhancedDialogWidgets.buildDropdownFieldWithCustom(
+          DialogWidgets.buildDropdownFieldWithCustom(
+            context: context,
             label: 'Model *',
             value: _dropdownValues['model'],
             options: _firearmModels,
@@ -363,8 +360,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             enabled: _dropdownValues['brand'] != null,
           ),
 
-          // Generation
-          EnhancedDialogWidgets.buildDropdownFieldWithCustom(
+          DialogWidgets.buildDropdownFieldWithCustom(
+            context: context,
             label: 'Generation *',
             value: _dropdownValues['generation'],
             options: _firearmGenerations,
@@ -376,8 +373,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             isRequired: true,
           ),
 
-          // Caliber - WITH CUSTOM FORMATTER
-          EnhancedDialogWidgets.buildDropdownFieldWithCustom(
+          DialogWidgets.buildDropdownFieldWithCustom(
+            context: context,
             label: 'Caliber *',
             value: _dropdownValues['caliber'],
             options: _calibers,
@@ -387,7 +384,6 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             isRequired: true,
             isLoading: _loadingCalibers,
             enabled: _dropdownValues['brand'] != null,
-            // NEW: Custom formatter that appends firearm type in brackets
             customValueFormatter: (customValue) {
               final firearmType = _dropdownValues['type'];
               if (firearmType != null && firearmType.isNotEmpty) {
@@ -398,8 +394,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             validator: (value) => CaliberValidator.validate(value),
           ),
 
-          // Firing Mechanism
-          EnhancedDialogWidgets.buildDropdownFieldWithCustom(
+          DialogWidgets.buildDropdownFieldWithCustom(
+            context: context,
             label: 'Firing Mechanism *',
             value: _dropdownValues['firingMechanism'],
             options: _firearmMechanisms,
@@ -411,8 +407,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             isRequired: true,
           ),
 
-          // Make
-          EnhancedDialogWidgets.buildDropdownFieldWithCustom(
+          DialogWidgets.buildDropdownFieldWithCustom(
+            context: context,
             label: 'Make *',
             value: _dropdownValues['make'],
             options: _firearmMakes,
@@ -424,39 +420,39 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             enabled: _dropdownValues['type'] != null,
           ),
 
-          // Nickname
-          CommonDialogWidgets.buildTextField(
+          DialogWidgets.buildTextField(
+            context: context,
             label: 'Nickname/Identifier *',
             controller: _controllers['nickname']!,
             isRequired: true,
             maxLength: 20,
           ),
 
-          // Status
-          CommonDialogWidgets.buildDropdownField(
+          DialogWidgets.buildDropdownField(
+            context: context,
             label: 'Status *',
             value: _dropdownValues['status'],
-            options: [
-              const DropdownOption(value: 'available', label: 'Available'),
-              const DropdownOption(value: 'in-use', label: 'In Use'),
-              const DropdownOption(value: 'maintenance', label: 'Maintenance'),
+            options: const [
+              DropdownOption(value: 'available', label: 'Available'),
+              DropdownOption(value: 'in-use', label: 'In Use'),
+              DropdownOption(value: 'maintenance', label: 'Maintenance'),
             ],
             onChanged: (value) => setState(() => _dropdownValues['status'] = value),
             isRequired: true,
           ),
 
-          // Serial Number
-          CommonDialogWidgets.buildTextField(
+          DialogWidgets.buildTextField(
+            context: context,
             label: 'Serial Number',
             controller: _controllers['serial']!,
             maxLength: 20,
           ),
 
-          // Notes - Always full width
           _shouldUseGridLayout
               ? SizedBox(
             width: double.infinity,
-            child: CommonDialogWidgets.buildTextField(
+            child: DialogWidgets.buildTextField(
+              context: context,
               label: 'Notes',
               controller: _controllers['notes']!,
               maxLines: 3,
@@ -464,7 +460,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
               hintText: 'Purpose, setup, special considerations, etc.',
             ),
           )
-              : CommonDialogWidgets.buildTextField(
+              : DialogWidgets.buildTextField(
+            context: context,
             label: 'Notes',
             controller: _controllers['notes']!,
             maxLines: 3,
@@ -479,10 +476,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
   void _saveFirearm() {
     if (!_formKey.currentState!.validate()) return;
 
-    // Additional validation
     bool hasErrors = false;
 
-    // Check required dropdowns
     final requiredDropdowns = {
       'type': 'Firearm type is required',
       'brand': 'Brand is required',
@@ -509,16 +504,16 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
 
     final firearm = ArmoryFirearm(
       type: _dropdownValues['type']!,
-      make: EnhancedDialogWidgets.getDisplayValue(_dropdownValues['make']),
-      model: EnhancedDialogWidgets.getDisplayValue(_dropdownValues['model']),
-      caliber: EnhancedDialogWidgets.getDisplayValue(_dropdownValues['caliber']),
+      make: DialogWidgets.getDisplayValue(_dropdownValues['make']),
+      model: DialogWidgets.getDisplayValue(_dropdownValues['model']),
+      caliber: DialogWidgets.getDisplayValue(_dropdownValues['caliber']),
       nickname: nickname,
       status: _dropdownValues['status']!,
       serial: _controllers['serial']?.text.trim(),
       notes: _controllers['notes']?.text.trim(),
-      brand: EnhancedDialogWidgets.getDisplayValue(_dropdownValues['brand']),
-      generation: EnhancedDialogWidgets.getDisplayValue(_dropdownValues['generation']),
-      firingMechanism: EnhancedDialogWidgets.getDisplayValue(_dropdownValues['firingMechanism']),
+      brand: DialogWidgets.getDisplayValue(_dropdownValues['brand']),
+      generation: DialogWidgets.getDisplayValue(_dropdownValues['generation']),
+      firingMechanism: DialogWidgets.getDisplayValue(_dropdownValues['firingMechanism']),
       dateAdded: DateTime.now(),
     );
 

@@ -1,8 +1,8 @@
-// lib/user_dashboard/presentation/widgets/add_ammunition_dialog.dart
+// lib/armory/presentation/widgets/add_forms/add_loadout_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
+import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_ammunition.dart';
 import '../../../domain/entities/armory_firearm.dart';
 import '../../../domain/entities/armory_gear.dart';
@@ -11,7 +11,7 @@ import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 import '../common/dialog_widgets.dart';
 
 class AddLoadoutForm extends StatefulWidget {
@@ -38,11 +38,9 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
   List<String> _selectedGearIds = [];
   bool _loadingGear = true;
 
-  // Add these properties to store firearm data
   List<ArmoryFirearm> _firearms = [];
   List<ArmoryAmmunition> _allAmmunition = [];
   bool _hasMatchingAmmunition = false;
-
 
   @override
   void initState() {
@@ -59,36 +57,31 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
   }
 
   void _loadData() {
-    // Load user's firearms and ammunition
     context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: widget.userId));
     context.read<ArmoryBloc>().add(LoadAmmunitionEvent(userId: widget.userId));
     context.read<ArmoryBloc>().add(LoadGearEvent(userId: widget.userId));
-
   }
 
-  // Modified method to handle firearms
   void _handleFirearmsLoaded(List<ArmoryFirearm> firearms) {
     setState(() {
-      _firearms = firearms; // Store firearms data
-      _firearmOptions = firearms.map((firearm) => DropdownOption(
+      _firearms = firearms;
+      _firearmOptions = firearms
+          .map((firearm) => DropdownOption(
         value: firearm.id!,
         label: '${firearm.nickname} (${firearm.make} ${firearm.model})',
-      )).toList();
+      ))
+          .toList();
       _loadingFirearms = false;
-      // _filterAmmunitionForSelectedFirearm(); // Update ammo when firearms load
     });
   }
 
-// Modified method to handle ammunition
   void _handleAmmunitionLoaded(List<ArmoryAmmunition> ammunition) {
     setState(() {
-      _allAmmunition = ammunition; // Store all ammunition
+      _allAmmunition = ammunition;
       _loadingAmmunition = false;
-      //_filterAmmunitionForSelectedFirearm(); // Filter based on selected firearm
     });
   }
 
-// Modified method to filter ammunition
   void _filterAmmunitionForSelectedFirearm() {
     if (_selectedFirearmId == null || _allAmmunition.isEmpty || _firearms.isEmpty) {
       _ammunitionOptions = [];
@@ -102,58 +95,53 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
       orElse: () => throw StateError('Selected firearm not found'),
     );
 
-    final matchingAmmunition = _allAmmunition.where(
-          (ammo) => ammo.caliber.toLowerCase() == selectedFirearm.caliber.toLowerCase(),
-    ).toList();
+    final matchingAmmunition = _allAmmunition
+        .where((ammo) => ammo.caliber.toLowerCase() == selectedFirearm.caliber.toLowerCase())
+        .toList();
 
     if (matchingAmmunition.isEmpty) {
       _ammunitionOptions = [];
       _hasMatchingAmmunition = false;
-      // Show snackbar when no matching ammunition found
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showNoAmmoSnackBar();
       });
     } else {
-      _ammunitionOptions = matchingAmmunition.map((ammo) => DropdownOption(
+      _ammunitionOptions = matchingAmmunition
+          .map((ammo) => DropdownOption(
         value: ammo.id!,
         label: '${ammo.brand} ${ammo.caliber} ${ammo.bullet} (${ammo.quantity} rds)',
-      )).toList();
+      ))
+          .toList();
       _hasMatchingAmmunition = true;
     }
   }
 
-// Method to show snackbar
   void _showNoAmmoSnackBar() {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Please add ammunition for this firearm first'),
-        backgroundColor: AppColors.errorColor,
-        duration: Duration(seconds: 3),
+      SnackBar(
+        content: const Text('Please add ammunition for this firearm first'),
+        backgroundColor: AppTheme.error(context),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
-// Modified firearm selection handler
   void _onFirearmChanged(String? value) {
     setState(() {
       _selectedFirearmId = value;
-      _selectedAmmunitionId = null; // Reset ammunition selection
-      _filterAmmunitionForSelectedFirearm(); // Update ammunition options
+      _selectedAmmunitionId = null;
+      _filterAmmunitionForSelectedFirearm();
     });
   }
-
 
   void _handleGearLoaded(List<ArmoryGear> gear) {
     setState(() {
-      _gearOptions = gear
-          .map((g) => DropdownOption(value: g.id!, label: g.model))
-          .toList();
+      _gearOptions = gear.map((g) => DropdownOption(value: g.id!, label: g.model)).toList();
       _loadingGear = false;
     });
   }
-
 
   @override
   void dispose() {
@@ -171,12 +159,11 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
           _handleAmmunitionLoaded(state.ammunition);
         } else if (state is GearLoaded) {
           _handleGearLoaded(state.gear);
-        }
-        else if (state is ArmoryActionSuccess) {
+        } else if (state is ArmoryActionSuccess) {
           context.read<ArmoryBloc>().add(const HideFormEvent());
         }
       },
-      child:  Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(child: _buildForm()),
@@ -192,27 +179,27 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
 
   Widget _buildActions(ArmoryState state) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
             onPressed: () => context.read<ArmoryBloc>().add(const HideFormEvent()),
-            style: AppButtonStyles.cancelButtonStyle,
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: state is ArmoryLoadingAction ? null : _saveLoadout,
-            style: AppButtonStyles.primaryButtonStyle,
             child: state is ArmoryLoadingAction
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Save Loadout'),
@@ -224,35 +211,35 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
 
   Widget _buildForm() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            // Loadout Name
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Loadout Name *',
               controller: _controllers['name']!,
               isRequired: true,
-              maxLength: 25, // Add this
+              maxLength: 25,
               hintText: 'e.g., Precision .308, Competition Setup',
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            // Firearm Selection
-            CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildDropdownField(
+              context: context,
               label: 'Firearm *',
               value: _selectedFirearmId,
               options: _firearmOptions,
-              onChanged: _onFirearmChanged, // Use new handler
+              onChanged: _onFirearmChanged,
               isLoading: _loadingFirearms,
               enabled: !_loadingFirearms,
               isRequired: true,
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            // Ammunition Selection
-            CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildDropdownField(
+              context: context,
               label: 'Ammunition *',
               value: _selectedAmmunitionId,
               options: _ammunitionOptions,
@@ -264,15 +251,15 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
                 }
               },
               isLoading: _loadingAmmunition,
-              enabled: _hasMatchingAmmunition && !_loadingAmmunition, // Only enable if has matching ammo
+              enabled: _hasMatchingAmmunition && !_loadingAmmunition,
               isRequired: true,
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            // Gear Multi-Select
-            CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildDropdownField(
+              context: context,
               label: 'Gear',
-              value: null, // we don't bind one value because it's multi-select
+              value: null,
               options: _gearOptions,
               isLoading: _loadingGear,
               enabled: !_loadingGear,
@@ -283,8 +270,6 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
               },
             ),
 
-// Show selected gear as chips
-            // Show selected gear as chips
             if (_selectedGearIds.isNotEmpty) ...[
               const SizedBox(height: 8),
               Align(
@@ -297,17 +282,18 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
                     return Chip(
                       label: Text(
                         label,
-                        style: AppTextStyles.fieldLabel.copyWith(
-                          fontSize: 13,
-                          color: AppColors.primaryText,
-                        ),
+                        style: AppTheme.labelMedium(context).copyWith(fontSize: 13),
                       ),
-                      backgroundColor: AppColors.cardBackground.withOpacity(0.9),
+                      backgroundColor: AppTheme.surfaceVariant(context),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSizes.cardBorderRadius),
-                        side: BorderSide(color: AppColors.primaryBackground),
+                        borderRadius: BorderRadius.circular(ArmoryConstants.cardBorderRadius),
+                        side: BorderSide(color: AppTheme.border(context)),
                       ),
-                      deleteIcon: const Icon(Icons.close, size: 18, color: AppColors.secondaryText),
+                      deleteIcon: Icon(
+                        Icons.close,
+                        size: 18,
+                        color: AppTheme.textSecondary(context),
+                      ),
                       onDeleted: () {
                         setState(() => _selectedGearIds.remove(id));
                       },
@@ -317,16 +303,14 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
               ),
             ],
 
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            const SizedBox(height: AppSizes.fieldSpacing),
-
-
-            // Notes
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Notes',
               controller: _controllers['notes']!,
               maxLines: 3,
-              maxLength: 200, // Add this
+              maxLength: 200,
               hintText: 'Purpose, conditions, special setup notes, etc.',
             ),
           ],
@@ -341,9 +325,9 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
     final name = _controllers['name']?.text.trim() ?? '';
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Loadout name is required'),
-          backgroundColor: AppColors.errorColor,
+        SnackBar(
+          content: const Text('Loadout name is required'),
+          backgroundColor: AppTheme.error(context),
         ),
       );
       return;
@@ -357,7 +341,6 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
       notes: _controllers['notes']?.text.trim(),
       dateAdded: DateTime.now(),
     );
-
 
     context.read<ArmoryBloc>().add(
       AddLoadoutEvent(userId: widget.userId, loadout: loadout),

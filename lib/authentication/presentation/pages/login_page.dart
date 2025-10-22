@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pa_sreens/user_dashboard/pages/main_app_page.dart';
 import '../../../armory/presentation/pages/armory_page.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../injection_container.dart';
 import '../bloc/login_bloc/auth_bloc.dart';
 import '../bloc/login_bloc/auth_event.dart';
@@ -15,7 +16,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: AppTheme.background(context),
       body: BlocProvider(
         create: (_) => sl<AuthBloc>(),
         child: const LoginForm(),
@@ -55,7 +56,7 @@ class _LoginFormState extends State<LoginForm> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: AppColors.errorColor,
+              backgroundColor: AppTheme.error(context),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -63,11 +64,11 @@ class _LoginFormState extends State<LoginForm> {
       },
       child: Center(
         child: SingleChildScrollView(
-          padding: AppSizes.pageMargin,
+          padding: AppTheme.paddingLarge,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
             child: Container(
-              decoration: AppDecorations.mainCardDecoration,
+              decoration: AppTheme.cardDecoration(context),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -85,15 +86,17 @@ class _LoginFormState extends State<LoginForm> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding * 2),
-      decoration: AppDecorations.headerBorderDecoration,
+      padding: AppTheme.paddingLarge,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Column(
         children: [
-          Text('Welcome Back', style: AppTextStyles.dialogTitle),
+          Text('Welcome Back', style: AppTheme.headingMedium(context)),
           const SizedBox(height: 4),
           Text(
             'Sign in to continue to PulseAim',
-            style: AppTextStyles.cardDescription,
+            style: AppTheme.labelMedium(context),
           ),
         ],
       ),
@@ -102,19 +105,19 @@ class _LoginFormState extends State<LoginForm> {
 
   Widget _buildForm() {
     return Padding(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding * 2),
+      padding: AppTheme.paddingLarge,
       child: Form(
         key: _formKey,
         child: Column(
           children: [
             _buildEmailField(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildPasswordField(),
-            const SizedBox(height: AppSizes.sectionSpacing),
+            const SizedBox(height: AppTheme.spacingXXLarge),
             _buildLoginButton(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildDivider(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildGoogleButton(),
           ],
         ),
@@ -126,14 +129,15 @@ class _LoginFormState extends State<LoginForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Email', style: AppTextStyles.fieldLabel),
+        Text('Email', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          style: AppTextStyles.inputText,
-          decoration: AppInputDecorations.getInputDecoration(
+          style: AppTheme.bodyMedium(context),
+          decoration: InputDecoration(
             hintText: 'Enter your email',
+            hintStyle: AppTheme.labelMedium(context),
           ),
           validator: (value) {
             if (value?.trim().isEmpty ?? true) return 'Email is required';
@@ -149,20 +153,20 @@ class _LoginFormState extends State<LoginForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Password', style: AppTextStyles.fieldLabel),
+        Text('Password', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
-          style: AppTextStyles.inputText,
-          decoration: AppInputDecorations.getInputDecoration(
+          style: AppTheme.bodyMedium(context),
+          decoration: InputDecoration(
             hintText: 'Enter your password',
-          ).copyWith(
+            hintStyle: AppTheme.labelMedium(context),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: AppColors.secondaryText,
-                size: AppSizes.mediumIcon,
+                color: AppTheme.textSecondary(context),
+                size: AppTheme.iconMedium,
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
@@ -184,14 +188,13 @@ class _LoginFormState extends State<LoginForm> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: isLoading ? null : _handleLogin,
-            style: AppButtonStyles.primaryButtonStyle,
             child: isLoading
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Sign In'),
@@ -204,12 +207,12 @@ class _LoginFormState extends State<LoginForm> {
   Widget _buildDivider() {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.primaryBorder)),
+        Expanded(child: Divider(color: AppTheme.border(context))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('OR', style: AppTextStyles.cardDescription),
+          child: Text('OR', style: AppTheme.labelMedium(context)),
         ),
-        const Expanded(child: Divider(color: AppColors.primaryBorder)),
+        Expanded(child: Divider(color: AppTheme.border(context))),
       ],
     );
   }
@@ -221,28 +224,22 @@ class _LoginFormState extends State<LoginForm> {
         return SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: isLoading ? null : () {
+            onPressed: isLoading
+                ? null
+                : () {
               context.read<AuthBloc>().add(const GoogleSignInRequested());
             },
             icon: Image.asset(
               'assets/images/google_logo.png',
               height: 20,
               width: 20,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (_, __, ___) => Icon(
                 Icons.g_mobiledata,
                 size: 20,
-                color: AppColors.primaryText,
+                color: AppTheme.textPrimary(context),
               ),
             ),
             label: const Text('Continue with Google'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primaryText,
-              side: const BorderSide(color: AppColors.primaryBorder),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
           ),
         );
       },
@@ -251,14 +248,16 @@ class _LoginFormState extends State<LoginForm> {
 
   Widget _buildActions() {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding * 2),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: AppTheme.paddingLarge,
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             "Don't have an account? ",
-            style: AppTextStyles.cardDescription,
+            style: AppTheme.labelMedium(context),
           ),
           TextButton(
             onPressed: () {
@@ -268,7 +267,7 @@ class _LoginFormState extends State<LoginForm> {
               );
             },
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.accentText,
+              foregroundColor: AppTheme.primary(context),
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,

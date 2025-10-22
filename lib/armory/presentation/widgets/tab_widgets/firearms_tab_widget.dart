@@ -2,12 +2,13 @@
 import 'package:flutter/material.dart';
 import '../../bloc/armory_state.dart';
 import '../add_forms/add_firearm_form.dart';
+import 'enhanced_armory_tab_view.dart';
 import '../common/common_widgets.dart';
 import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
 import '../empty_state_widget.dart';
 import '../firearm_item_card.dart';
-import 'armory_tab_view.dart';
+
 
 class FirearmsTabWidget extends StatelessWidget {
   final String userId;

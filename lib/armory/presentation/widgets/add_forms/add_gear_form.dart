@@ -1,14 +1,14 @@
-// lib/user_dashboard/presentation/widgets/add_ammunition_dialog.dart
+// lib/armory/presentation/widgets/add_forms/add_gear_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
+import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_gear.dart';
 import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 import '../common/dialog_widgets.dart';
 
 class AddGearForm extends StatefulWidget {
@@ -69,27 +69,27 @@ class _AddGearFormState extends State<AddGearForm> {
 
   Widget _buildActions(ArmoryState state) {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
             onPressed: () => context.read<ArmoryBloc>().add(const HideFormEvent()),
-            style: AppButtonStyles.cancelButtonStyle,
             child: const Text('Cancel'),
           ),
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: state is ArmoryLoadingAction ? null : _saveGear,
-            style: AppButtonStyles.primaryButtonStyle,
             child: state is ArmoryLoadingAction
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Save Gear'),
@@ -101,56 +101,61 @@ class _AddGearFormState extends State<AddGearForm> {
 
   Widget _buildForm() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding),
+      padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            CommonDialogWidgets.buildDropdownField(
+            DialogWidgets.buildDropdownField(
+              context: context,
               label: 'Category *',
               value: _category,
-              options: [
-                const DropdownOption(value: 'optics', label: 'Optics'),
-                const DropdownOption(value: 'supports', label: 'Supports'),
-                const DropdownOption(value: 'attachments', label: 'Attachments'),
-                const DropdownOption(value: 'sensors', label: 'Sensors'),
-                const DropdownOption(value: 'misc', label: 'Miscellaneous'),
+              options: const [
+                DropdownOption(value: 'optics', label: 'Optics'),
+                DropdownOption(value: 'supports', label: 'Supports'),
+                DropdownOption(value: 'attachments', label: 'Attachments'),
+                DropdownOption(value: 'sensors', label: 'Sensors'),
+                DropdownOption(value: 'misc', label: 'Miscellaneous'),
               ],
               onChanged: (value) => setState(() => _category = value),
               isRequired: true,
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Model/Name *',
               controller: _controllers['model']!,
               isRequired: true,
-              maxLength: 30, // Add this
+              maxLength: 30,
               hintText: 'e.g., Vortex Razor HD',
             ),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            CommonDialogWidgets.buildResponsiveRow([
-              CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildResponsiveRow(context, [
+              DialogWidgets.buildTextField(
+                context: context,
                 label: 'Serial Number',
                 controller: _controllers['serial']!,
-                maxLength: 20, // Add this
+                maxLength: 20,
                 hintText: 'Optional',
               ),
 
-              CommonDialogWidgets.buildTextField(
+              DialogWidgets.buildTextField(
+                context: context,
                 label: 'Quantity',
                 controller: _controllers['quantity']!,
                 keyboardType: TextInputType.number,
               ),
             ]),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
 
-            CommonDialogWidgets.buildTextField(
+            DialogWidgets.buildTextField(
+              context: context,
               label: 'Notes',
               controller: _controllers['notes']!,
               maxLines: 3,
-              maxLength: 200, // Add this
+              maxLength: 200,
               hintText: 'Details about this gear',
             ),
           ],

@@ -1,6 +1,7 @@
-// lib/user_dashboard/presentation/widgets/report_tab_widget.dart
+// lib/armory/presentation/widgets/tab_widgets/report_tab_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_firearm.dart';
 import '../../../domain/entities/armory_ammunition.dart';
 import '../../../domain/entities/armory_gear.dart';
@@ -10,6 +11,7 @@ import '../../../domain/entities/armory_loadout.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
+import '../common/armory_constants.dart';
 import '../common/common_widgets.dart';
 
 class ReportTabWidget extends StatefulWidget {
@@ -67,14 +69,17 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
           setState(() => _tools = state.tools);
         } else if (state is LoadoutsLoaded) {
           setState(() => _loadouts = state.loadouts);
-        }
-        else if (state is MaintenanceLoaded) {
+        } else if (state is MaintenanceLoaded) {
           setState(() => _maintenance = state.maintenance);
         }
       },
       child: Container(
         width: double.infinity,
-        decoration: AppDecorations.mainCardDecoration,
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
+          border: Border.all(color: AppTheme.border(context)),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -121,7 +126,6 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
     );
   }
 
-  // Helper methods to resolve IDs to names
   String _getFirearmName(String? firearmId) {
     if (firearmId == null || firearmId.isEmpty) return '';
     try {
@@ -156,12 +160,13 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
     return 'Unknown Asset';
   }
 
-
   Widget _buildReportHeader() {
     return CommonWidgets.buildPageHeader(
+      context: context,
       title: 'Inventory Report',
       actions: [
         CommonWidgets.buildActionButton(
+          context: context,
           label: 'Print Report',
           onPressed: _printReport,
           icon: Icons.print,
@@ -175,7 +180,9 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
     return Container(
       width: double.infinity,
-      decoration: AppDecorations.sectionBorderDecoration,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Column(
         children: [
           InkWell(
@@ -190,18 +197,18 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(title, style: AppTextStyles.cardTitle),
+                    child: Text(title, style: AppTheme.titleLarge(context)),
                   ),
                   const SizedBox(width: 12),
-                  CommonWidgets.buildCountBadge(count, 'items'),
+                  CommonWidgets.buildCountBadge(context, count, 'items'),
                   const SizedBox(width: 12),
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
-                    duration: AppAnimations.shortDuration,
-                    child: const Icon(
+                    duration: ArmoryConstants.shortDuration,
+                    child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: AppColors.secondaryText,
-                      size: AppSizes.mediumIcon,
+                      color: AppTheme.textSecondary(context),
+                      size: ArmoryConstants.mediumIcon,
                     ),
                   ),
                 ],
@@ -211,7 +218,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
           if (isExpanded)
             Container(
               width: double.infinity,
-              padding: AppSizes.cardPadding,
+              padding: ArmoryConstants.cardPadding,
               child: content,
             ),
         ],
@@ -221,6 +228,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
   Widget _buildFirearmsTable() {
     return CommonWidgets.buildDataTable(
+      context,
       emptyMessage: 'No firearms in inventory',
       columns: const [
         DataColumn(label: Text('Make')),
@@ -238,7 +246,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
             DataCell(SizedBox(width: 80, child: Text(firearm.model, overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 70, child: Text(firearm.caliber, overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 60, child: Text(firearm.type, overflow: TextOverflow.ellipsis))),
-            DataCell(SizedBox(width: 80, child: CommonWidgets.buildStatusChip(firearm.status))),
+            DataCell(SizedBox(width: 80, child: CommonWidgets.buildStatusChip(context, firearm.status))),
             DataCell(SizedBox(width: 70, child: Text(firearm.serial ?? '', overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 80, child: Text(firearm.nickname, overflow: TextOverflow.ellipsis))),
           ],
@@ -249,6 +257,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
   Widget _buildAmmunitionTable() {
     return CommonWidgets.buildDataTable(
+      context,
       emptyMessage: 'No ammunition in inventory',
       columns: const [
         DataColumn(label: Text('Brand')),
@@ -266,7 +275,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
             DataCell(SizedBox(width: 70, child: Text(ammo.line ?? '', overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 70, child: Text(ammo.caliber, overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 80, child: Text(ammo.bullet, overflow: TextOverflow.ellipsis))),
-            DataCell(SizedBox(width: 80, child: CommonWidgets.buildStatusChip(ammo.status))),
+            DataCell(SizedBox(width: 80, child: CommonWidgets.buildStatusChip(context, ammo.status))),
             DataCell(SizedBox(width: 60, child: Text('${ammo.quantity}', overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 60, child: Text(ammo.lot ?? '', overflow: TextOverflow.ellipsis))),
           ],
@@ -277,6 +286,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
   Widget _buildGearTable() {
     return CommonWidgets.buildDataTable(
+      context,
       emptyMessage: 'No gear in inventory',
       columns: const [
         DataColumn(label: Text('Category')),
@@ -301,6 +311,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
   Widget _buildToolsTable() {
     return CommonWidgets.buildDataTable(
+      context,
       emptyMessage: 'No tools in inventory',
       columns: const [
         DataColumn(label: Text('Name')),
@@ -313,7 +324,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
           cells: [
             DataCell(SizedBox(width: 120, child: Text(tool.name, overflow: TextOverflow.ellipsis))),
             DataCell(SizedBox(width: 80, child: Text(tool.category ?? '', overflow: TextOverflow.ellipsis))),
-            DataCell(SizedBox(width: 80, child: CommonWidgets.buildStatusChip(tool.status))),
+            DataCell(SizedBox(width: 80, child: CommonWidgets.buildStatusChip(context, tool.status))),
             DataCell(SizedBox(width: 40, child: Text('${tool.quantity}'))),
           ],
         );
@@ -323,6 +334,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
   Widget _buildMaintenanceTable() {
     return CommonWidgets.buildDataTable(
+      context,
       emptyMessage: 'No maintenance records',
       columns: const [
         DataColumn(label: Text('Date')),
@@ -347,6 +359,7 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
 
   Widget _buildLoadoutsTable() {
     return CommonWidgets.buildDataTable(
+      context,
       emptyMessage: 'No loadouts configured',
       columns: const [
         DataColumn(label: Text('Name')),
@@ -375,9 +388,9 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Print functionality would be implemented here'),
-        backgroundColor: AppColors.accentText,
+      SnackBar(
+        content: const Text('Print functionality would be implemented here'),
+        backgroundColor: AppTheme.primary(context),
       ),
     );
   }

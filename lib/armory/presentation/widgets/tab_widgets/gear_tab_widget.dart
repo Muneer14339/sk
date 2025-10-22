@@ -8,7 +8,7 @@ import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
 import '../empty_state_widget.dart';
 import '../gear_item_card.dart';
-import 'armory_tab_view.dart';
+import 'enhanced_armory_tab_view.dart';
 
 class GearTabWidget extends StatelessWidget {
   final String userId;

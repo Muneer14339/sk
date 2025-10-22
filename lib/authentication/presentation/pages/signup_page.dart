@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:country_picker/country_picker.dart';
 import '../../../armory/presentation/pages/armory_page.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../injection_container.dart';
 import '../bloc/signup_bloc/signup_bloc.dart';
 import '../bloc/signup_bloc/signup_event.dart';
@@ -14,7 +15,7 @@ class SignupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBackground,
+      backgroundColor: AppTheme.background(context),
       body: BlocProvider(
         create: (_) => sl<SignupBloc>(),
         child: const SignupForm(),
@@ -51,13 +52,13 @@ class _SignupFormState extends State<SignupForm> {
     return BlocListener<SignupBloc, SignupState>(
       listener: (context, state) {
         if (state is SignupSuccess) {
-          final route =  MaterialPageRoute(builder: (_) => const ArmoryPage());
+          final route = MaterialPageRoute(builder: (_) => const ArmoryPage());
           Navigator.pushReplacement(context, route);
         } else if (state is SignupError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: AppColors.errorColor,
+              backgroundColor: AppTheme.error(context),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -65,11 +66,11 @@ class _SignupFormState extends State<SignupForm> {
       },
       child: Center(
         child: SingleChildScrollView(
-          padding: AppSizes.pageMargin,
+          padding: AppTheme.paddingLarge,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 450),
             child: Container(
-              decoration: AppDecorations.mainCardDecoration,
+              decoration: AppTheme.cardDecoration(context),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -87,15 +88,17 @@ class _SignupFormState extends State<SignupForm> {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding * 2),
-      decoration: AppDecorations.headerBorderDecoration,
+      padding: AppTheme.paddingLarge,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Column(
         children: [
-          Text('Create Account', style: AppTextStyles.dialogTitle),
+          Text('Create Account', style: AppTheme.headingMedium(context)),
           const SizedBox(height: 4),
           Text(
             'Join PulseAim today',
-            style: AppTextStyles.cardDescription,
+            style: AppTheme.labelMedium(context),
           ),
         ],
       ),
@@ -104,23 +107,23 @@ class _SignupFormState extends State<SignupForm> {
 
   Widget _buildForm() {
     return Padding(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding * 2),
+      padding: AppTheme.paddingLarge,
       child: Form(
         key: _formKey,
         child: Column(
           children: [
             _buildFirstNameField(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildEmailField(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildPasswordField(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildCountryField(),
-            const SizedBox(height: AppSizes.sectionSpacing),
+            const SizedBox(height: AppTheme.spacingXXLarge),
             _buildSignupButton(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildDivider(),
-            const SizedBox(height: AppSizes.fieldSpacing),
+            const SizedBox(height: AppTheme.spacingLarge),
             _buildGoogleButton(),
           ],
         ),
@@ -132,13 +135,14 @@ class _SignupFormState extends State<SignupForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('First Name', style: AppTextStyles.fieldLabel),
+        Text('First Name', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         TextFormField(
           controller: _firstNameController,
-          style: AppTextStyles.inputText,
-          decoration: AppInputDecorations.getInputDecoration(
+          style: AppTheme.bodyMedium(context),
+          decoration: InputDecoration(
             hintText: 'Enter your first name',
+            hintStyle: AppTheme.labelMedium(context),
           ),
           validator: (value) {
             if (value?.trim().isEmpty ?? true) return 'First name is required';
@@ -153,14 +157,15 @@ class _SignupFormState extends State<SignupForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Email', style: AppTextStyles.fieldLabel),
+        Text('Email', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          style: AppTextStyles.inputText,
-          decoration: AppInputDecorations.getInputDecoration(
+          style: AppTheme.bodyMedium(context),
+          decoration: InputDecoration(
             hintText: 'Enter your email',
+            hintStyle: AppTheme.labelMedium(context),
           ),
           validator: (value) {
             if (value?.trim().isEmpty ?? true) return 'Email is required';
@@ -176,20 +181,20 @@ class _SignupFormState extends State<SignupForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Password', style: AppTextStyles.fieldLabel),
+        Text('Password', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
-          style: AppTextStyles.inputText,
-          decoration: AppInputDecorations.getInputDecoration(
+          style: AppTheme.bodyMedium(context),
+          decoration: InputDecoration(
             hintText: 'Create a password (min. 6 characters)',
-          ).copyWith(
+            hintStyle: AppTheme.labelMedium(context),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: AppColors.secondaryText,
-                size: AppSizes.mediumIcon,
+                color: AppTheme.textSecondary(context),
+                size: AppTheme.iconMedium,
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
@@ -208,24 +213,20 @@ class _SignupFormState extends State<SignupForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Country (Optional)', style: AppTextStyles.fieldLabel),
+        Text('Country (Optional)', style: AppTheme.labelMedium(context)),
         const SizedBox(height: 6),
         InkWell(
           onTap: _pickCountry,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
           child: Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.inputBackground,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-              border: Border.all(color: AppColors.primaryBorder),
-            ),
+            decoration: AppTheme.inputDecoration(context),
             child: Row(
               children: [
                 Icon(
                   Icons.public,
-                  color: AppColors.secondaryText,
-                  size: AppSizes.mediumIcon,
+                  color: AppTheme.textSecondary(context),
+                  size: AppTheme.iconMedium,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -233,16 +234,16 @@ class _SignupFormState extends State<SignupForm> {
                     _selectedCountry ?? 'Select your country',
                     style: TextStyle(
                       color: _selectedCountry != null
-                          ? AppColors.primaryText
-                          : AppColors.secondaryText,
+                          ? AppTheme.textPrimary(context)
+                          : AppTheme.textSecondary(context),
                       fontSize: 14,
                     ),
                   ),
                 ),
                 Icon(
                   Icons.arrow_drop_down,
-                  color: AppColors.secondaryText,
-                  size: AppSizes.mediumIcon,
+                  color: AppTheme.textSecondary(context),
+                  size: AppTheme.iconMedium,
                 ),
               ],
             ),
@@ -260,14 +261,13 @@ class _SignupFormState extends State<SignupForm> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: isLoading ? null : _handleSignup,
-            style: AppButtonStyles.primaryButtonStyle,
             child: isLoading
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
                 : const Text('Create Account'),
@@ -280,12 +280,12 @@ class _SignupFormState extends State<SignupForm> {
   Widget _buildDivider() {
     return Row(
       children: [
-        const Expanded(child: Divider(color: AppColors.primaryBorder)),
+        Expanded(child: Divider(color: AppTheme.border(context))),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text('OR', style: AppTextStyles.cardDescription),
+          child: Text('OR', style: AppTheme.labelMedium(context)),
         ),
-        const Expanded(child: Divider(color: AppColors.primaryBorder)),
+        Expanded(child: Divider(color: AppTheme.border(context))),
       ],
     );
   }
@@ -297,28 +297,22 @@ class _SignupFormState extends State<SignupForm> {
         return SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: isLoading ? null : () {
+            onPressed: isLoading
+                ? null
+                : () {
               context.read<SignupBloc>().add(const GoogleSignUpRequested());
             },
             icon: Image.asset(
               'assets/images/google_logo.png',
               height: 20,
               width: 20,
-              errorBuilder: (_, __, ___) => const Icon(
+              errorBuilder: (_, __, ___) => Icon(
                 Icons.g_mobiledata,
                 size: 20,
-                color: AppColors.primaryText,
+                color: AppTheme.textPrimary(context),
               ),
             ),
             label: const Text('Continue with Google'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primaryText,
-              side: const BorderSide(color: AppColors.primaryBorder),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
           ),
         );
       },
@@ -327,19 +321,21 @@ class _SignupFormState extends State<SignupForm> {
 
   Widget _buildActions() {
     return Container(
-      padding: const EdgeInsets.all(AppSizes.dialogPadding * 2),
-      decoration: AppDecorations.footerBorderDecoration,
+      padding: AppTheme.paddingLarge,
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'Already have an account? ',
-            style: AppTextStyles.cardDescription,
+            style: AppTheme.labelMedium(context),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.accentText,
+              foregroundColor: AppTheme.primary(context),
               padding: EdgeInsets.zero,
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -356,11 +352,12 @@ class _SignupFormState extends State<SignupForm> {
       context: context,
       showPhoneCode: false,
       countryListTheme: CountryListThemeData(
-        backgroundColor: AppColors.cardBackground,
-        textStyle: AppTextStyles.inputText,
-        searchTextStyle: AppTextStyles.inputText,
-        inputDecoration: AppInputDecorations.getInputDecoration(
+        backgroundColor: AppTheme.surface(context),
+        textStyle: AppTheme.bodyMedium(context),
+        searchTextStyle: AppTheme.bodyMedium(context),
+        inputDecoration: InputDecoration(
           hintText: 'Search country',
+          hintStyle: AppTheme.labelMedium(context),
         ),
       ),
       onSelect: (Country country) {

@@ -5,7 +5,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../tab_widgets/armory_tab_view.dart';
+import '../tab_widgets/enhanced_armory_tab_view.dart';
 import 'armory_constants.dart';
 import 'inline_form_wrapper.dart';
 import 'common_widgets.dart';

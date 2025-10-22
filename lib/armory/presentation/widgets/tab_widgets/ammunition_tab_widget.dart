@@ -9,7 +9,7 @@ import '../common/common_widgets.dart';
 import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
 import '../empty_state_widget.dart';
-import 'armory_tab_view.dart';
+import 'enhanced_armory_tab_view.dart';
 import 'firearms_tab_widget.dart';
 
 class AmmunitionTabWidget extends StatelessWidget {
