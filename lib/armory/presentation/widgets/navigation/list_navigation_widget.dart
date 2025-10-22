@@ -8,7 +8,7 @@ class ListNavigationWidget extends StatelessWidget {
   final int selectedTabIndex;
   final Function(int) onTabChanged;
   final ArmoryState state;
-  final Map<ArmoryTabType, int> counts; // 👈 new field
+  final Map<ArmoryTabType, int> counts;
 
   const ListNavigationWidget({
     super.key,
@@ -20,35 +20,47 @@ class ListNavigationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    final items = _getTabItems();
     final orientation = MediaQuery.of(context).orientation;
 
-    // Limit navigation to 15-20% of screen height
-    final maxHeight = orientation == Orientation.portrait
-        ? screenHeight * 0.25  // 20% for portrait
-        : screenHeight * 0.30; // 30% for landscape
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive sizes based on available height
+        final itemHeight = (constraints.maxHeight - (items.length - 1) * 4) / items.length;
+        final basePadding = itemHeight * 0.08;
+        final iconSize = itemHeight * 0.35;
+        final fontSize = itemHeight * 0.22;
+        final countFontSize = itemHeight * 0.18;
 
-    return Container(
-      //height: maxHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: SingleChildScrollView(
-        child: Column(
-          children: _getTabItems().asMap().entries.map((entry) {
-            final index = entry.key;
-            final tabItem = entry.value;
-            // For list navigation mode, no item should be active (-1 means no selection)
-            final isActive = selectedTabIndex >= 0 && selectedTabIndex == index;
+        return Container(
+          padding: EdgeInsets.all(basePadding),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final tabItem = entry.value;
+              final isActive = selectedTabIndex >= 0 && selectedTabIndex == index;
+              final isLast = index == items.length - 1;
 
-            return _buildListItem(
-              tabItem: tabItem,
-              isActive: isActive,
-              onTap: () => onTabChanged(index),
-              isLast: index == _getTabItems().length - 1,
-              isCompact: true,
-            );
-          }).toList(),
-        ),
-      ),
+              return Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 4),
+                  child: _buildListItem(
+                    tabItem: tabItem,
+                    isActive: isActive,
+                    onTap: () => onTabChanged(index),
+                    orientation: orientation,
+                    itemHeight: itemHeight,
+                    iconSize: iconSize,
+                    fontSize: fontSize,
+                    countFontSize: countFontSize,
+                    basePadding: basePadding,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 
@@ -56,122 +68,124 @@ class ListNavigationWidget extends StatelessWidget {
     required TabItemInfo tabItem,
     required bool isActive,
     required VoidCallback onTap,
-    required bool isLast,
-    required bool isCompact,
+    required Orientation orientation,
+    required double itemHeight,
+    required double iconSize,
+    required double fontSize,
+    required double countFontSize,
+    required double basePadding,
   }) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: AppAnimations.mediumDuration,
-            margin: EdgeInsets.only(bottom: isLast ? 0 : (isCompact ? 4 : 8)),
-            padding: EdgeInsets.all(isCompact ? 8 : 12),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? AppColors.accentBackgroundWithOpacity.withOpacity(0.2)
-                  : AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isActive
-                    ? AppColors.accentText.withOpacity(0.3)
-                    : AppColors.primaryBorder,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                // Left side: Icon + Label
-                Expanded(
-                  child: Row(
-                    children: [
-                      // Icon
-                      Container(
-                        width: isCompact ? 28 : 32,
-                        height: isCompact ? 28 : 32,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.accentText.withOpacity(0.1)
-                              : AppColors.sectionBackground,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Icon(
-                          tabItem.icon,
-                          size: isCompact ? 14 : 16,
-                          color: isActive
-                              ? AppColors.accentText
-                              : AppColors.primaryText,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Label
-                      Expanded(
-                        child: Text(
-                          tabItem.title,
-                          style: TextStyle(
-                            color: isActive
-                                ? AppColors.accentText
-                                : AppColors.primaryText,
-                            fontSize: isCompact ? 12 : 14,
-                            fontWeight: isActive
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Right side: Count + Arrow
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Count Badge
-                    if (tabItem.count > 0)
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isCompact ? 6 : 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? AppColors.accentText.withOpacity(0.1)
-                              : AppColors.sectionBackground,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isActive
-                                ? AppColors.accentText.withOpacity(0.3)
-                                : AppColors.primaryBorder,
-                          ),
-                        ),
-                        child: Text(
-                          tabItem.count.toString(),
-                          style: TextStyle(
-                            color: isActive
-                                ? AppColors.accentText
-                                : AppColors.secondaryText,
-                            fontSize: isCompact ? 10 : 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(width: 6),
-                    // Arrow - Always pointing right for navigation indication
-                    Icon(
-                      Icons.chevron_right,
-                      size: isCompact ? 16 : 18,
-                      color: isActive
-                          ? AppColors.accentText
-                          : AppColors.secondaryText,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    final showIcons = orientation == Orientation.portrait;
+    final itemPadding = basePadding * 1;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppAnimations.mediumDuration,
+        padding: EdgeInsets.symmetric(
+          horizontal: itemPadding,
+          vertical: itemPadding * 0.6,
+        ),
+        decoration: BoxDecoration(
+          color: isActive
+              ? AppColors.accentBackgroundWithOpacity.withOpacity(0.2)
+              : AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(basePadding),
+          border: Border.all(
+            color: isActive
+                ? AppColors.accentText.withOpacity(0.3)
+                : AppColors.primaryBorder,
           ),
         ),
-      ],
+        child: Row(
+          children: [
+            // Left side (optional icon + name)
+            Expanded(
+              child: Row(
+                children: [
+                  if (showIcons)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? AppColors.accentText.withOpacity(0.1)
+                            : AppColors.sectionBackground,
+                        borderRadius: BorderRadius.circular(basePadding * 0.75),
+                      ),
+                      padding: EdgeInsets.all(basePadding * 0.5),
+                      child: Icon(
+                        tabItem.icon,
+                        size: iconSize,
+                        color: isActive
+                            ? AppColors.accentText
+                            : AppColors.primaryText,
+                      ),
+                    ),
+                  if (showIcons) SizedBox(width: basePadding),
+                  Expanded(
+                    child: Text(
+                      tabItem.title,
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        color: isActive
+                            ? AppColors.accentText
+                            : AppColors.primaryText,
+                        fontWeight:
+                        isActive ? FontWeight.w600 : FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Right side (count + optional arrow)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (tabItem.count > 0)
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppColors.accentText.withOpacity(0.1)
+                          : AppColors.sectionBackground,
+                      borderRadius: BorderRadius.circular(basePadding * 1.25),
+                      border: Border.all(
+                        color: isActive
+                            ? AppColors.accentText.withOpacity(0.3)
+                            : AppColors.primaryBorder,
+                      ),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: basePadding * 0.75,
+                      vertical: basePadding * 0.25,
+                    ),
+                    child: Text(
+                      tabItem.count.toString(),
+                      style: TextStyle(
+                        fontSize: countFontSize,
+                        color: isActive
+                            ? AppColors.accentText
+                            : AppColors.secondaryText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                if (showIcons) SizedBox(width: basePadding * 0.5),
+                if (showIcons)
+                  Icon(
+                    Icons.chevron_right,
+                    size: iconSize * 0.85,
+                    color: isActive
+                        ? AppColors.accentText
+                        : AppColors.secondaryText,
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -184,48 +198,6 @@ class ListNavigationWidget extends StatelessWidget {
       TabItemInfo(title: 'Loadouts', icon: Icons.construction_outlined, count: counts[ArmoryTabType.loadouts] ?? 0),
       TabItemInfo(title: 'Report', icon: Icons.flash_on_outlined, count: counts[ArmoryTabType.report] ?? 0),
     ];
-  }
-
-  int _getFirearmsCount() {
-    if (state is FirearmsLoaded) {
-      return (state as FirearmsLoaded).firearms.length;
-    }
-    return 0;
-  }
-
-  int _getAmmunitionCount() {
-    if (state is AmmunitionLoaded) {
-      return (state as AmmunitionLoaded).ammunition.length;
-    }
-    return 0;
-  }
-
-  int _getGearCount() {
-    if (state is GearLoaded) {
-      return (state as GearLoaded).gear.length;
-    }
-    return 0;
-  }
-
-  int _getToolsCount() {
-    if (state is ToolsLoaded) {
-      return (state as ToolsLoaded).tools.length;
-    }
-    return 0;
-  }
-
-  int _getAllItemsCount() {
-    return _getFirearmsCount() +
-        _getAmmunitionCount() +
-        _getGearCount() +
-        _getToolsCount() +
-        _getLoadoutsCount();
-  }
-  int _getLoadoutsCount() {
-    if (state is LoadoutsLoaded) {
-      return (state as LoadoutsLoaded).loadouts.length;
-    }
-    return 0;
   }
 }
 

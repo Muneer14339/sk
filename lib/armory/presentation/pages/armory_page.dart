@@ -109,18 +109,9 @@ class _ArmoryPageViewState extends State<ArmoryPageView> {
       elevation: 0,
       title: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppConfig.appName, // Use config app name
-                style: AppTextStyles.pageTitle.copyWith(fontSize: 18),
-              ),
-              Text(
-                AppConfig.appSubtitle, // Use config subtitle
-                style: AppTextStyles.pageSubtitle.copyWith(fontSize: 11),
-              ),
-            ],
+          Text(
+            AppConfig.appName, // Use config app name
+            style: AppTextStyles.pageTitle.copyWith(fontSize: 18),
           ),
           const Spacer(),
           TextButton.icon(

@@ -7,7 +7,11 @@ import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_event.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_state.dart';
 import 'authentication/presentation/pages/login_page.dart';
+import 'core/theme/app_theme.dart';
 import 'injection_container.dart' as di;
+import 'injection_container.dart';
+import 'training/presentation/bloc/ble_scan/ble_scan_bloc.dart';
+import 'training/presentation/bloc/training_session/training_session_bloc.dart';
 import 'user_dashboard/pages/main_app_page.dart';
 
 void main() async {
@@ -22,20 +26,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'PulseAim App',
-      navigatorKey: EnhancedDialogWidgets.navigatorKey,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
-      home: BlocProvider(
-        create: (_) => di.sl<AuthBloc>()..add(const CheckLoginStatus()),
-        child: const AuthWrapper(),
-      ),
-    );
+    return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) =>
+                  BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()),
+            ),
+            BlocProvider(
+              create: (_) => di.sl<AuthBloc>()..add(const CheckLoginStatus()),
+            ),
+            BlocProvider(
+                create: (context) => TrainingSessionBloc(bleRepository: sl())),
+
+          ],
+          child: MaterialApp(
+              title: 'PulseSkadi',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme().lightTheme,
+    navigatorKey: EnhancedDialogWidgets.navigatorKey,
+    home:const AuthWrapper()));
   }
 }
+
+
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});

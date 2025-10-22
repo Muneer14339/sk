@@ -1,4 +1,5 @@
 // lib/injection_container.dart - FINAL VERSION
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get_it/get_it.dart';
@@ -41,7 +42,21 @@ import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/signup_bloc/signup_bloc.dart';
 
 
+import 'core/network/network_info.dart';
 import 'core/usecases/usecase.dart';
+import 'training/data/datasources/ProgramsDataSource.dart';
+import 'training/data/datasources/session_details_local_datasource.dart';
+import 'training/data/datasources/session_details_remote_datasource.dart';
+import 'training/data/model/programs_model.dart';
+import 'training/data/repositories/ble_repository_impl.dart';
+import 'training/data/repositories/session_details_repository_impl.dart';
+import 'training/domain/repositories/ble_repository.dart';
+import 'training/domain/repositories/session_details_repository.dart';
+import 'training/domain/usecases/export_session_data.dart';
+import 'training/domain/usecases/get_session_details.dart';
+import 'training/domain/usecases/share_session_results.dart';
+import 'training/presentation/bloc/ble_scan/ble_scan_bloc.dart';
+import 'training/presentation/bloc/training_session/training_session_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -63,6 +78,13 @@ Future<void> init() async {
     ),
   );
 
+  // Add to dependencies
+  sl.registerLazySingleton<ProgramsDataSource>(
+        () => ProgramsDataSourceImpl(
+      firestore: sl(),
+      auth: sl(),
+    ),
+  );
 
   // Clean Architecture ArmoryBloc - Original Interface Preserved
   sl.registerFactory(
@@ -154,4 +176,56 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => GoogleSignIn());
+
+
+
+  // BLoCs
+  sl.registerFactory(
+          () => BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()));
+  sl.registerFactory(() => TrainingSessionBloc(bleRepository: sl()));
+
+  // Services
+
+
+  sl.registerLazySingleton<ProgramsModel>(() => ProgramsModel());
+
+  // Network Dependencies
+  sl.registerLazySingleton<Connectivity>(() => Connectivity());
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+  // sl.registerLazySingleton<http.Client>(() => http.Client());
+
+
+  // Repositories
+
+
+  sl.registerLazySingleton<BleRepository>(
+        () => BleRepositoryImpl(),
+  );
+  sl.registerLazySingleton<BleRepositoryImpl>(
+        () => BleRepositoryImpl(),
+  );
+  sl.registerLazySingleton<GetSessionDetails>(
+        () => GetSessionDetails(sl()),
+  );
+  sl.registerLazySingleton<ExportSessionData>(
+        () => ExportSessionData(sl()),
+  );
+  sl.registerLazySingleton<ShareSessionResults>(
+        () => ShareSessionResults(sl()),
+  );
+
+  // Session Details Dependencies
+  sl.registerLazySingleton<SessionDetailsRemoteDataSource>(
+        () => SessionDetailsRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<SessionDetailsLocalDataSource>(
+        () => SessionDetailsLocalDataSourceImpl(),
+  );
+  sl.registerLazySingleton<SessionDetailsRepository>(
+        () => SessionDetailsRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+      networkInfo: sl(),
+    ),
+  );
 }

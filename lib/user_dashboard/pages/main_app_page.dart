@@ -11,6 +11,8 @@ import '../../../authentication/presentation/pages/login_page.dart';
 import '../../armory/presentation/bloc/armory_bloc.dart';
 import '../../armory/presentation/core/theme/user_app_theme.dart';
 import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
+import '../../core/theme/app_colors.dart' as appColor;
+import '../../training/presentation/pages/training_programs_page.dart';
 import 'placeholder_tabs.dart';
 
 class MainAppPage extends StatelessWidget {
@@ -65,7 +67,7 @@ class _MainAppViewState extends State<MainAppView> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.primaryBackground,
+        //backgroundColor: AppColors.primaryBackground,
         appBar: _buildAppBar(),
         body: userId == null ? _buildUnauthenticatedView() : _buildBody(),
         bottomNavigationBar: _buildBottomNavigation(),
@@ -75,20 +77,11 @@ class _MainAppViewState extends State<MainAppView> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.cardBackground,
+      backgroundColor: appColor.AppColors.kPrimaryTeal.withValues(alpha: .22),
       elevation: 0,
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppConfig.appName, // Use config app name
-            style: AppTextStyles.pageTitle,
-          ),
-          Text(
-            AppConfig.appSubtitle, // Use config subtitle
-            style: AppTextStyles.pageSubtitle,
-          ),
-        ],
+      title: Text(
+        AppConfig.appName, // Use config app name
+        style: AppTextStyles.pageTitle,
       ),
       actions: [
         // Remove navigation style selector - no conditional logic needed
@@ -113,7 +106,7 @@ class _MainAppViewState extends State<MainAppView> {
       case 1:
         return const EnhancedArmoryTabView(); // Remove navigation style parameter
       case 2:
-        return const TrainingTabWidget();
+        return const TrainingProgramsPage();
       case 3:
         return const HistoryTabWidget();
       case 4:
@@ -127,13 +120,19 @@ class _MainAppViewState extends State<MainAppView> {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: appColor.AppColors.kPrimaryTeal.withValues(alpha: 0.1),
         border: Border(
           top: BorderSide(
-            color: AppColors.primaryBorder,
-            width: 1,
+            color: appColor.AppColors.kQuaternaryColor.withValues(alpha: 0.1),
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: appColor.AppColors.kPrimaryColor.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: _tabs.asMap().entries.map((entry) {

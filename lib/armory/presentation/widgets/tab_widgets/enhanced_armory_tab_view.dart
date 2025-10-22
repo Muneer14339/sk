@@ -56,6 +56,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
 
     // Only use sidebar for landscape WITH sufficient width (tablets/desktops)
     // Not for small landscape phones
+    return orientation == Orientation.landscape;
     return orientation == Orientation.landscape && size.width >= 700;
   }
 
@@ -183,13 +184,16 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
     );
   }
 
-  // NEW: Sidebar layout for landscape/tablet
+  // enhanced_armory_tab_view.dart mein _buildSidebarLayout ko replace karein:
+
   Widget _buildSidebarLayout(ArmoryState state) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start, // 👈 Yeh important hai
       children: [
         // Left Sidebar Navigation (20% width)
         Container(
           width: MediaQuery.of(context).size.width * 0.20,
+          height: double.infinity, // 👈 Full height
           decoration: BoxDecoration(
             color: AppColors.cardBackground,
             border: Border(
@@ -199,14 +203,11 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
               ),
             ),
           ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListNavigationWidget(
-              selectedTabIndex: _selectedTabIndex,
-              onTabChanged: _onTabChanged,
-              state: state,
-              counts: _counts,
-            ),
+          child: ListNavigationWidget(
+            selectedTabIndex: _selectedTabIndex,
+            onTabChanged: _onTabChanged,
+            state: state,
+            counts: _counts,
           ),
         ),
 
@@ -214,6 +215,38 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         Expanded(
           child: Container(
             decoration: AppDecorations.pageDecoration,
+            alignment: Alignment.topLeft, // 👈 Content left se start ho
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _loadDataForTab(_tabs[_selectedTabIndex].tabType);
+                await Future.delayed(const Duration(milliseconds: 400));
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: AppSizes.pageMargin,
+                child: Container(
+                  width: double.infinity, // 👈 Full width le
+                  alignment: Alignment.topLeft, // 👈 Left aligned
+                  child: _buildTabContent(_tabs[_selectedTabIndex].tabType),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+// Aur yeh bhi add karein - list content view fix:
+
+  Widget _buildListContentView() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // 👈 Left aligned
+      children: [
+        // Content
+        Expanded(
+          child: Container(
+            alignment: Alignment.topLeft, // 👈 Top-left se start
             child: RefreshIndicator(
               onRefresh: () async {
                 _loadDataForTab(_tabs[_selectedTabIndex].tabType);
@@ -230,6 +263,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
       ],
     );
   }
+
 
   Widget _buildGridLayout(ArmoryState state) {
     return Column(
@@ -269,39 +303,14 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
   }
 
   Widget _buildListNavigationView(ArmoryState state) {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: ListNavigationWidget(
-        selectedTabIndex: -1,
-        onTabChanged: _onTabChanged,
-        state: state,
-        counts: _counts,   // 👈 yahan bhej diya
-      ),
+    return ListNavigationWidget(
+      selectedTabIndex: -1,
+      onTabChanged: _onTabChanged,
+      state: state,
+      counts: _counts,   // 👈 yahan bhej diya
     );
   }
 
-
-  Widget _buildListContentView() {
-    return Column(
-      children: [
-
-        // Content
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              _loadDataForTab(_tabs[_selectedTabIndex].tabType);
-              await Future.delayed(const Duration(milliseconds: 400));
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: AppSizes.pageMargin,
-              child: _buildTabContent(_tabs[_selectedTabIndex].tabType),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildTabContent(ArmoryTabType tabType) {
     if (userId == null) {

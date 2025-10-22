@@ -1,4 +1,3 @@
-// lib/features/training/data/datasources/saved_sessions_datasource.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -23,13 +22,13 @@ class SavedSessionsDataSourceImpl implements SavedSessionsDataSource {
   CollectionReference<Map<String, dynamic>> _collection() {
     final uid = auth.currentUser!.uid;
     return firestore
-        .collection('Users')
+        .collection('training')
         .doc(uid)
-        .collection('TrainingSessions')
+        .collection('sessions')
         .withConverter<Map<String, dynamic>>(
-          fromFirestore: (snap, _) => snap.data() ?? <String, dynamic>{},
-          toFirestore: (data, _) => data,
-        );
+      fromFirestore: (snap, _) => snap.data() ?? <String, dynamic>{},
+      toFirestore: (data, _) => data,
+    );
   }
 
   @override
