@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/services/prefs.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../bloc/sensitivity_settings/counter_sens_bloc.dart';
 import 'target_rings.dart';
 
@@ -96,7 +96,7 @@ class TargetDisplay extends StatelessWidget {
                 if (shotMarkers.isNotEmpty)
                   CustomPaint(
                       painter: ShotMarkersPainter(
-                          shotMarkers, containerWidth, containerHeight),
+                          shotMarkers, containerWidth, containerHeight,context),
                       size: Size(containerWidth, containerHeight)),
 
                 // ✅ CHANGED: Show dot in tracelineAndDot OR dotOnly modes
@@ -133,8 +133,8 @@ class TargetDisplay extends StatelessWidget {
                       width: targetSize,
                       height: targetSize,
                       child: DynamicTargetRings(
-                        fillColor: AppColors.kRedColor,
-                        ringColor: AppColors.kRedColor,
+                        fillColor: AppTheme.error(context),
+                        ringColor: AppTheme.error(context),
                         ringCount: 6,
                         targetSize: targetSize,
                       ),
@@ -322,8 +322,8 @@ class TracelinePainter extends CustomPainter {
   }
 
   Color _getShotMarkerColor(double accuracy) {
-    if (accuracy <= 0.15) return AppColors.greenColor;
-    if (accuracy <= 0.6) return AppColors.appYellow;
+    if (accuracy <= 0.15) return Colors.green;
+    if (accuracy <= 0.6) return Colors.red;
     // if (accuracy <= 0.6) return const Color(0xFFEF4444);
     return const Color(0xFF6B7280);
   }
@@ -345,11 +345,13 @@ class ShotMarkersPainter extends CustomPainter {
   final List<ShotMarker> shotMarkers;
   final double containerWidth;
   final double containerHeight;
+  final BuildContext context ;
 
   ShotMarkersPainter(
     this.shotMarkers,
     this.containerWidth,
     this.containerHeight,
+      this.context
   );
 
   @override
@@ -392,8 +394,8 @@ class ShotMarkersPainter extends CustomPainter {
   }
 
   Color _getShotMarkerColor(double accuracy) {
-    if (accuracy <= 0.1525) return AppColors.greenColor;
-    if (accuracy <= 0.7) return AppColors.appYellow;
+    if (accuracy <= 0.1525) return AppTheme.success(context);
+    if (accuracy <= 0.7) return AppTheme.warning(context);
     // if (accuracy <= 0.6) return const Color(0xFFEF4444);
     return const Color(0xFF6B7280);
   }

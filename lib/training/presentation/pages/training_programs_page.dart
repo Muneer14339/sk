@@ -5,7 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/services/prefs.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/dialog_utils.dart';
 import '../../../core/utils/toast_utils.dart';
 import '../../../core/widgets/custom_appbar.dart';
@@ -108,35 +108,35 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.transparent, AppColors.kError..withValues(alpha: .05)],
+        colors: [Colors.transparent, AppTheme.error(context)..withValues(alpha: .05)],
       ),
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.kError..withValues(alpha: .2)),
+      border: Border.all(color: AppTheme.error(context)..withValues(alpha: .2)),
     ),
     child: Column(
       children: [
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.kError..withValues(alpha: .1),
+            color: AppTheme.error(context)..withValues(alpha: .1),
             shape: BoxShape.circle,
           ),
-          child: Icon(Icons.error_outline, color: AppColors.kError, size: 32),
+          child: Icon(Icons.error_outline, color: AppTheme.error(context), size: 32),
         ),
         const SizedBox(height: 16),
-        Text('Loading Error', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+        Text('Loading Error', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
         const SizedBox(height: 8),
-        Text(error, style: TextStyle(fontSize: 14, color: AppColors.kTextSecondary, height: 1.4), textAlign: TextAlign.center),
+        Text(error, style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context), height: 1.4), textAlign: TextAlign.center),
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () => setState(() {}),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [AppColors.kPrimaryTeal, AppColors.kPrimaryTeal..withValues(alpha: .8)]),
+              gradient: LinearGradient(colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .8)]),
               borderRadius: BorderRadius.circular(25),
             ),
-            child: Text('Retry', style: TextStyle(color: AppColors.kTextPrimary, fontSize: 14, fontWeight: FontWeight.w600)),
+            child: Text('Retry', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 14, fontWeight: FontWeight.w600)),
           ),
         ),
       ],
@@ -150,19 +150,19 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [AppColors.kPrimaryTeal..withValues(alpha: .1), Colors.transparent]),
+            gradient: LinearGradient(colors: [AppTheme.primary(context)..withValues(alpha: .1), Colors.transparent]),
             shape: BoxShape.circle,
           ),
           child: SizedBox(
             width: 48,
             height: 48,
-            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimaryTeal), strokeWidth: 3),
+            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary(context)), strokeWidth: 3),
           ),
         ),
         const SizedBox(height: 16),
-        Text('Loading Programs', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.kTextPrimary)),
+        Text('Loading Programs', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
         const SizedBox(height: 8),
-        Text('Preparing your training catalog...', style: TextStyle(fontSize: 14, color: AppColors.kTextSecondary)),
+        Text('Preparing your training catalog...', style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context))),
       ],
     ),
   );
@@ -180,7 +180,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppColors.kPrimaryTeal.withValues(alpha: .4),
+            color: AppTheme.primary(context).withValues(alpha: .4),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -194,10 +194,10 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppColors.kPrimaryTeal.withValues(alpha: .4),
+                            color: AppTheme.primary(context).withValues(alpha: .4),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.settings, color: AppColors.kTextPrimary, size: 18),
+                          child: Icon(Icons.settings, color: AppTheme.textPrimary(context), size: 18),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -209,12 +209,12 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: AppColors.kTextPrimary..withValues(alpha: .9),
+                                  color: AppTheme.textPrimary(context)..withValues(alpha: .9),
                                 ),
                               ),
                               Text(
                                 currentLoadout?.name ?? 'No Loadout Selected',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary),
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context)),
                               ),
                             ],
                           ),
@@ -224,7 +224,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                     const SizedBox(height: 8),
                     Text(
                       currentLoadout != null ? '${currentLoadout.notes ?? "Ready to train"}' : 'Configure a loadout to start',
-                      style: TextStyle(fontSize: 13, color: AppColors.kTextPrimary..withValues(alpha: .8), height: 1.3),
+                      style: TextStyle(fontSize: 13, color: AppTheme.textPrimary(context)..withValues(alpha: .8), height: 1.3),
                     ),
                   ],
                 ),
@@ -232,10 +232,10 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.kPrimaryTeal.withValues(alpha: .4),
+                  color: AppTheme.primary(context).withValues(alpha: .4),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Icon(Icons.arrow_forward_ios, color: AppColors.kTextPrimary, size: 16),
+                child: Icon(Icons.arrow_forward_ios, color: AppTheme.textPrimary(context), size: 16),
               ),
             ],
           ),
@@ -246,7 +246,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
 
   Widget _buildQuickStartSection() => Container(
     padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(color: AppColors.kSurface, borderRadius: BorderRadius.circular(8)),
+    decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(8)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -258,10 +258,10 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Quick Start', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+                  Text('Quick Start', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
                   Text(
                     'Jump right into training with your current setup',
-                    style: TextStyle(fontSize: 12, color: AppColors.kTextSecondary, height: 1.4),
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context), height: 1.4),
                   ),
                 ],
               ),
@@ -272,7 +272,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
         BlocBuilder<BleScanBloc, BleScanState>(
           builder: (_, state) => _buildModernQuickStartButton(
             'Start Precision Training',
-            state.isConnected ? AppColors.kSuccess : AppColors.greyColor,
+            state.isConnected ? AppTheme.success(context) : Colors.grey,
             state,
           ),
         )
@@ -300,7 +300,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
       child: Center(
-        child: Text(title, style: TextStyle(color: AppColors.kTextPrimary, fontSize: 16, fontWeight: FontWeight.w500)),
+        child: Text(title, style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 16, fontWeight: FontWeight.w500)),
       ),
     ),
   );
@@ -308,7 +308,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
   Widget _buildRecentPrograms() => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: AppColors.kSurface,
+      color: AppTheme.surface(context),
       borderRadius: BorderRadius.circular(8),
       boxShadow: [BoxShadow(color: Colors.black..withValues(alpha: .2), blurRadius: 20, offset: const Offset(0, 8))],
     ),
@@ -319,7 +319,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
           children: [
             IconContainer(icon: Icons.history),
             const SizedBox(width: 16),
-            Expanded(child: Text('Recently Used', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary))),
+            Expanded(child: Text('Recently Used', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context)))),
           ],
         ),
         const SizedBox(height: 16),
@@ -339,7 +339,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                           '🎯',
                           program.programName ?? 'Training Program',
                           'Tap to start',
-                          AppColors.kPrimaryTeal,
+                          AppTheme.primary(context),
                           program,
                         ),
                       ],
@@ -351,7 +351,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
               return Center(
                 child: Text(
                   'No recent programs',
-                  style: TextStyle(fontSize: 14, color: AppColors.kTextSecondary),
+                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context)),
                 ),
               );
             }
@@ -368,20 +368,20 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
     },
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(color: AppColors.kSurface, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(8)),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: accentColor..withValues(alpha: .1), borderRadius: BorderRadius.circular(12)),
-            child: Center(child: Text(icon, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary))),
+            child: Center(child: Text(icon, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context)))),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+                Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
                 const SizedBox(height: 2),
                 Row(
                   children: [
@@ -391,7 +391,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                       child: Icon(Icons.star, size: 12),
                     ),
                     const SizedBox(width: 6),
-                    Text(subtitle, style: TextStyle(fontSize: 13, color: AppColors.kTextSecondary)),
+                    Text(subtitle, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context))),
                   ],
                 ),
               ],
@@ -409,10 +409,10 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [AppColors.kSurface, AppColors.kBackground],
+        colors: [AppTheme.surface(context), AppTheme.background(context)],
       ),
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppColors.kTextSecondary..withValues(alpha: .3)),
+      border: Border.all(color: AppTheme.textSecondary(context)..withValues(alpha: .3)),
     ),
     child: Row(
       children: [
@@ -437,17 +437,17 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                isActive ? AppColors.kPrimaryTeal : AppColors.kTextSecondary,
-                isActive ? AppColors.kPrimaryTeal.withValues(alpha: .8) : AppColors.kTextSecondary..withValues(alpha: .8)
+                isActive ? AppTheme.primary(context) : AppTheme.textSecondary(context),
+                isActive ? AppTheme.primary(context).withValues(alpha: .8) : AppTheme.textSecondary(context)..withValues(alpha: .8)
               ],
             ),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isActive ? AppColors.kPrimaryTeal : AppColors.kTextSecondary..withValues(alpha: .3)),
+            border: Border.all(color: isActive ? AppTheme.primary(context) : AppTheme.textSecondary(context)..withValues(alpha: .3)),
           ),
           child: Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.kTextPrimary, fontSize: 12, fontWeight: isActive ? FontWeight.w500 : FontWeight.w400),
+            style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 12, fontWeight: isActive ? FontWeight.w500 : FontWeight.w400),
           ),
         ),
       ),
@@ -475,22 +475,22 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       gradient: LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [Colors.transparent, AppColors.kPrimaryTeal..withValues(alpha: .05)],
+        colors: [Colors.transparent, AppTheme.primary(context)..withValues(alpha: .05)],
       ),
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.kPrimaryTeal..withValues(alpha: .2)),
+      border: Border.all(color: AppTheme.primary(context)..withValues(alpha: .2)),
     ),
     child: Column(
       children: [
         Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.kPrimaryTeal..withValues(alpha: .1), Colors.transparent]), shape: BoxShape.circle),
-          child: Icon(Icons.library_books_outlined, color: AppColors.kPrimaryTeal, size: 48),
+          decoration: BoxDecoration(gradient: LinearGradient(colors: [AppTheme.primary(context)..withValues(alpha: .1), Colors.transparent]), shape: BoxShape.circle),
+          child: Icon(Icons.library_books_outlined, color: AppTheme.primary(context), size: 48),
         ),
         const SizedBox(height: 16),
-        Text('No Programs Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+        Text('No Programs Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
         const SizedBox(height: 8),
-        Text('Try adjusting your filters or create a custom program', style: TextStyle(fontSize: 14, color: AppColors.kTextSecondary), textAlign: TextAlign.center),
+        Text('Try adjusting your filters or create a custom program', style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context)), textAlign: TextAlign.center),
       ],
     ),
   );
@@ -499,7 +499,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
     children: [
       Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppColors.kSurface, borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -512,11 +512,11 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [AppColors.kPrimaryTeal, AppColors.kPrimaryTeal..withValues(alpha: .7)],
+                      colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .7)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Icon(Icons.place, color: AppColors.kTextPrimary, size: 28),
+                  child: Icon(Icons.place, color: AppTheme.textPrimary(context), size: 28),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -526,27 +526,27 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                       Row(
                         children: [
                           Expanded(
-                            child: Text(program.programName ?? '', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+                            child: Text(program.programName ?? '', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [AppColors.kPrimaryTeal, AppColors.kPrimaryTeal..withValues(alpha: .8)]),
+                              gradient: LinearGradient(colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .8)]),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text((program.difficultyLevel ?? '').toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+                            child: Text((program.difficultyLevel ?? '').toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(program.trainingType ?? '', style: TextStyle(fontSize: 13, color: AppColors.kTextSecondary, fontWeight: FontWeight.w500)),
+                      Text(program.trainingType ?? '', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context), fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Text(program.programDescription ?? '', style: TextStyle(color: AppColors.kTextSecondary, fontSize: 14, height: 1.5)),
+            Text(program.programDescription ?? '', style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 14, height: 1.5)),
             const SizedBox(height: 20),
             _buildModernProgramSpecs(program),
             const SizedBox(height: 20),
@@ -564,7 +564,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(color: Color(int.parse(program.badgeColor ?? '0xFF00CED1')), borderRadius: BorderRadius.circular(12)),
-            child: Text(program.badge ?? '', style: TextStyle(color: AppColors.kTextPrimary, fontSize: 11, fontWeight: FontWeight.w500)),
+            child: Text(program.badge ?? '', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 11, fontWeight: FontWeight.w500)),
           ),
         ),
     ],
@@ -576,10 +576,10 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [AppColors.kSurface..withValues(alpha: .5), AppColors.kBackground..withValues(alpha: .5)],
+        colors: [AppTheme.surface(context)..withValues(alpha: .5), AppTheme.background(context)..withValues(alpha: .5)],
       ),
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.kPrimaryTeal.withValues(alpha: .08)),
+      border: Border.all(color: AppTheme.primary(context).withValues(alpha: .08)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -588,11 +588,11 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.kPrimaryTeal..withValues(alpha: .2), Colors.transparent]), shape: BoxShape.circle),
-              child: Icon(Icons.build, color: AppColors.kPrimaryTeal, size: 18),
+              decoration: BoxDecoration(gradient: LinearGradient(colors: [AppTheme.primary(context)..withValues(alpha: .2), Colors.transparent]), shape: BoxShape.circle),
+              child: Icon(Icons.build, color: AppTheme.primary(context), size: 18),
             ),
             const SizedBox(width: 12),
-            Text('Recommended Setup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.kTextPrimary)),
+            Text('Recommended Setup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
           ],
         ),
         const SizedBox(height: 16),
@@ -610,17 +610,17 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       children: [
         Container(
           padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: AppColors.kPrimaryTeal.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, color: AppColors.kPrimaryTeal, size: 16),
+          decoration: BoxDecoration(color: AppTheme.primary(context).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: AppTheme.primary(context), size: 16),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 12, color: AppColors.kTextSecondary, fontWeight: FontWeight.w500)),
+              Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context), fontWeight: FontWeight.w500)),
               const SizedBox(height: 2),
-              Text(value, style: TextStyle(fontSize: 13, color: AppColors.kTextPrimary, fontWeight: FontWeight.w600)),
+              Text(value, style: TextStyle(fontSize: 13, color: AppTheme.textPrimary(context), fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -649,10 +649,10 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [AppColors.kError, AppColors.kError..withValues(alpha: .8)],
+                  colors: [AppTheme.error(context), AppTheme.error(context)..withValues(alpha: .8)],
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.kError..withValues(alpha: .3)),
+                border: Border.all(color: AppTheme.error(context)..withValues(alpha: .3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -660,13 +660,13 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [AppColors.kTextPrimary..withValues(alpha: .2), Colors.transparent]),
+                      gradient: LinearGradient(colors: [AppTheme.textPrimary(context)..withValues(alpha: .2), Colors.transparent]),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.play_arrow, color: AppColors.kTextPrimary, size: 18),
+                    child: Icon(Icons.play_arrow, color: AppTheme.textPrimary(context), size: 18),
                   ),
                   const SizedBox(width: 8),
-                  Text('Start Training', style: TextStyle(color: AppColors.kTextPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
+                  Text('Start Training', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 14, fontWeight: FontWeight.w500)),
                 ],
               ),
             ),
@@ -687,11 +687,11 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [AppColors.kTextSecondary, AppColors.kTextSecondary..withValues(alpha: .8)]),
+              gradient: LinearGradient(colors: [AppTheme.textSecondary(context), AppTheme.textSecondary(context)..withValues(alpha: .8)]),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.kTextSecondary..withValues(alpha: .3)),
+              border: Border.all(color: AppTheme.textSecondary(context)..withValues(alpha: .3)),
             ),
-            child: Icon(Icons.edit, color: AppColors.kTextPrimary, size: 18),
+            child: Icon(Icons.edit, color: AppTheme.textPrimary(context), size: 18),
           ),
         ),
       ],
@@ -725,7 +725,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.kSurface, AppColors.kPrimaryTeal..withValues(alpha: .8)],
+              colors: [AppTheme.surface(context), AppTheme.primary(context)..withValues(alpha: .8)],
             ),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -734,7 +734,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
             children: [
               IconContainer(icon: Icons.add),
               const SizedBox(width: 12),
-              Text('Create Custom Program', style: TextStyle(color: AppColors.kTextPrimary, fontSize: 16, fontWeight: FontWeight.w500)),
+              Text('Create Custom Program', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 16, fontWeight: FontWeight.w500)),
             ],
           ),
         ),
@@ -749,9 +749,9 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       insetPadding: const EdgeInsets.all(24),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.kSurface, AppColors.kBackground]),
+          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppTheme.surface(context), AppTheme.background(context)]),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.kTextSecondary..withValues(alpha: .3)),
+          border: Border.all(color: AppTheme.textSecondary(context)..withValues(alpha: .3)),
           boxShadow: [BoxShadow(color: Colors.black..withValues(alpha: .4), blurRadius: 30, spreadRadius: 0)],
         ),
         child: Column(
@@ -761,14 +761,14 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [AppColors.kPrimaryTeal, AppColors.kPrimaryTeal..withValues(alpha: .8)]),
+                gradient: LinearGradient(colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .8)]),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber, color: AppColors.kTextPrimary, size: 24),
+                  Icon(Icons.warning_amber, color: AppTheme.textPrimary(context), size: 24),
                   const SizedBox(width: 12),
-                  Expanded(child: Text('No Loadouts Configured', style: TextStyle(color: AppColors.kTextPrimary, fontSize: 18, fontWeight: FontWeight.w500))),
+                  Expanded(child: Text('No Loadouts Configured', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 18, fontWeight: FontWeight.w500))),
                 ],
               ),
             ),
@@ -778,7 +778,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                 children: [
                   Text(
                     'To create custom training programs, you need to configure at least one loadout.',
-                    style: TextStyle(fontSize: 15, color: AppColors.kTextPrimary, height: 1.4),
+                    style: TextStyle(fontSize: 15, color: AppTheme.textPrimary(context), height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -789,8 +789,8 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                           onTap: () => Navigator.pop(context),
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(color: AppColors.kTextSecondary, borderRadius: BorderRadius.circular(12)),
-                            child: Text('Cancel', textAlign: TextAlign.center, style: TextStyle(color: AppColors.kTextSecondary, fontWeight: FontWeight.w500)),
+                            decoration: BoxDecoration(color: AppTheme.textSecondary(context), borderRadius: BorderRadius.circular(12)),
+                            child: Text('Cancel', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary(context), fontWeight: FontWeight.w500)),
                           ),
                         ),
                       ),
@@ -804,11 +804,11 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [AppColors.kSuccess, AppColors.kSuccess..withValues(alpha: .8)]),
+                              gradient: LinearGradient(colors: [AppTheme.success(context), AppTheme.success(context)..withValues(alpha: .8)]),
                               borderRadius: BorderRadius.circular(12),
-                              boxShadow: [BoxShadow(color: AppColors.kSuccess..withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 2))],
+                              boxShadow: [BoxShadow(color: AppTheme.success(context)..withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 2))],
                             ),
-                            child: Text('Add Loadout', textAlign: TextAlign.center, style: TextStyle(color: AppColors.kTextPrimary, fontWeight: FontWeight.w500)),
+                            child: Text('Add Loadout', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textPrimary(context), fontWeight: FontWeight.w500)),
                           ),
                         ),
                       ),
@@ -871,7 +871,6 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                 message: 'Battery Level: ${state.deviceInfo?['batteryLevel']}%\n\nCurrent settings: ${state.sensitivity}\n\nContinue with default training program?',
                 confirmText: 'Continue',
                 cancelText: 'Cancel',
-                confirmColor: AppColors.kSuccess,
               ).then((value) {
                 if (value) {
                   _navigateToTrainingPage(context, _defaultProgram!);
@@ -917,7 +916,6 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
               message: 'Device is ready for training.',
               confirmText: 'Start Training',
               cancelText: 'Cancel',
-              confirmColor: AppColors.kSuccess,
             ).then((value) {
               if (value) {
                 _navigateToTrainingPage(context, _defaultProgram!);
@@ -938,22 +936,22 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.kSurface,
+        backgroundColor: AppTheme.surface(context),
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: AppColors.kError),
+            Icon(Icons.error_outline, color: AppTheme.error(context)),
             const SizedBox(width: 8),
-            Text('Connection Error', style: TextStyle(color: AppColors.kTextPrimary)),
+            Text('Connection Error', style: TextStyle(color: AppTheme.textPrimary(context))),
           ],
         ),
-        content: Text(error, style: TextStyle(color: AppColors.kTextSecondary)),
+        content: Text(error, style: TextStyle(color: AppTheme.textSecondary(context))),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.kPrimaryTeal),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.primary(context)),
             child: const Text('OK'),
           ),
         ],

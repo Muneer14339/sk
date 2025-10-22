@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/constants.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/widgets/icon_container.dart';
@@ -43,7 +43,7 @@ class _SavedSessionsPageState extends State<SavedSessionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AppTheme.background(context),
       appBar: customAppBar(
           title: 'Saved Sessions', context: context, showBackButton: false),
       body: BlocBuilder<SavedSessionsBloc, SavedSessionsState>(
@@ -53,7 +53,7 @@ class _SavedSessionsPageState extends State<SavedSessionsPage> {
             return Center(
                 child: CircularProgressIndicator(
                     valueColor:
-                        AlwaysStoppedAnimation<Color>(AppColors.kPrimaryTeal)));
+                        AlwaysStoppedAnimation<Color>(AppTheme.primary(context))));
           }
           if (state.error != null) {
             return Center(
@@ -62,14 +62,14 @@ class _SavedSessionsPageState extends State<SavedSessionsPage> {
                 children: [
                   Icon(
                     Icons.error_outline,
-                    color: AppColors.kError,
+                    color: AppTheme.error(context),
                     size: 48,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'Error: ${state.error}',
                     style: TextStyle(
-                      color: AppColors.kTextPrimary,
+                      color: AppTheme.textPrimary(context),
                       fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
@@ -86,12 +86,12 @@ class _SavedSessionsPageState extends State<SavedSessionsPage> {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.kSurface,
+                      color: AppTheme.surface(context),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       Icons.history,
-                      color: AppColors.kPrimaryTeal,
+                      color: AppTheme.primary(context),
                       size: 48,
                     ),
                   ),
@@ -99,7 +99,7 @@ class _SavedSessionsPageState extends State<SavedSessionsPage> {
                   Text(
                     'No saved sessions yet',
                     style: TextStyle(
-                      color: AppColors.kTextPrimary,
+                      color: AppTheme.textPrimary(context),
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                     ),
@@ -108,7 +108,7 @@ class _SavedSessionsPageState extends State<SavedSessionsPage> {
                   Text(
                     'Your training sessions will appear here',
                     style: TextStyle(
-                      color: AppColors.kTextSecondary,
+                      color: AppTheme.textSecondary(context),
                       fontSize: 14,
                     ),
                   ),
@@ -172,12 +172,12 @@ class _AnalyticsSection extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-            colors: [AppColors.kSurface, AppColors.kBackground],
+            colors: [AppTheme.surface(context), AppTheme.background(context)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.kSurface.withValues(alpha: 0.8),
+          color: AppTheme.surface(context).withValues(alpha: 0.8),
           width: 1,
         ),
         boxShadow: [
@@ -196,7 +196,7 @@ class _AnalyticsSection extends StatelessWidget {
               const SizedBox(width: 12),
               Text('Training Overview',
                   style: TextStyle(
-                      color: AppColors.kTextPrimary,
+                      color: AppTheme.textPrimary(context),
                       fontSize: 16,
                       fontWeight: FontWeight.w500))
             ],
@@ -230,10 +230,10 @@ class _AnalyticsSection extends StatelessWidget {
                   value: daysSinceLastSession.toString(),
                   icon: Icons.schedule,
                   // color: daysSinceLastSession <= 1
-                  //     ? AppColors.kSuccess
+                  //     ? AppTheme.success(context)
                   //     : daysSinceLastSession <= 7
-                  //         ? AppColors.kPrimaryTeal
-                  //         : AppColors.kError,
+                  //         ? AppTheme.primary(context)
+                  //         : AppTheme.error(context),
                 ),
               ),
             ],
@@ -260,10 +260,10 @@ class _AnalyticsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: AppColors.kBackground,
+          color: AppTheme.background(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: AppColors.kPrimaryTeal.withValues(alpha: 0.3), width: 1)),
+              color: AppTheme.primary(context).withValues(alpha: 0.3), width: 1)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -271,7 +271,7 @@ class _AnalyticsCard extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: AppColors.kPrimaryTeal,
+                color: AppTheme.primary(context),
                 size: 18,
               ),
               const SizedBox(width: 8),
@@ -279,7 +279,7 @@ class _AnalyticsCard extends StatelessWidget {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -292,7 +292,7 @@ class _AnalyticsCard extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-              color: AppColors.kTextPrimary,
+              color: AppTheme.textPrimary(context),
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -318,12 +318,12 @@ class _SessionCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
           gradient: LinearGradient(
-              colors: [AppColors.kSurface, AppColors.kBackground],
+              colors: [AppTheme.surface(context), AppTheme.background(context)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight),
           borderRadius: BorderRadius.circular(16),
           border:
-              Border.all(color: AppColors.kSurface.withOpacity(0.8), width: 1),
+              Border.all(color: AppTheme.surface(context).withOpacity(0.8), width: 1),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -349,7 +349,7 @@ class _SessionCard extends StatelessWidget {
                           ? 'Training Session'
                           : session.programName,
                       style: TextStyle(
-                        color: AppColors.kTextPrimary,
+                        color: AppTheme.textPrimary(context),
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -358,7 +358,7 @@ class _SessionCard extends StatelessWidget {
                   ),
                   Icon(
                     Icons.chevron_right,
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                     size: 20,
                   ),
                 ],
@@ -369,13 +369,13 @@ class _SessionCard extends StatelessWidget {
                   _StatChip(
                     icon: Icons.my_location,
                     label: '${session.totalShots} shots',
-                    color: AppColors.kPrimaryTeal,
+                    color: AppTheme.primary(context),
                   ),
                   const SizedBox(width: 12),
                   _StatChip(
                     icon: Icons.access_time,
                     label: kDateFormat.format(session.startedAt),
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                   ),
                 ],
               ),
@@ -467,7 +467,7 @@ class _InfoTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -476,13 +476,13 @@ class _InfoTag extends StatelessWidget {
           Icon(
             icon,
             size: 12,
-            color: AppColors.kTextSecondary,
+            color: AppTheme.textSecondary(context),
           ),
           const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              color: AppColors.kTextSecondary,
+              color: AppTheme.textSecondary(context),
               fontSize: 10,
               fontWeight: FontWeight.w500,
             ),

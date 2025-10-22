@@ -1,7 +1,8 @@
 // lib/features/training/presentation/widgets/device_calibration_dialog.dart
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
+
 
 class DeviceCalibrationDialog extends StatefulWidget {
   final VoidCallback onStartCalibration;
@@ -100,7 +101,7 @@ class _DeviceCalibrationDialogState extends State<DeviceCalibrationDialog> {
                       data: ThemeData().copyWith(dividerColor: Colors.transparent),
                       child: ExpansionTile(
                         tilePadding: EdgeInsets.zero,
-                        iconColor: AppColors.kPrimaryTeal,
+                        iconColor: AppTheme.primary(context),
                         collapsedIconColor: Colors.white70,
                         title: const Text(
                           'More tips',
@@ -163,7 +164,7 @@ class _DeviceCalibrationDialogState extends State<DeviceCalibrationDialog> {
                       widget.onStartCalibration();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.kPrimaryTeal,
+                      backgroundColor: AppTheme.primary(context),
                       foregroundColor: const Color(0xFF001524),
                       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

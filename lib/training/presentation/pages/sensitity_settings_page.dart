@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/prefs.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/toast_utils.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/widgets/primary_button.dart';
@@ -188,18 +188,18 @@ class _SettingViewPageState extends State<SettingViewPage> {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           margin: const EdgeInsets.symmetric(vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.kSurface,
+            color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.kSuccess.withOpacity(0.2), width: 0.5),
+            border: Border.all(color: AppTheme.success(context).withOpacity(0.2), width: 0.5),
           ),
           child: Row(
             children: [
-              Icon(Icons.vibration, color: AppColors.kPrimaryTeal, size: 20),
+              Icon(Icons.vibration, color: AppTheme.primary(context), size: 20),
               const SizedBox(width: 12),
               Text(
                 'Haptic Feedback',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -207,7 +207,7 @@ class _SettingViewPageState extends State<SettingViewPage> {
               Switch(
                 value: state.hapticEnabled,
                 onChanged: (_) => context.read<CounterSensBloc>().add(ToggleHaptic()),
-                activeColor: AppColors.kPrimaryTeal,
+                activeColor: AppTheme.primary(context),
               ),
             ],
           ),
@@ -219,12 +219,12 @@ class _SettingViewPageState extends State<SettingViewPage> {
           padding: const EdgeInsets.symmetric(horizontal: 6),
           child: Row(
             children: [
-              Icon(Icons.remove_red_eye, color: AppColors.kPrimaryTeal, size: 18),
+              Icon(Icons.remove_red_eye, color: AppTheme.primary(context), size: 18),
               const SizedBox(width: 8),
               Text(
                 'Display Mode',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -304,13 +304,13 @@ class _SettingViewPageState extends State<SettingViewPage> {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.kPrimaryTeal.withOpacity(0.15)
-              : AppColors.kSurface,
+              ? AppTheme.primary(context).withOpacity(0.15)
+              : AppTheme.surface(context),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
-                ? AppColors.kPrimaryTeal
-                : AppColors.kSuccess.withOpacity(0.2),
+                ? AppTheme.primary(context)
+                : AppTheme.success(context).withOpacity(0.2),
             width: isSelected ? 2 : 0.5,
           ),
         ),
@@ -320,8 +320,8 @@ class _SettingViewPageState extends State<SettingViewPage> {
             Icon(
               icon,
               color: isSelected
-                  ? AppColors.kPrimaryTeal
-                  : AppColors.kTextSecondary,
+                  ? AppTheme.primary(context)
+                  : AppTheme.textSecondary(context),
               size: 24,
             ),
             const SizedBox(height: 8),
@@ -330,8 +330,8 @@ class _SettingViewPageState extends State<SettingViewPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: isSelected
-                    ? AppColors.kPrimaryTeal
-                    : AppColors.kTextSecondary,
+                    ? AppTheme.primary(context)
+                    : AppTheme.textSecondary(context),
                 fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 height: 1.2,
@@ -343,7 +343,7 @@ class _SettingViewPageState extends State<SettingViewPage> {
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: AppColors.kPrimaryTeal,
+                  color: AppTheme.primary(context),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -360,18 +360,18 @@ class _SettingViewPageState extends State<SettingViewPage> {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.kSuccess.withOpacity(0.2), width: 0.5),
+        border: Border.all(color: AppTheme.success(context).withOpacity(0.2), width: 0.5),
       ),
       child: Row(
         children: [
-          Icon(Icons.vibration, color: AppColors.kPrimaryTeal, size: 20),
+          Icon(Icons.vibration, color: AppTheme.primary(context), size: 20),
           const SizedBox(width: 12),
           Text(
             'Haptic Feedback',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.kTextPrimary,
+              color: AppTheme.textPrimary(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -379,7 +379,7 @@ class _SettingViewPageState extends State<SettingViewPage> {
           Switch(
             value: state.hapticEnabled,
             onChanged: (_) => context.read<CounterSensBloc>().add(ToggleHaptic()),
-            activeColor: AppColors.kPrimaryTeal,
+            activeColor: AppTheme.primary(context),
           ),
         ],
       ),
@@ -391,18 +391,18 @@ class _SettingViewPageState extends State<SettingViewPage> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.kSuccess.withOpacity(0.2), width: 0.5),
+        border: Border.all(color: AppTheme.success(context).withOpacity(0.2), width: 0.5),
       ),
       child: ExpansionTile(
         title: Text(
           'Custom Haptic Settings',
-          style: TextStyle(color: AppColors.kTextPrimary, fontWeight: FontWeight.w500),
+          style: TextStyle(color: AppTheme.textPrimary(context), fontWeight: FontWeight.w500),
         ),
         trailing: Icon(
           state.useCustomHaptic ? Icons.expand_less : Icons.expand_more,
-          color: AppColors.kTextPrimary,
+          color: AppTheme.textPrimary(context),
         ),
         onExpansionChanged: (_) {
           context.read<CounterSensBloc>().add(ToggleCustomHaptic());
@@ -439,7 +439,7 @@ class _SettingViewPageState extends State<SettingViewPage> {
           Expanded(
             child: Text(
               label,
-              style: TextStyle(color: AppColors.kTextSecondary, fontSize: 14),
+              style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 14),
             ),
           ),
           _buildControlButton(
@@ -449,8 +449,8 @@ class _SettingViewPageState extends State<SettingViewPage> {
                   .read<CounterSensBloc>()
                   .add(UpdateCustomHapticValue(ring, value - 1));
             },
-            backgroundColor: AppColors.kPrimaryTeal.withOpacity(0.7),
-            child: Icon(Icons.remove, color: AppColors.kTextPrimary, size: 16),
+            backgroundColor: AppTheme.primary(context).withOpacity(0.7),
+            child: Icon(Icons.remove, color: AppTheme.textPrimary(context), size: 16),
           ),
           _buildValueDisplay(value.toString()),
           _buildControlButton(
@@ -460,8 +460,8 @@ class _SettingViewPageState extends State<SettingViewPage> {
                   .read<CounterSensBloc>()
                   .add(UpdateCustomHapticValue(ring, value + 1));
             },
-            backgroundColor: AppColors.kPrimaryTeal.withOpacity(0.7),
-            child: Icon(Icons.add, color: AppColors.kTextPrimary, size: 16),
+            backgroundColor: AppTheme.primary(context).withOpacity(0.7),
+            child: Icon(Icons.add, color: AppTheme.textPrimary(context), size: 16),
           ),
         ],
       ),
@@ -480,10 +480,10 @@ class _SettingViewPageState extends State<SettingViewPage> {
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(_snsRowBorderRadius),
         border:
-            Border.all(color: AppColors.kSuccess.withOpacity(0.2), width: 0.5),
+            Border.all(color: AppTheme.success(context).withOpacity(0.2), width: 0.5),
         boxShadow: [],
       ),
       child: Row(
@@ -492,7 +492,7 @@ class _SettingViewPageState extends State<SettingViewPage> {
           Text(
             heading,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.kTextPrimary,
+                      color: AppTheme.textPrimary(context),
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.5,
                     ) ??
@@ -500,22 +500,22 @@ class _SettingViewPageState extends State<SettingViewPage> {
                   fontSize: 20.0,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                 ),
           ),
           const Spacer(),
           _buildControlButton(
             size: 35,
             onPressed: onDecrease,
-            backgroundColor: AppColors.kPrimaryTeal,
-            child: Icon(Icons.remove, color: AppColors.kTextPrimary),
+            backgroundColor: AppTheme.primary(context),
+            child: Icon(Icons.remove, color: AppTheme.textPrimary(context)),
           ),
           _buildValueDisplay(value),
           _buildControlButton(
             size: 35,
             onPressed: onIncrease,
-            backgroundColor: AppColors.kPrimaryTeal,
-            child: Icon(Icons.add, color: AppColors.kTextPrimary),
+            backgroundColor: AppTheme.primary(context),
+            child: Icon(Icons.add, color: AppTheme.textPrimary(context)),
           ),
         ],
       ),
@@ -543,12 +543,12 @@ class _SettingViewPageState extends State<SettingViewPage> {
       size: 40,
       onPressed: () {}, // Empty function as in original
       backgroundColor: Colors.transparent,
-      borderColor: AppColors.kPrimaryTeal,
+      borderColor: AppTheme.primary(context),
       borderWidth: 1,
       child: Text(
         value,
         style: TextStyle(
-          color: AppColors.kTextPrimary,
+          color: AppTheme.textPrimary(context),
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),

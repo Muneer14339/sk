@@ -11,7 +11,7 @@ import '../../../authentication/presentation/pages/login_page.dart';
 import '../../armory/presentation/bloc/armory_bloc.dart';
 import '../../armory/presentation/core/theme/user_app_theme.dart';
 import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
-import '../../core/theme/app_colors.dart' as appColor;
+import '../../core/theme/app_theme.dart';
 import '../../training/presentation/pages/training_programs_page.dart';
 import 'placeholder_tabs.dart';
 
@@ -77,7 +77,7 @@ class _MainAppViewState extends State<MainAppView> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: appColor.AppColors.kPrimaryTeal.withValues(alpha: .22),
+      backgroundColor: AppTheme.primary(context).withValues(alpha: .22),
       elevation: 0,
       title: Text(
         AppConfig.appName, // Use config app name
@@ -120,15 +120,15 @@ class _MainAppViewState extends State<MainAppView> {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: appColor.AppColors.kPrimaryTeal.withValues(alpha: 0.1),
+        color: AppTheme.primary(context).withValues(alpha: 0.1),
         border: Border(
           top: BorderSide(
-            color: appColor.AppColors.kQuaternaryColor.withValues(alpha: 0.1),
+            color: AppTheme.surfaceVariant(context).withValues(alpha: 0.1),
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: appColor.AppColors.kPrimaryColor.withValues(alpha: 0.1),
+            color: AppTheme.primary(context).withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),

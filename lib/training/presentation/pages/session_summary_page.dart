@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' as math;
 
-import '../../../core/theme/app_colors.dart';
+
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../data/models/saved_session_model.dart';
 import '../bloc/training_session/training_session_bloc.dart';
@@ -20,17 +21,17 @@ class SessionSummaryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AppTheme.background(context),
       appBar: AppBar(
-        backgroundColor: AppColors.kSurface,
+        backgroundColor: AppTheme.surface(context),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.close, color: AppColors.kTextPrimary),
+          icon: Icon(Icons.close, color: AppTheme.textPrimary(context)),
           onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
         ),
         title: Text(
           'Session Summary',
-          style: TextStyle(color: AppColors.kTextPrimary, fontSize: 18),
+          style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 18),
         ),
       ),
       body: BlocBuilder<TrainingSessionBloc, TrainingSessionState>(
@@ -42,7 +43,7 @@ class SessionSummaryPage extends StatelessWidget {
 
           if (steadinessShots.isEmpty) {
             return Center(
-              child: Text('No session data available', style: TextStyle(color: AppColors.kTextSecondary)),
+              child: Text('No session data available', style: TextStyle(color: AppTheme.textSecondary(context))),
             );
           }
 
@@ -57,7 +58,7 @@ class SessionSummaryPage extends StatelessWidget {
                   _buildHeader(context, savedSession?.programName ?? state.program?.programName ?? 'Training'),
 
                 const SizedBox(height: 16),
-                _buildStatsCard(duration, totalShots, detectedShots, metrics),
+                _buildStatsCard(duration, totalShots, detectedShots, metrics,context),
                 const SizedBox(height: 16),
                 _buildActionButtons(context, state, savedSession),
               ],
@@ -73,7 +74,7 @@ class SessionSummaryPage extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.kPrimaryTeal, AppColors.kPrimaryTeal.withValues(alpha: 0.8)],
+          colors: [AppTheme.primary(context), AppTheme.primary(context).withValues(alpha: 0.8)],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -95,35 +96,35 @@ class SessionSummaryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCard(String duration, int totalShots, int detectedShots, Map<String, dynamic> metrics) {
+  Widget _buildStatsCard(String duration, int totalShots, int detectedShots, Map<String, dynamic> metrics, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
-          _buildStatRow('Session Duration', duration),
+          _buildStatRow('Session Duration', duration,context),
           _buildDivider(),
-          _buildStatRow('Total Shots', '$totalShots'),
+          _buildStatRow('Total Shots', '$totalShots',context),
           _buildDivider(),
-          _buildStatRow('Detected Shots', '$detectedShots'),
+          _buildStatRow('Detected Shots', '$detectedShots',context),
           _buildDivider(),
           _buildStatRow(
             'Average Stability',
-            '${metrics['avgStability'].toStringAsFixed(0)}%',
-            valueColor: _getStabilityColor(metrics['avgStability']),
+            '${metrics['avgStability'].toStringAsFixed(0)}%',context,
+            valueColor: _getStabilityColor(metrics['avgStability'],context),
           ),
           _buildDivider(),
-          _buildStatRow('Best Stability', '${metrics['bestStability'].toStringAsFixed(0)}%'),
+          _buildStatRow('Best Stability', '${metrics['bestStability'].toStringAsFixed(0)}%',context),
           _buildDivider(),
-          _buildStatRow('Average Score', '${metrics['avgScore'].toStringAsFixed(1)}'),
+          _buildStatRow('Average Score', '${metrics['avgScore'].toStringAsFixed(1)}',context),
           _buildDivider(),
           _buildStatRow(
             'Split Time (avg)',
-            '${metrics['avgSplitTime'].toStringAsFixed(2)}s',
+            '${metrics['avgSplitTime'].toStringAsFixed(2)}s',context,
             isClickable: true,
           ),
         ],
@@ -131,7 +132,7 @@ class SessionSummaryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value, {Color? valueColor, bool isClickable = false}) {
+  Widget _buildStatRow(String label, String value, BuildContext context, {Color? valueColor, bool isClickable = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -139,21 +140,21 @@ class SessionSummaryPage extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(color: AppColors.kTextSecondary, fontSize: 14),
+            style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 14),
           ),
           Row(
             children: [
               Text(
                 value,
                 style: TextStyle(
-                  color: valueColor ?? AppColors.kTextPrimary,
+                  color: valueColor ?? AppTheme.textPrimary(context),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               if (isClickable) ...[
                 const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.kPrimaryTeal),
+                Icon(Icons.arrow_forward_ios, size: 14, color: AppTheme.primary(context)),
               ],
             ],
           ),
@@ -243,10 +244,10 @@ class SessionSummaryPage extends StatelessWidget {
     return 85.0;
   }
 
-  Color _getStabilityColor(double stability) {
-    if (stability >= 85) return AppColors.kSuccess;
-    if (stability >= 70) return AppColors.appYellow;
-    return AppColors.kError;
+  Color _getStabilityColor(double stability,BuildContext context) {
+    if (stability >= 85) return AppTheme.success(context);
+    if (stability >= 70) return AppTheme.warning(context);
+    return AppTheme.error(context);
   }
 
   String _calculateDuration(List<dynamic> shots) {

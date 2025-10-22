@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
+
+
 class SessionControls extends StatelessWidget {
   const SessionControls({
     super.key,
@@ -30,7 +32,7 @@ class SessionControls extends StatelessWidget {
         // Main controls row
         Row(
           children: [
-            Expanded(child: _buildMainButton()),
+            Expanded(child: _buildMainButton(context)),
             const SizedBox(width: 8),
             isPaused
                 ? ElevatedButton.icon(
@@ -38,7 +40,7 @@ class SessionControls extends StatelessWidget {
               icon: const Icon(Icons.check_circle_outline),
               label: const Text('Finish Session'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.kSuccess,
+                backgroundColor: AppTheme.success(context),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 shape: RoundedRectangleBorder(
@@ -51,7 +53,7 @@ class SessionControls extends StatelessWidget {
               icon: const Icon(Icons.refresh),
               label: const Text('Reset'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.kPrimaryTeal.withValues(alpha: .12),
+                backgroundColor: AppTheme.primary(context).withValues(alpha: .12),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                 shape: RoundedRectangleBorder(
@@ -72,8 +74,8 @@ class SessionControls extends StatelessWidget {
               icon: Icon(Icons.tune, size: 18),
               label: const Text('Recalibrate Sensor'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.kPrimaryTeal,
-                side: BorderSide(color: AppColors.kPrimaryTeal.withOpacity(0.5)),
+                foregroundColor: AppTheme.primary(context),
+                side: BorderSide(color: AppTheme.primary(context).withOpacity(0.5)),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -86,14 +88,14 @@ class SessionControls extends StatelessWidget {
     );
   }
 
-  Widget _buildMainButton() {
+  Widget _buildMainButton(BuildContext context) {
     if (isPaused) {
       return ElevatedButton.icon(
         onPressed: startTraining,
         icon: const Icon(Icons.play_arrow),
         label: const Text('Resume'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.kSuccess,
+          backgroundColor: AppTheme.success(context),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -107,7 +109,7 @@ class SessionControls extends StatelessWidget {
         icon: const Icon(Icons.pause),
         label: const Text('Pause'),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.kError,
+          backgroundColor: AppTheme.error(context),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -120,7 +122,7 @@ class SessionControls extends StatelessWidget {
       icon: const Icon(Icons.play_arrow),
       label: const Text('Start Training'),
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.kPrimaryTeal,
+        backgroundColor: AppTheme.primary(context),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

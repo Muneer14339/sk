@@ -8,8 +8,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../bloc/training_session/training_session_bloc.dart';
@@ -98,18 +97,18 @@ class _CalibrationPageState extends State<CalibrationPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.kSurface,
+        backgroundColor: AppTheme.surface(context),
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: AppColors.kError),
+            Icon(Icons.error_outline, color: AppTheme.error(context)),
             const SizedBox(width: 8),
             Text(
               'Sensor Error',
-              style: TextStyle(color: AppColors.kTextPrimary),
+              style: TextStyle(color: AppTheme.textPrimary(context)),
             ),
           ],
         ),
-        content: Text(error, style: TextStyle(color: AppColors.kTextSecondary)),
+        content: Text(error, style: TextStyle(color: AppTheme.textSecondary(context))),
         actions: [
           TextButton(
             onPressed: () {
@@ -117,7 +116,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
               Navigator.pop(context); // Navigate back
             },
             style:
-            TextButton.styleFrom(foregroundColor: AppColors.kPrimaryTeal),
+            TextButton.styleFrom(foregroundColor: AppTheme.primary(context)),
             child: const Text('OK'),
           ),
         ],
@@ -132,7 +131,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.sensors, color: AppColors.kPrimaryTeal),
+            Icon(Icons.sensors, color: AppTheme.primary(context)),
             const SizedBox(width: 8),
             const Text('Shot Detected'),
           ],
@@ -144,7 +143,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
               Navigator.pop(context);
               _recordFalsePositive(state);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.kError),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error(context)),
             child: const Text('No'),
           ),
           ElevatedButton(
@@ -153,7 +152,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
               _recordConfirmedShot(state);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.kSuccess,
+              backgroundColor: AppTheme.success(context),
               foregroundColor: Colors.white,
             ),
             child: const Text('Yes'),
@@ -403,7 +402,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AppTheme.background(context),
       appBar: customAppBar(
         title: 'Calibration - ${widget.calibrationType.toUpperCase()} Fire',
         context: context,
@@ -436,21 +435,21 @@ class _CalibrationPageState extends State<CalibrationPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.kPrimaryTeal.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.primary(context).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.kPrimaryTeal),
+              Icon(Icons.info_outline, color: AppTheme.primary(context)),
               const SizedBox(width: 8),
               Text(
                 '${widget.calibrationType.toUpperCase()} Fire Calibration',
                 style: TextStyle(
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -464,7 +463,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
                 '• Use "Missed Shot" for undetected shots\n'
                 '• System will auto-complete at $targetShots total', // CHANGED
             style: TextStyle(
-              color: AppColors.kTextSecondary,
+              color: AppTheme.textSecondary(context),
               fontSize: 14,
               height: 1.4,
             ),
@@ -484,7 +483,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -495,18 +494,18 @@ class _CalibrationPageState extends State<CalibrationPage> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: AppColors.kPrimaryTeal.withOpacity(0.12),
+                color: AppTheme.primary(context).withOpacity(0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.timer, color: AppColors.kPrimaryTeal, size: 16),
+                  Icon(Icons.timer, color: AppTheme.primary(context), size: 16),
                   const SizedBox(width: 8),
                   Text(
                     _formatDuration(elapsed),
                     style: TextStyle(
-                      color: AppColors.kPrimaryTeal,
+                      color: AppTheme.primary(context),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       fontFeatures: const [FontFeature.tabularFigures()],
@@ -523,30 +522,30 @@ class _CalibrationPageState extends State<CalibrationPage> {
               _buildMetric(
                 'Detected',
                 detectedShots.toString(),
-                AppColors.kSuccess,
+                AppTheme.success(context),
               ),
               _buildMetric(
                 'False+',
                 falsePositives.toString(),
-                AppColors.kError,
+                AppTheme.error(context),
               ),
               _buildMetric(
                 'Missed',
                 missedShots.toString(),
-                AppColors.appYellow,
+                AppTheme.warning(context),
               ),
             ],
           ),
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: totalShots / targetShots,
-            backgroundColor: AppColors.kBackground,
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimaryTeal),
+            backgroundColor: AppTheme.background(context),
+            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary(context)),
           ),
           const SizedBox(height: 8),
           Text(
             '$totalShots / $targetShots total shots',
-            style: TextStyle(color: AppColors.kTextSecondary, fontSize: 12),
+            style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
           ),
         ],
       ),
@@ -564,21 +563,21 @@ class _CalibrationPageState extends State<CalibrationPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.kSuccess.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.success(context).withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.check_circle_outline, color: AppColors.kSuccess),
+              Icon(Icons.check_circle_outline, color: AppTheme.success(context)),
               const SizedBox(width: 8),
               Text(
                 'Calibration Complete',
                 style: TextStyle(
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -614,7 +613,7 @@ class _CalibrationPageState extends State<CalibrationPage> {
         ),
         Text(
           label,
-          style: TextStyle(color: AppColors.kTextSecondary, fontSize: 11),
+          style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 11),
         ),
       ],
     );
@@ -632,8 +631,8 @@ class _CalibrationPageState extends State<CalibrationPage> {
                 child: OutlinedButton(
                   onPressed: _stopCalibration,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.kError,
-                    side: BorderSide(color: AppColors.kError),
+                    foregroundColor: AppTheme.error(context),
+                    side: BorderSide(color: AppTheme.error(context)),
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 8,
@@ -650,14 +649,14 @@ class _CalibrationPageState extends State<CalibrationPage> {
                 child: ElevatedButton(
                   onPressed: _simulateShot,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.appYellow.withValues(alpha: .3),
+                    backgroundColor: AppTheme.warning(context).withValues(alpha: .3),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
                       horizontal: 8,
                     ),
                     shape: RoundedRectangleBorder(
-                      side: BorderSide(color: AppColors.appYellow),
+                      side: BorderSide(color: AppTheme.warning(context)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
@@ -670,8 +669,8 @@ class _CalibrationPageState extends State<CalibrationPage> {
           OutlinedButton(
             onPressed: _removeLastDetection,
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.kError,
-              side: BorderSide(color: AppColors.kError.withValues(alpha: .5)),
+              foregroundColor: AppTheme.error(context),
+              side: BorderSide(color: AppTheme.error(context).withValues(alpha: .5)),
               padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -692,12 +691,12 @@ class _CalibrationPageState extends State<CalibrationPage> {
         children: [
           Text(
             label,
-            style: TextStyle(color: AppColors.kTextSecondary, fontSize: 14),
+            style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 14),
           ),
           Text(
             value,
             style: TextStyle(
-              color: AppColors.kTextPrimary,
+              color: AppTheme.textPrimary(context),
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -726,8 +725,8 @@ class _CalibrationPageState extends State<CalibrationPage> {
         OutlinedButton(
           onPressed: () => Navigator.pop(context),
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.kTextSecondary,
-            side: BorderSide(color: AppColors.kTextSecondary.withOpacity(0.5)),
+            foregroundColor: AppTheme.textPrimary(context),
+            side: BorderSide(color: AppTheme.textSecondary(context).withOpacity(0.5)),
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
           ),
           child: const Text('Back to Training'),

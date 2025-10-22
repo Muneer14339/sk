@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+
+
 
 PreferredSizeWidget customAppBar({
   required String title,
@@ -16,8 +18,8 @@ PreferredSizeWidget customAppBar({
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.kPrimaryTeal.withValues(alpha: .22),
-                  AppColors.kPrimaryTeal.withValues(alpha: .22)
+                  AppTheme.primary(context).withValues(alpha: .22),
+                  AppTheme.primary(context).withValues(alpha: .22)
                 ],
               ),
               boxShadow: [
@@ -36,7 +38,7 @@ PreferredSizeWidget customAppBar({
                     IconButton(
                         icon: Icon(Icons.arrow_back_ios,
                             color: showBackButton ?? true
-                                ? AppColors.kTextPrimary
+                                ? AppTheme.textPrimary(context)
                                 : Colors.transparent,
                             size: 20),
                         onPressed: showBackButton ?? true
@@ -47,7 +49,7 @@ PreferredSizeWidget customAppBar({
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color:
-                                AppColors.kTextPrimary.withValues(alpha: .9))),
+                                AppTheme.textPrimary(context).withValues(alpha: .9))),
                     ...actions ?? [],
                   ],
                 ),

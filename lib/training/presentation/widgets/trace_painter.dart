@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../data/model/streaming_model.dart';
 
 class TracePainter extends CustomPainter {
@@ -90,7 +90,7 @@ class TracePainter extends CustomPainter {
           canvas,
           size,
           yellowPreShot,
-          AppColors.kPrimaryTeal, // Yellow
+          Colors.yellow, // Yellow
           3.0,
           'Pre-shot-Yellow');
     }
@@ -101,7 +101,7 @@ class TracePainter extends CustomPainter {
           canvas,
           size,
           shotPoints,
-          AppColors.bacgroundPaintColorDark, // Bright Red
+          Colors.red, // Bright Red
           3.5,
           'Shot');
     }
@@ -634,14 +634,14 @@ class TracePainter extends CustomPainter {
 
       // Draw outer glow
       // final glowPaint = Paint()
-      //   ..color = AppColors.kPrimaryTeal.withValues(alpha: 0.4)
+      //   ..color = AppTheme.primary(context).withValues(alpha: 0.4)
       //   ..style = PaintingStyle.fill;
       // canvas.drawCircle(Offset(x, y), 9.0, glowPaint);
 
       // Draw main marker
       final markerPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = AppColors.kRedColor;
+        ..color = Colors.red;
       canvas.drawCircle(Offset(x, y), 4.0, markerPaint);
 
       // Draw white border
@@ -654,7 +654,7 @@ class TracePainter extends CustomPainter {
       // Draw inner highlight
       final highlightPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = AppColors.kSuccess.withValues(alpha: 0.8);
+        ..color = Colors.green.withValues(alpha: 0.8);
       canvas.drawCircle(Offset(x, y), 2.0, highlightPaint);
     }
   }

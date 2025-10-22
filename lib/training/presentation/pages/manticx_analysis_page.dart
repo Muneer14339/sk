@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_dialog.dart';
 import '../../../core/widgets/icon_container.dart';
 import '../../data/model/analysis_model.dart';
@@ -107,7 +107,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
           }
         },
         child: Scaffold(
-          backgroundColor: AppColors.kBackground,
+          backgroundColor: AppTheme.background(context),
           appBar: _buildModernAppBar(savedSession: savedSession),
           body: Stack(
             children: [
@@ -250,7 +250,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.kTextPrimary,
+                color: AppTheme.textPrimary(context),
               ),
             ),
             const SizedBox(height: 8),
@@ -260,7 +260,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
               style: TextStyle(
                 fontSize: 13,
                 height: 1.4,
-                color: AppColors.kTextSecondary,
+                color: AppTheme.textSecondary(context),
               ),
             ),
           ],
@@ -276,8 +276,8 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.kSurface,
-                    AppColors.kPrimaryTeal.withValues(alpha: .12)
+                    AppTheme.surface(context),
+                    AppTheme.primary(context).withValues(alpha: .12)
                   ],
                 ),
                 boxShadow: [
@@ -295,7 +295,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                     children: [
                       IconButton(
                           icon: Icon(Icons.arrow_back_ios,
-                              color: AppColors.kTextPrimary, size: 20),
+                              color: AppTheme.textPrimary(context), size: 20),
                           onPressed: () {
                             if (savedSession == null) {
                               showDialog(
@@ -332,7 +332,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.kTextPrimary
+                              color: AppTheme.textPrimary(context)
                                   .withValues(alpha: .9))),
                     ],
                   ),
@@ -388,14 +388,14 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
               decoration: BoxDecoration(
                 color: isSelected
                     ? (isMissed // NEW: Different color for missed
-                        ? AppColors.appYellow.withValues(alpha: .2)
-                        : AppColors.kPrimaryTeal.withValues(alpha: .2))
-                    : AppColors.kSurface,
+                        ? AppTheme.warning(context).withValues(alpha: .2)
+                        : AppTheme.primary(context).withValues(alpha: .2))
+                    : AppTheme.surface(context),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
                       ? (isMissed
-                          ? AppColors.appYellow
+                          ? AppTheme.warning(context)
                           : const Color(0xFF00CED1))
                       : Colors.white10,
                 ),
@@ -407,14 +407,14 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                   if (isMissed) // NEW
                     Icon(Icons.close,
                         color:
-                            isSelected ? AppColors.appYellow : Colors.white54,
+                            isSelected ? AppTheme.warning(context) : Colors.white54,
                         size: 16),
                   Text(
                     shotNumber.toString(),
                     style: TextStyle(
                       color: isSelected
                           ? (isMissed
-                              ? AppColors.appYellow
+                              ? AppTheme.warning(context)
                               : const Color(0xFF00CED1))
                           : Colors.white,
                       fontWeight: FontWeight.bold,
@@ -448,7 +448,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.kTextSecondary.withValues(alpha: 0.72),
+                color: AppTheme.textSecondary(context).withValues(alpha: 0.72),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -457,7 +457,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
       ]);
 
   BoxDecoration _buildModernCardDecoration() => BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.04),
@@ -525,13 +525,13 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                     Text(
                       'Progress: ${(progress * 100).toStringAsFixed(0)}%',
                       style: TextStyle(
-                          color: AppColors.kTextPrimary.withValues(alpha: .86),
+                          color: AppTheme.textPrimary(context).withValues(alpha: .86),
                           fontSize: 12),
                     ),
                     Text(
                       '$_currentAnimatedPoints/$totalPoints points',
                       style: TextStyle(
-                          color: AppColors.kTextPrimary.withValues(alpha: .66),
+                          color: AppTheme.textPrimary(context).withValues(alpha: .66),
                           fontSize: 11),
                     ),
                   ],
@@ -550,15 +550,15 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppColors.kPrimaryTeal,
-                            AppColors.kPrimaryTeal.withValues(alpha: .9)
+                            AppTheme.primary(context),
+                            AppTheme.primary(context).withValues(alpha: .9)
                           ],
                         ),
                         borderRadius: BorderRadius.circular(3),
                         boxShadow: [
                           BoxShadow(
                             color:
-                                AppColors.kPrimaryTeal.withValues(alpha: .28),
+                                AppTheme.primary(context).withValues(alpha: .28),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -581,8 +581,8 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                   _buildModernControlButton(
                     Icons.skip_previous,
                     _isPlaying || _isPaused
-                        ? AppColors.kTextPrimary.withValues(alpha: .66)
-                        : AppColors.kTextPrimary,
+                        ? AppTheme.textPrimary(context).withValues(alpha: .66)
+                        : AppTheme.textPrimary(context),
                     () => _stepBackward(),
                     size: 46,
                   ),
@@ -590,8 +590,8 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                   _buildModernControlButton(
                     Icons.skip_next,
                     _isPlaying || _isPaused
-                        ? AppColors.kTextPrimary.withValues(alpha: .66)
-                        : AppColors.kTextPrimary,
+                        ? AppTheme.textPrimary(context).withValues(alpha: .66)
+                        : AppTheme.textPrimary(context),
                     () => _stepForward(analysisModel),
                     size: 46,
                   ),
@@ -619,15 +619,15 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: _isPlaying
-                  ? [AppColors.kError, AppColors.kError.withValues(alpha: .9)]
+                  ? [AppTheme.error(context), AppTheme.error(context).withValues(alpha: .9)]
                   : _isPaused
                       ? [
-                          AppColors.kPrimaryTeal.withValues(alpha: .95),
-                          AppColors.kPrimaryTeal.withValues(alpha: .8)
+                          AppTheme.primary(context).withValues(alpha: .95),
+                          AppTheme.primary(context).withValues(alpha: .8)
                         ]
                       : [
-                          AppColors.kPrimaryTeal,
-                          AppColors.kPrimaryTeal.withValues(alpha: .9)
+                          AppTheme.primary(context),
+                          AppTheme.primary(context).withValues(alpha: .9)
                         ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -636,10 +636,10 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
             boxShadow: [
               BoxShadow(
                 color: (_isPlaying
-                        ? AppColors.kError
+                        ? AppTheme.error(context)
                         : _isPaused
-                            ? AppColors.kPrimaryTeal
-                            : AppColors.kSuccess)
+                            ? AppTheme.primary(context)
+                            : AppTheme.success(context))
                     .withValues(alpha: .36),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -648,7 +648,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
           ),
           child: Icon(
             _isPlaying ? Icons.pause : Icons.play_arrow,
-            color: AppColors.kTextPrimary,
+            color: AppTheme.textPrimary(context),
             size: 24,
           ),
         ),
@@ -753,7 +753,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.kPrimaryTeal.withValues(alpha: .04),
+                AppTheme.primary(context).withValues(alpha: .04),
                 Colors.transparent,
               ],
               begin: Alignment.topCenter,
@@ -772,14 +772,14 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                     color: Colors.white.withValues(alpha: .03),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.kTextSecondary.withValues(alpha: .08),
+                      color: AppTheme.textSecondary(context).withValues(alpha: .08),
                       width: 2,
                     ),
                   ),
                   child: Icon(
                     Icons.touch_app_outlined,
                     size: 48,
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -788,7 +788,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.kTextPrimary,
+                    color: AppTheme.textPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -797,7 +797,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                     height: 1.4,
                   ),
                 ),

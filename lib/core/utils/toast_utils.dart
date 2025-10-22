@@ -1,7 +1,9 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+
+
 
 class ToastUtils {
   static void showLoading(BuildContext context) {
@@ -50,7 +52,7 @@ class ToastUtils {
         color: Colors.white,
       ),
       duration: duration ?? const Duration(seconds: 3),
-      backgroundColor: AppColors.kRedColor,
+      backgroundColor: AppTheme.error(context),
       borderRadius: BorderRadius.circular(12),
       margin: const EdgeInsets.all(16),
       flushbarPosition: FlushbarPosition.TOP,
@@ -71,7 +73,7 @@ class ToastUtils {
         color: Colors.white,
       ),
       duration: duration ?? const Duration(seconds: 3),
-      backgroundColor: AppColors.kRedColor,
+      backgroundColor: AppTheme.error(context),
       borderRadius: BorderRadius.circular(12),
       margin: const EdgeInsets.all(16),
       flushbarPosition: FlushbarPosition.TOP,
@@ -92,7 +94,7 @@ class ToastUtils {
         color: Colors.white,
       ),
       duration: duration ?? const Duration(seconds: 3),
-      backgroundColor: AppColors.kPrimaryColor,
+      backgroundColor: AppTheme.primary(context),
       borderRadius: BorderRadius.circular(12),
       margin: const EdgeInsets.all(16),
       flushbarPosition: FlushbarPosition.TOP,

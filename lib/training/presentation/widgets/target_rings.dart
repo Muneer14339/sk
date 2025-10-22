@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
+
 
 /// Dynamic target rings with equal spacing between each ring
 class DynamicTargetRings extends StatelessWidget {
@@ -23,8 +25,8 @@ class DynamicTargetRings extends StatelessWidget {
       size: Size.square(targetSize),
       painter: _TargetPainter(
         ringCount: ringCount,
-        ringColor: ringColor ?? AppColors.kRedColor,
-        fillColor: fillColor ?? AppColors.kRedColor,
+        ringColor: ringColor ?? AppTheme.error(context),
+        fillColor: fillColor ?? AppTheme.error(context),
       ),
     );
   }
@@ -59,8 +61,8 @@ class StaticTargetRings extends StatelessWidget {
             child: CustomPaint(
               painter: _TargetPainter(
                 ringCount: ringCount,
-                ringColor: ringColor ?? AppColors.kRedColor,
-                fillColor: fillColor ?? AppColors.kRedColor,
+                ringColor: ringColor ?? AppTheme.error(context),
+                fillColor: fillColor ?? AppTheme.error(context),
               ),
             ),
           ),
@@ -108,7 +110,7 @@ class _TargetPainter extends CustomPainter {
       final radius = gap * (i - 0.5);
 
       // Fill center ring if it's the innermost one
-      if (i == 1 && fillColor != AppColors.transparent) {
+      if (i == 1 && fillColor != Colors.transparent) {
         canvas.drawCircle(center, radius, fillPaint);
       }
 

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/services/prefs.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/toast_utils.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../data/model/programs_model.dart';
@@ -46,14 +46,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AppTheme.background(context),
       appBar: customAppBar(
         title: 'Steadiness Trainer',
         context: context,
         actions: [
           Spacer(),
           IconButton(
-            icon: Icon(Icons.settings, color: AppColors.kTextPrimary),
+            icon: Icon(Icons.settings, color: AppTheme.textPrimary(context)),
             onPressed: () {
               String? sensPerms = prefs?.getString(sensitivityKey);
               Navigator.push(
@@ -69,7 +69,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           ),
           // // NEW: Calibration wizard button
           IconButton(
-            icon: Icon(Icons.tune, color: AppColors.kTextPrimary),
+            icon: Icon(Icons.tune, color: AppTheme.textPrimary(context)),
             tooltip: 'Calibration Wizard',
             onPressed: () => _showCalibrationWizard(context),
           ),
@@ -243,18 +243,18 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.kSurface,
+        backgroundColor: AppTheme.surface(context),
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: AppColors.kError),
+            Icon(Icons.error_outline, color: AppTheme.error(context)),
             const SizedBox(width: 8),
             Text(
               'Sensor Error',
-              style: TextStyle(color: AppColors.kTextPrimary),
+              style: TextStyle(color: AppTheme.textPrimary(context)),
             ),
           ],
         ),
-        content: Text(error, style: TextStyle(color: AppColors.kTextSecondary)),
+        content: Text(error, style: TextStyle(color: AppTheme.textSecondary(context))),
         actions: [
           TextButton(
             onPressed: () {
@@ -262,7 +262,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
               Navigator.pop(context); // Navigate back to previous page
             },
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.kPrimaryTeal,
+              foregroundColor: AppTheme.primary(context),
             ),
             child: const Text('OK'),
           ),
@@ -377,8 +377,8 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.kPrimaryTeal,
-            AppColors.kPrimaryTeal.withValues(alpha: .6),
+            AppTheme.primary(context),
+            AppTheme.primary(context).withValues(alpha: .6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -397,7 +397,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           Text(
             title,
             style: TextStyle(
-              color: AppColors.kTextPrimary,
+              color: AppTheme.textPrimary(context),
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -405,7 +405,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           const SizedBox(height: 8),
           Text(
             desc,
-            style: TextStyle(color: AppColors.kTextPrimary, fontSize: 14),
+            style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],
@@ -419,9 +419,9 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.kBackground.withOpacity(0.8)),
+        border: Border.all(color: AppTheme.background(context).withOpacity(0.8)),
       ),
       child: Column(
         children: [
@@ -442,14 +442,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                   ),
                 ),
                 Icons.timer,
-                color: s.isTraining ? AppColors.kPrimaryTeal : null,
+                color: s.isTraining ? AppTheme.primary(context) : null,
               ),
               const SizedBox(width: 8),
               _buildMetric(
                 "Distance",
                 "${s.selectedDistance} m",
                 Icons.straighten,
-                color: s.isTraining ? AppColors.kPrimaryTeal : null,
+                color: s.isTraining ? AppTheme.primary(context) : null,
               ),
             ],
           ),
@@ -464,21 +464,21 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                   "Pitch",
                   "${s.sensorStream!.pitch.toStringAsFixed(1)}°",
                   Icons.height,
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                 ),
                 const SizedBox(width: 8),
                 _buildMetric(
                   "Yaw",
                   "${s.sensorStream!.yaw.toStringAsFixed(1)}°",
                   Icons.explore,
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                 ),
                 const SizedBox(width: 8),
                 _buildMetric(
                   "Roll",
                   "${s.sensorStream!.roll.toStringAsFixed(1)}°",
                   Icons.rotate_90_degrees_ccw,
-                  color: AppColors.kTextPrimary,
+                  color: AppTheme.textPrimary(context),
                 ),
               ],
             ),
@@ -489,23 +489,23 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.appYellow.withValues(alpha: 0.12),
+                color: AppTheme.warning(context).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.appYellow.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.warning(context).withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    color: AppColors.appYellow,
+                    color: AppTheme.warning(context),
                     size: 16,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Missed Shots: ${s.missedShotCount}",
                     style: TextStyle(
-                      color: AppColors.appYellow,
+                      color: AppTheme.warning(context),
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                     ),
@@ -516,7 +516,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                     "Shots detected by sensor but not counted (out of range or visibility issues)",
                     child: Icon(
                       Icons.info_outline,
-                      color: AppColors.appYellow,
+                      color: AppTheme.warning(context),
                       size: 14,
                     ),
                   ),
@@ -540,22 +540,22 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.kPrimaryTeal.withValues(alpha: 0.12),
+          color: AppTheme.primary(context).withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            // Icon(icon, color: AppColors.kPrimaryTeal, size: 16),
+            // Icon(icon, color: AppTheme.primary(context), size: 16),
             // const SizedBox(height: 6),
             Text(
               label,
-              style: TextStyle(color: AppColors.kTextSecondary, fontSize: 12),
+              style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
               value,
               style: TextStyle(
-                color: color ?? AppColors.kTextPrimary,
+                color: color ?? AppTheme.textPrimary(context),
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -577,22 +577,22 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       children: [
         Text(
           title,
-          style: TextStyle(color: AppColors.kTextSecondary, fontSize: 12),
+          style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppColors.kBackground,
+            color: AppTheme.background(context),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.kSurface.withOpacity(0.8)),
+            border: Border.all(color: AppTheme.surface(context).withOpacity(0.8)),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              dropdownColor: AppColors.kSurface,
-              style: TextStyle(color: AppColors.kTextPrimary),
+              dropdownColor: AppTheme.surface(context),
+              style: TextStyle(color: AppTheme.textPrimary(context)),
               items: items,
               onChanged: onChanged,
             ),
@@ -607,9 +607,9 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       padding: const EdgeInsets.all(16),
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.kBackground.withOpacity(0.8)),
+        border: Border.all(color: AppTheme.background(context).withOpacity(0.8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -617,7 +617,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           Text(
             "Shot Log",
             style: TextStyle(
-              color: AppColors.kTextPrimary,
+              color: AppTheme.textPrimary(context),
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -626,7 +626,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           if (s.shotLog.isEmpty)
             Text(
               "No shots recorded yet",
-              style: TextStyle(color: AppColors.kTextSecondary),
+              style: TextStyle(color: AppTheme.textSecondary(context)),
             )
           else
             Column(
@@ -638,7 +638,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       child: Text(
                         "Time",
                         style: TextStyle(
-                          color: AppColors.kTextSecondary,
+                          color: AppTheme.textSecondary(context),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -648,7 +648,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       child: Text(
                         "θ (deg)",
                         style: TextStyle(
-                          color: AppColors.kTextSecondary,
+                          color: AppTheme.textSecondary(context),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -658,7 +658,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       child: Text(
                         "Score",
                         style: TextStyle(
-                          color: AppColors.kTextSecondary,
+                          color: AppTheme.textSecondary(context),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -675,7 +675,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: AppColors.kBackground.withValues(alpha: 0.8),
+                          color: AppTheme.background(context).withValues(alpha: 0.8),
                         ),
                       ),
                     ),
@@ -686,7 +686,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                           child: Text(
                             "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}",
                             style: TextStyle(
-                              color: AppColors.kTextPrimary,
+                              color: AppTheme.textPrimary(context),
                               fontSize: 13,
                             ),
                           ),
@@ -698,7 +698,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                                     ? '—'
                                     : "${theta.toStringAsFixed(2)}°",
                                 style: TextStyle(
-                                    color: AppColors.kTextPrimary,
+                                    color: AppTheme.textPrimary(context),
                                     fontSize: 13))),
                         Expanded(
                           flex: 1,
@@ -737,9 +737,9 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       "${d.inMinutes.remainder(60).toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}";
 
   Color _getScoreColor(int score) {
-    if (score >= 9) return AppColors.kSuccess;
+    if (score >= 9) return AppTheme.success(context);
     if (score >= 7) return const Color(0xFFF59E0B);
-    if (score >= 5) return AppColors.kError;
-    return AppColors.kTextSecondary;
+    if (score >= 5) return AppTheme.error(context);
+    return AppTheme.textSecondary(context);
   }
 }

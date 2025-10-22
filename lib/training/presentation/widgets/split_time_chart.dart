@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
+
 
 class SplitTimeChart extends StatelessWidget {
   final List<double> splits;
@@ -19,7 +20,7 @@ class SplitTimeChart extends StatelessWidget {
     return SizedBox(
       height: 120,
       child: CustomPaint(
-        painter: _SplitTimeChartPainter(splits, selectedIndex),
+        painter: _SplitTimeChartPainter(splits, selectedIndex, context),
         size: Size.infinite,
       ),
     );
@@ -29,15 +30,16 @@ class SplitTimeChart extends StatelessWidget {
 class _SplitTimeChartPainter extends CustomPainter {
   final List<double> splits;
   final int? selectedIndex;
+  final BuildContext context;
 
-  _SplitTimeChartPainter(this.splits, this.selectedIndex);
+  _SplitTimeChartPainter(this.splits, this.selectedIndex, this.context);
 
   @override
   void paint(Canvas canvas, Size size) {
     if (splits.isEmpty) return;
 
     final paint = Paint()
-      ..color = AppColors.kPrimaryTeal
+      ..color = AppTheme.primary(context)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -78,7 +80,7 @@ class _SplitTimeChartPainter extends CustomPainter {
       final y = size.height - padding - normalizedValue * (size.height - 2 * padding);
 
       final pointPaint = Paint()
-        ..color = selectedIndex == i + 1 ? AppColors.kSuccess : AppColors.kPrimaryTeal
+        ..color = selectedIndex == i + 1 ? AppTheme.success(context) : AppTheme.primary(context)
         ..style = PaintingStyle.fill;
 
       canvas.drawCircle(Offset(x, y), selectedIndex == i + 1 ? 6 : 4, pointPaint);
@@ -86,7 +88,7 @@ class _SplitTimeChartPainter extends CustomPainter {
       // Draw vertical line for selected
       if (selectedIndex == i + 1) {
         final linePaint = Paint()
-          ..color = AppColors.kSuccess.withValues(alpha: 0.3)
+          ..color = AppTheme.success(context).withValues(alpha: 0.3)
           ..strokeWidth = 1
           ..style = PaintingStyle.stroke;
         canvas.drawLine(

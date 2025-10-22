@@ -5,7 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../../training/presentation/bloc/ble_scan/ble_scan_bloc.dart';
 import '../../training/presentation/bloc/ble_scan/ble_scan_event.dart';
 import '../../training/presentation/bloc/ble_scan/ble_scan_state.dart';
-import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 
 class ModernCustomDialog extends StatefulWidget {
   final String title;
@@ -72,7 +72,7 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                       widget.state.error ?? '',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: AppColors.kRedColor,
+                          color: AppTheme.error(context),
                           fontSize: 14,
                           fontWeight: FontWeight.normal),
                     ),
@@ -96,8 +96,8 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.kPrimaryTeal.withValues(alpha: 0.2),
-            AppColors.kPrimaryTeal.withValues(alpha: 0.1),
+            AppTheme.primary(context).withValues(alpha: 0.2),
+            AppTheme.primary(context).withValues(alpha: 0.1),
           ],
         ),
       ),
@@ -106,7 +106,7 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-                color: AppColors.kPrimaryTeal,
+                color: AppTheme.primary(context),
                 borderRadius: BorderRadius.circular(8)),
             child: const Icon(
               Icons.list_rounded,
@@ -123,7 +123,7 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                   widget.title,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: AppColors.kPrimaryTeal,
+                    color: AppTheme.primary(context),
                   ),
                 ),
                 Text(
@@ -176,9 +176,9 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                             gradient: isSelected
                                 ? LinearGradient(
                                     colors: [
-                                      AppColors.kPrimaryTeal
+                                      AppTheme.primary(context)
                                           .withValues(alpha: 0.1),
-                                      AppColors.kPrimaryTeal
+                                      AppTheme.primary(context)
                                           .withValues(alpha: 0.1),
                                     ],
                                   )
@@ -186,7 +186,7 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.kPrimaryTeal
+                                  ? AppTheme.primary(context)
                                       .withValues(alpha: 0.3)
                                   : Colors.transparent,
                               width: 1,
@@ -199,8 +199,8 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                                   decoration: BoxDecoration(
                                     gradient: isSelected
                                         ? LinearGradient(colors: [
-                                            AppColors.kPrimaryTeal,
-                                            AppColors.kPrimaryTeal
+                                            AppTheme.primary(context),
+                                            AppTheme.primary(context)
                                           ])
                                         : LinearGradient(colors: [
                                             Colors.grey.withValues(alpha: 0.1),
@@ -211,7 +211,7 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                                   child: Icon(Icons.bluetooth,
                                       color: isSelected
                                           ? Colors.white
-                                          : AppColors.kPrimaryTeal,
+                                          : AppTheme.primary(context),
                                       size: 16)),
                               const SizedBox(width: 8),
                               Expanded(
@@ -223,8 +223,8 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
                                             color: isSelected
-                                                ? AppColors.kPrimaryTeal
-                                                : AppColors.kPrimaryTeal)),
+                                                ? AppTheme.primary(context)
+                                                : AppTheme.primary(context))),
                                     Text('${item.device.remoteId}',
                                         style: TextStyle(
                                             fontSize: 12,
@@ -279,10 +279,10 @@ class _ModernCustomDialogState extends State<ModernCustomDialog>
                   child: Container(
                     decoration: _selectedIndex != null
                         ? BoxDecoration(
-                            color: AppColors.kPrimaryTeal,
+                            color: AppTheme.primary(context),
                             borderRadius: BorderRadius.all(Radius.circular(8)),
                             border: Border.all(
-                                color: AppColors.kPrimaryTeal, width: 1),
+                                color: AppTheme.primary(context), width: 1),
                           )
                         : null,
                     padding: const EdgeInsets.symmetric(vertical: 8),

@@ -27,24 +27,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-          providers: [
-            BlocProvider(
-              create: (context) =>
-                  BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()),
-            ),
-            BlocProvider(
-              create: (_) => di.sl<AuthBloc>()..add(const CheckLoginStatus()),
-            ),
-            BlocProvider(
-                create: (context) => TrainingSessionBloc(bleRepository: sl())),
+        providers: [
+          BlocProvider(
+            create: (context) =>
+                BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()),
+          ),
+          BlocProvider(
+            create: (_) => di.sl<AuthBloc>()..add(const CheckLoginStatus()),
+          ),
+          BlocProvider(
+              create: (context) => TrainingSessionBloc(bleRepository: sl())),
 
-          ],
-          child: MaterialApp(
-              title: 'PulseSkadi',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme().lightTheme,
-    navigatorKey: EnhancedDialogWidgets.navigatorKey,
-    home:const AuthWrapper()));
+        ],
+        child: MaterialApp(
+            title: 'PulseSkadi',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.darkTheme(),
+            navigatorKey: EnhancedDialogWidgets.navigatorKey,
+            home:const AuthWrapper()));
   }
 }
 
@@ -67,7 +67,7 @@ class AuthWrapper extends StatelessWidget {
             ),
           );
         } else if (state is AuthAuthenticated) {
-            return const MainAppPage();
+          return const MainAppPage();
         } else {
           return const LoginPage();
         }

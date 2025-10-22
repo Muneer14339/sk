@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
+
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton(
       {required this.title,
@@ -37,15 +38,15 @@ class PrimaryButton extends StatelessWidget {
               height: height ?? 50,
               width: width,
               decoration: BoxDecoration(
-                  color: buttonColor ?? AppColors.kPrimaryTeal,
+                  color: buttonColor ?? AppTheme.primary(context),
                   borderRadius:
                       BorderRadius.all(Radius.circular(circularRadius ?? 6))),
               child: Center(
                   child: isLoading == true
-                      ? CircularProgressIndicator(color: AppColors.white)
+                      ? CircularProgressIndicator(color: AppTheme.textPrimary(context))
                       : Text(title,
                           style: TextStyle(
-                              color: textColor ?? AppColors.white,
+                              color: textColor ?? AppTheme.textPrimary(context),
                               fontWeight: FontWeight.w600,
                               fontSize: 14)))),
           if (addBottomMargin == true) const SizedBox(height: 20)

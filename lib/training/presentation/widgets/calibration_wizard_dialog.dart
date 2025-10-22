@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/services/prefs.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../pages/calibration_page.dart';
 import '../pages/sensitity_settings_page.dart';
@@ -29,7 +29,7 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppColors.kSurface,
+      backgroundColor: AppTheme.surface(context),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -48,14 +48,14 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: Icon(Icons.arrow_back, color: AppColors.kTextSecondary),
+                      child: Icon(Icons.arrow_back, color: AppTheme.textSecondary(context)),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
                         'CALIBRATION WIZARD',
                         style: TextStyle(
-                          color: AppColors.kTextPrimary,
+                          color: AppTheme.textPrimary(context),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -64,7 +64,7 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                     ),
                     IconButton(
                       onPressed: () => _openSettings(context),
-                      icon: Icon(Icons.settings, color: AppColors.kTextSecondary),
+                      icon: Icon(Icons.settings, color: AppTheme.textSecondary(context)),
                       tooltip: 'Settings',
                     ),
                   ],
@@ -75,7 +75,7 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                 Text(
                   'We\'ll analyze your shooting to find optimal detection settings',
                   style: TextStyle(
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
@@ -89,7 +89,7 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                     Text(
                       'Number of Shots',
                       style: TextStyle(
-                        color: AppColors.kTextPrimary,
+                        color: AppTheme.textPrimary(context),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -98,27 +98,27 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                     TextFormField(
                       controller: _shotCountController,
                       keyboardType: TextInputType.number,
-                      style: TextStyle(color: AppColors.kTextPrimary),
+                      style: TextStyle(color: AppTheme.textPrimary(context)),
                       decoration: InputDecoration(
                         hintText: 'Enter shot count',
-                        hintStyle: TextStyle(color: AppColors.kTextSecondary),
+                        hintStyle: TextStyle(color: AppTheme.textSecondary(context)),
                         filled: true,
-                        fillColor: AppColors.kBackground,
+                        fillColor: AppTheme.background(context),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: AppColors.kTextSecondary.withOpacity(0.3)),
+                          borderSide: BorderSide(color: AppTheme.textSecondary(context).withOpacity(0.3)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: AppColors.kTextSecondary.withOpacity(0.3)),
+                          borderSide: BorderSide(color: AppTheme.textSecondary(context).withOpacity(0.3)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: AppColors.kPrimaryTeal),
+                          borderSide: BorderSide(color: AppTheme.primary(context)),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: AppColors.kError),
+                          borderSide: BorderSide(color: AppTheme.error(context)),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       ),
@@ -147,9 +147,9 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kTextSecondary,
+                          foregroundColor: AppTheme.textSecondary(context),
                           side: BorderSide(
-                              color: AppColors.kTextSecondary.withOpacity(0.5)),
+                              color: AppTheme.textSecondary(context).withOpacity(0.5)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
@@ -181,12 +181,12 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: selectedCalibrationType == value
-              ? AppColors.kPrimaryTeal.withOpacity(0.1)
+              ? AppTheme.primary(context).withOpacity(0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: selectedCalibrationType == value
-                ? AppColors.kPrimaryTeal
+                ? AppTheme.primary(context)
                 : Colors.transparent,
           ),
         ),
@@ -197,7 +197,7 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
               groupValue: selectedCalibrationType,
               onChanged: (val) =>
                   setState(() => selectedCalibrationType = val ?? 'live'),
-              activeColor: AppColors.kPrimaryTeal,
+              activeColor: AppTheme.primary(context),
             ),
             const SizedBox(width: 8),
             Flexible(
@@ -205,8 +205,8 @@ class _CalibrationWizardDialogState extends State<CalibrationWizardDialog> {
                 label,
                 style: TextStyle(
                   color: selectedCalibrationType == value
-                      ? AppColors.kPrimaryTeal
-                      : AppColors.kTextPrimary,
+                      ? AppTheme.primary(context)
+                      : AppTheme.textPrimary(context),
                   fontSize: 14,
                   fontWeight: selectedCalibrationType == value
                       ? FontWeight.w600

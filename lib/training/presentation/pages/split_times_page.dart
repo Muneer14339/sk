@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' as math;
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../data/models/saved_session_model.dart';
 import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_state.dart';
@@ -25,17 +25,17 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AppTheme.background(context),
       appBar: AppBar(
-        backgroundColor: AppColors.kSurface,
+        backgroundColor: AppTheme.surface(context),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.kTextPrimary),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary(context)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Split Times',
-          style: TextStyle(color: AppColors.kTextPrimary, fontSize: 18),
+          style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 18),
         ),
       ),
       body: BlocBuilder<TrainingSessionBloc, TrainingSessionState>(
@@ -44,7 +44,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
 
           if (steadinessShots.isEmpty) {
             return Center(
-              child: Text('No shot data available', style: TextStyle(color: AppColors.kTextSecondary)),
+              child: Text('No shot data available', style: TextStyle(color: AppTheme.textSecondary(context))),
             );
           }
 
@@ -91,18 +91,18 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: RichText(
         text: TextSpan(
           text: '$label: ',
-          style: TextStyle(color: AppColors.kTextSecondary, fontSize: 13),
+          style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 13),
           children: [
             TextSpan(
               text: value,
-              style: TextStyle(color: AppColors.kTextPrimary, fontWeight: FontWeight.w600),
+              style: TextStyle(color: AppTheme.textPrimary(context), fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -114,7 +114,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
@@ -127,7 +127,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
           const SizedBox(height: 8),
           Text(
             'Tap a shot below to highlight on chart',
-            style: TextStyle(color: AppColors.kTextSecondary, fontSize: 12),
+            style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
           ),
         ],
       ),
@@ -138,7 +138,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.kSurface,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
@@ -147,12 +147,12 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
         children: [
           Text(
             'Total Elapsed',
-            style: TextStyle(color: AppColors.kTextSecondary, fontSize: 14),
+            style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 14),
           ),
           Text(
             data['totalElapsed'],
             style: TextStyle(
-              color: AppColors.kTextPrimary,
+              color: AppTheme.textPrimary(context),
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -195,10 +195,10 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.kPrimaryTeal.withValues(alpha: 0.1) : AppColors.kSurface,
+              color: isSelected ? AppTheme.primary(context).withValues(alpha: 0.1) : AppTheme.surface(context),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? AppColors.kPrimaryTeal : Colors.white.withValues(alpha: 0.1),
+                color: isSelected ? AppTheme.primary(context) : Colors.white.withValues(alpha: 0.1),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -208,7 +208,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.kBackground,
+                    color: AppTheme.background(context),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
@@ -216,7 +216,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
                     child: Text(
                       'X${index + 1}',
                       style: TextStyle(
-                        color: AppColors.kTextPrimary,
+                        color: AppTheme.textPrimary(context),
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -232,16 +232,16 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
                         children: [
                           Text(
                             index == 0 ? 'Start • ' : 'Split • ',
-                            style: TextStyle(color: AppColors.kTextSecondary, fontSize: 13),
+                            style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 13),
                           ),
                           Text(
                             index == 0 ? '0.00s' : '${splitTime.toStringAsFixed(2)}s',
                             style: TextStyle(
                               color: isFastest
-                                  ? AppColors.kSuccess
+                                  ? AppTheme.success(context)
                                   : isSlowest
-                                  ? AppColors.kError
-                                  : AppColors.kTextPrimary,
+                                  ? AppTheme.error(context)
+                                  : AppTheme.textPrimary(context),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
@@ -251,7 +251,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
                       const SizedBox(height: 4),
                       Text(
                         'Elapsed ${elapsed.toStringAsFixed(2)}s',
-                        style: TextStyle(color: AppColors.kTextSecondary, fontSize: 12),
+                        style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
                       ),
                     ],
                   ),
@@ -259,7 +259,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
                 Text(
                   index == 0 ? '—' : 'Δ${index.toString().padLeft(2, '0')}',
                   style: TextStyle(
-                    color: AppColors.kTextSecondary,
+                    color: AppTheme.textSecondary(context),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
