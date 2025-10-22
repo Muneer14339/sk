@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../armory/presentation/bloc/armory_bloc.dart';
-import '../../../armory/presentation/bloc/armory_event.dart';
 import '../../../armory/presentation/bloc/armory_state.dart';
 import '../../../armory/domain/entities/armory_loadout.dart';
 import '../../data/model/programs_model.dart';
