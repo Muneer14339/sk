@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:country_picker/country_picker.dart';
-import '../../../armory/presentation/core/theme/user_app_theme.dart';
 import '../../../armory/presentation/pages/armory_page.dart';
 import '../../../injection_container.dart';
 import '../bloc/signup_bloc/signup_bloc.dart';
