@@ -1,7 +1,8 @@
 // lib/user_dashboard/presentation/widgets/navigation/grid_navigation_widget.dart
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 
 class GridNavigationWidget extends StatelessWidget {
   final int selectedTabIndex;
@@ -20,7 +21,6 @@ class GridNavigationWidget extends StatelessWidget {
     final orientation = MediaQuery.of(context).orientation;
 
     return Container(
-      // Height hatao - sirf padding rakho
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -33,13 +33,12 @@ class GridNavigationWidget extends StatelessWidget {
           }
 
           return GridView.builder(
-            shrinkWrap: true, // Ye important hai
+            shrinkWrap: true,
             physics: const BouncingScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
               crossAxisSpacing: 12,
               mainAxisSpacing: 8,
-              // Chhote buttons ke liye ratio kam karo
               childAspectRatio: orientation == Orientation.landscape ? 5 : 2,
             ),
             itemCount: _getTabItems().length,
@@ -48,6 +47,7 @@ class GridNavigationWidget extends StatelessWidget {
               final isActive = selectedTabIndex == index;
 
               return _buildGridItem(
+                context: context,
                 tabItem: tabItem,
                 isActive: isActive,
                 onTap: () => onTabChanged(index),
@@ -61,6 +61,7 @@ class GridNavigationWidget extends StatelessWidget {
   }
 
   Widget _buildGridItem({
+    required BuildContext context,
     required TabItemInfo tabItem,
     required bool isActive,
     required VoidCallback onTap,
@@ -69,22 +70,21 @@ class GridNavigationWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: AppAnimations.mediumDuration,
+        duration: ArmoryConstants.mediumDuration,
         padding: EdgeInsets.all(isCompact ? 8 : 16),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.accentText : AppColors.cardBackground,
+          color: isActive ? AppTheme.primary(context) : AppTheme.surface(context),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isActive
-                ? AppColors.accentText
-                : AppColors.primaryBorder,
+                ? AppTheme.primary(context)
+                : AppTheme.border(context),
             width: 1.5,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Icon with badge
             Flexible(
               child: Stack(
                 clipBehavior: Clip.none,
@@ -92,7 +92,7 @@ class GridNavigationWidget extends StatelessWidget {
                   Icon(
                     tabItem.icon,
                     size: isCompact ? 16 : 20,
-                    color: isActive ? Colors.black : AppColors.primaryText,
+                    color: isActive ? Colors.black : AppTheme.textPrimary(context),
                   ),
                   if (tabItem.count > 0)
                     Positioned(
@@ -104,7 +104,7 @@ class GridNavigationWidget extends StatelessWidget {
                           vertical: 1,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.errorColor,
+                          color: AppTheme.error(context),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         constraints: const BoxConstraints(
@@ -126,12 +126,11 @@ class GridNavigationWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            // Label
             Flexible(
               child: Text(
                 tabItem.title,
                 style: TextStyle(
-                  color: isActive ? Colors.black : AppColors.primaryText,
+                  color: isActive ? Colors.black : AppTheme.textPrimary(context),
                   fontSize: isCompact ? 10 : 12,
                   fontWeight: FontWeight.w500,
                 ),

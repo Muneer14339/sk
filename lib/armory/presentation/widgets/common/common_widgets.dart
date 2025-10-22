@@ -1,111 +1,126 @@
-// lib/core/widgets/common_widgets.dart
 import 'package:flutter/material.dart';
-
-import '../../core/theme/user_app_theme.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'armory_constants.dart';
 
 class CommonWidgets {
-  // Status Chip Widget
-  static Widget buildStatusChip(String status) {
+  static Widget buildStatusChip(BuildContext context, String status) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: AppDecorations.getStatusDecoration(status),
+      decoration: BoxDecoration(
+        color: status.statusColor(context).withOpacity(0.1),
+        border: Border.all(color: status.statusColor(context).withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Text(
         status,
-        style: status.statusTextStyle,
+        style: status.statusTextStyle(context),
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  // Tag Widget (for caliber, category, etc.)
-  static Widget buildTag(String text) {
+  static Widget buildTag(BuildContext context, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: AppDecorations.tagDecoration,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant(context),
+        border: Border.all(color: AppTheme.border(context)),
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Text(
         text,
-        style: AppTextStyles.tagText,
+        style: AppTheme.labelSmall(context),
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  // Count Badge Widget
-  static Widget buildCountBadge(int count, String label) {
+  static Widget buildCountBadge(BuildContext context, int count, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: AppDecorations.countBadgeDecoration,
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant(context),
+        border: Border.all(color: AppTheme.border(context)),
+        borderRadius: BorderRadius.circular(999),
+      ),
       child: Text(
         '$count $label',
-        style: AppTextStyles.countBadgeText,
+        style: AppTheme.labelSmall(context),
       ),
     );
   }
 
-  // Loading Widget
   static Widget buildLoading({String? message}) {
-    return Center(
-      child: Padding(
-        padding: AppSizes.cardPadding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(
-              width: AppSizes.loadingSize,
-              height: AppSizes.loadingSize,
-              child: CircularProgressIndicator(
-                color: AppColors.accentText,
-                strokeWidth: AppSizes.loadingStroke,
+    return Builder(
+      builder: (context) => Center(
+        child: Padding(
+          padding: ArmoryConstants.cardPadding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: ArmoryConstants.loadingSize,
+                height: ArmoryConstants.loadingSize,
+                child: CircularProgressIndicator(
+                  color: AppTheme.primary(context),
+                  strokeWidth: ArmoryConstants.loadingStroke,
+                ),
               ),
-            ),
-            if (message != null) ...[
-              const SizedBox(height: AppSizes.itemSpacing),
-              Text(message, style: AppTextStyles.emptyStateText),
+              if (message != null) ...[
+                const SizedBox(height: ArmoryConstants.itemSpacing),
+                Text(message, style: AppTheme.bodySmall(context)),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // Error Widget
   static Widget buildError(String message) {
-    return Center(
-      child: Padding(
-        padding: AppSizes.cardPadding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: AppColors.errorColor,
-              size: AppSizes.largeIcon,
-            ),
-            const SizedBox(height: AppSizes.itemSpacing),
-            Text(
-              message,
-              style: AppTextStyles.emptyStateText.copyWith(
-                color: AppColors.errorColor,
+    return Builder(
+      builder: (context) => Center(
+        child: Padding(
+          padding: ArmoryConstants.cardPadding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: AppTheme.error(context),
+                size: ArmoryConstants.largeIcon,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: ArmoryConstants.itemSpacing),
+              Text(
+                message,
+                style: AppTheme.bodySmall(context).copyWith(
+                  color: AppTheme.error(context),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Info Badge Widget (like "Smart Dropdowns")
-  static Widget buildInfoBadge(String text) {
+  static Widget buildInfoBadge(BuildContext context, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: AppDecorations.accentBadgeDecoration,
-      child: Text(text, style: AppTextStyles.badgeText),
+      decoration: BoxDecoration(
+        color: AppTheme.primary(context).withOpacity(0.1),
+        border: Border.all(color: AppTheme.primary(context).withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(ArmoryConstants.badgeBorderRadius),
+      ),
+      child: Text(
+        text,
+        style: AppTheme.labelMedium(context).copyWith(color: AppTheme.primary(context)),
+      ),
     );
   }
 
-  // Responsive Row Helper
-  static Widget buildResponsiveRow(List<Widget> children, {double breakpoint = AppBreakpoints.tablet}) {
+  static Widget buildResponsiveRow(BuildContext context, List<Widget> children, {double breakpoint = 520}) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth > breakpoint) {
@@ -118,7 +133,7 @@ class CommonWidgets {
         } else {
           return Column(
             children: children
-                .expand((child) => [child, const SizedBox(height: AppSizes.fieldSpacing)])
+                .expand((child) => [child, const SizedBox(height: ArmoryConstants.fieldSpacing)])
                 .take(children.length * 2 - 1)
                 .toList(),
           );
@@ -127,8 +142,8 @@ class CommonWidgets {
     );
   }
 
-  // Action Button with Icon
   static Widget buildActionButton({
+    required BuildContext context,
     required String label,
     required VoidCallback onPressed,
     IconData? icon,
@@ -137,40 +152,46 @@ class CommonWidgets {
     return ElevatedButton.icon(
       onPressed: isLoading ? null : onPressed,
       icon: isLoading
-          ? const SizedBox(
-        width: AppSizes.smallIcon,
-        height: AppSizes.smallIcon,
+          ? SizedBox(
+        width: ArmoryConstants.smallIcon,
+        height: ArmoryConstants.smallIcon,
         child: CircularProgressIndicator(
-          strokeWidth: AppSizes.loadingStroke,
-          color: AppColors.buttonText,
+          strokeWidth: ArmoryConstants.loadingStroke,
+          color: AppTheme.textPrimary(context),
         ),
       )
-          : Icon(icon ?? Icons.add, size: AppSizes.smallIcon),
+          : Icon(icon ?? Icons.add, size: ArmoryConstants.smallIcon),
       label: Text(label),
-      style: AppButtonStyles.addButtonStyle,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
     );
   }
 
-  // Expandable Section Widget
   static Widget buildExpandableSection({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required List<Widget> children,
     bool initiallyExpanded = false,
   }) {
     return Container(
-      margin: AppSizes.itemMargin,
-      decoration: AppDecorations.sectionBorderDecoration,
+      margin: ArmoryConstants.itemMargin,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-        iconColor: AppColors.secondaryText,
-        collapsedIconColor: AppColors.secondaryText,
+        iconColor: AppTheme.textSecondary(context),
+        collapsedIconColor: AppTheme.textSecondary(context),
         initiallyExpanded: initiallyExpanded,
         title: LayoutBuilder(
           builder: (context, constraints) {
             final availableWidth = constraints.maxWidth - 40;
-
             return SizedBox(
               width: availableWidth,
               child: Column(
@@ -179,7 +200,7 @@ class CommonWidgets {
                 children: [
                   Text(
                     title,
-                    style: AppTextStyles.itemTitle,
+                    style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
@@ -188,7 +209,7 @@ class CommonWidgets {
                       padding: const EdgeInsets.only(top: 2),
                       child: Text(
                         subtitle,
-                        style: AppTextStyles.itemSubtitle,
+                        style: AppTheme.labelMedium(context),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -204,7 +225,7 @@ class CommonWidgets {
             padding: const EdgeInsets.all(8),
             child: Text(
               'No items.',
-              style: AppTextStyles.emptyStateText,
+              style: AppTheme.bodySmall(context),
             ),
           )
         ]
@@ -213,36 +234,39 @@ class CommonWidgets {
     );
   }
 
-  // Data Table Wrapper
-  static Widget buildDataTable({
+  static Widget buildDataTable(BuildContext context, {
     required List<DataColumn> columns,
     required List<DataRow> rows,
     String? emptyMessage,
-  }) {
+  })
+  {
     if (rows.isEmpty && emptyMessage != null) {
       return Padding(
-        padding: AppSizes.cardPadding,
+        padding: ArmoryConstants.cardPadding,
         child: Text(
           emptyMessage,
-          style: AppTextStyles.emptyStateText,
+          style: AppTheme.bodySmall(context),
         ),
       );
     }
 
     return Container(
       width: double.infinity,
-      decoration: AppDecorations.tableDecoration,
+      decoration: BoxDecoration(
+        border: Border.all(color: AppTheme.border(context)),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSizes.itemSpacing),
+        borderRadius: BorderRadius.circular(ArmoryConstants.itemSpacing),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
-            headingRowColor: MaterialStateProperty.all(AppColors.headerBackground),
+            headingRowColor: MaterialStateProperty.all(AppTheme.surfaceVariant(context)),
             dataRowMaxHeight: 50,
             columnSpacing: 12,
             horizontalMargin: 12,
-            headingTextStyle: AppTextStyles.tableHeader,
-            dataTextStyle: AppTextStyles.tableData,
+            headingTextStyle: AppTheme.titleSmall(context),
+            dataTextStyle: AppTheme.bodySmall(context),
             columns: columns,
             rows: rows,
           ),
@@ -251,15 +275,18 @@ class CommonWidgets {
     );
   }
 
-  // Page Header
   static Widget buildPageHeader({
+    required BuildContext context,
     required String title,
     String? subtitle,
     List<Widget>? actions,
-  }) {
+  })
+  {
     return Container(
-      padding: AppSizes.cardPadding,
-      decoration: AppDecorations.headerBorderDecoration,
+      padding: ArmoryConstants.cardPadding,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -269,9 +296,9 @@ class CommonWidgets {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: AppTextStyles.pageTitle),
+                    Text(title, style: AppTheme.headingMedium(context)),
                     if (subtitle != null)
-                      Text(subtitle, style: AppTextStyles.pageSubtitle),
+                      Text(subtitle, style: AppTheme.labelMedium(context)),
                   ],
                 ),
               ),
@@ -283,8 +310,7 @@ class CommonWidgets {
     );
   }
 
-  // Helper method to build responsive layout
-  static Widget buildResponsiveLayout(List<Widget> children, bool _shouldUseGridLayout) {
+  static Widget buildResponsiveLayout(BuildContext context, List<Widget> children, bool _shouldUseGridLayout) {
     if (!_shouldUseGridLayout) {
       return Column(children: children);
     }
@@ -296,7 +322,7 @@ class CommonWidgets {
           Row(
             children: [
               Expanded(child: children[i]),
-              const SizedBox(width: AppSizes.fieldSpacing),
+              const SizedBox(width: ArmoryConstants.fieldSpacing),
               Expanded(child: children[i + 1]),
             ],
           ),
@@ -305,7 +331,7 @@ class CommonWidgets {
         rows.add(children[i]);
       }
       if (i + 2 < children.length) {
-        rows.add(const SizedBox(height: AppSizes.fieldSpacing));
+        rows.add(const SizedBox(height: ArmoryConstants.fieldSpacing));
       }
     }
     return Column(children: rows);

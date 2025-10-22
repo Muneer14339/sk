@@ -8,7 +8,7 @@ import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
 import '../../core/theme/user_app_theme.dart';
 import '../common/common_widgets.dart';
-import '../report_tab_widget.dart';
+import 'report_tab_widget.dart';
 import '../navigation/grid_navigation_widget.dart';
 import '../navigation/list_navigation_widget.dart';
 import 'ammunition_tab_widget.dart';

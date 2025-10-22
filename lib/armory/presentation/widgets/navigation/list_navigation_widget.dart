@@ -1,7 +1,8 @@
-// lib/user_dashboard/presentation/widgets/navigation/list_navigation_widget.dart
+// ===== list_navigation_widget.dart =====
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../common/armory_constants.dart';
 import '../tab_widgets/enhanced_armory_tab_view.dart';
 
 class ListNavigationWidget extends StatelessWidget {
@@ -25,7 +26,6 @@ class ListNavigationWidget extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate responsive sizes based on available height
         final itemHeight = (constraints.maxHeight - (items.length - 1) * 4) / items.length;
         final basePadding = itemHeight * 0.08;
         final iconSize = itemHeight * 0.35;
@@ -45,6 +45,7 @@ class ListNavigationWidget extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.only(bottom: isLast ? 0 : 4),
                   child: _buildListItem(
+                    context: context,
                     tabItem: tabItem,
                     isActive: isActive,
                     onTap: () => onTabChanged(index),
@@ -65,6 +66,7 @@ class ListNavigationWidget extends StatelessWidget {
   }
 
   Widget _buildListItem({
+    required BuildContext context,
     required TabItemInfo tabItem,
     required bool isActive,
     required VoidCallback onTap,
@@ -81,25 +83,24 @@ class ListNavigationWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: AppAnimations.mediumDuration,
+        duration: ArmoryConstants.mediumDuration,
         padding: EdgeInsets.symmetric(
           horizontal: itemPadding,
           vertical: itemPadding * 0.6,
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.accentBackgroundWithOpacity.withOpacity(0.2)
-              : AppColors.cardBackground,
+              ? AppTheme.primary(context).withOpacity(0.1)
+              : AppTheme.surface(context),
           borderRadius: BorderRadius.circular(basePadding),
           border: Border.all(
             color: isActive
-                ? AppColors.accentText.withOpacity(0.3)
-                : AppColors.primaryBorder,
+                ? AppTheme.primary(context).withOpacity(0.3)
+                : AppTheme.border(context),
           ),
         ),
         child: Row(
           children: [
-            // Left side (optional icon + name)
             Expanded(
               child: Row(
                 children: [
@@ -107,8 +108,8 @@ class ListNavigationWidget extends StatelessWidget {
                     Container(
                       decoration: BoxDecoration(
                         color: isActive
-                            ? AppColors.accentText.withOpacity(0.1)
-                            : AppColors.sectionBackground,
+                            ? AppTheme.primary(context).withOpacity(0.1)
+                            : AppTheme.surfaceVariant(context),
                         borderRadius: BorderRadius.circular(basePadding * 0.75),
                       ),
                       padding: EdgeInsets.all(basePadding * 0.5),
@@ -116,8 +117,8 @@ class ListNavigationWidget extends StatelessWidget {
                         tabItem.icon,
                         size: iconSize,
                         color: isActive
-                            ? AppColors.accentText
-                            : AppColors.primaryText,
+                            ? AppTheme.primary(context)
+                            : AppTheme.textPrimary(context),
                       ),
                     ),
                   if (showIcons) SizedBox(width: basePadding),
@@ -127,8 +128,8 @@ class ListNavigationWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: fontSize,
                         color: isActive
-                            ? AppColors.accentText
-                            : AppColors.primaryText,
+                            ? AppTheme.primary(context)
+                            : AppTheme.textPrimary(context),
                         fontWeight:
                         isActive ? FontWeight.w600 : FontWeight.w500,
                       ),
@@ -139,8 +140,6 @@ class ListNavigationWidget extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Right side (count + optional arrow)
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -148,13 +147,13 @@ class ListNavigationWidget extends StatelessWidget {
                   Container(
                     decoration: BoxDecoration(
                       color: isActive
-                          ? AppColors.accentText.withOpacity(0.1)
-                          : AppColors.sectionBackground,
+                          ? AppTheme.primary(context).withOpacity(0.1)
+                          : AppTheme.surfaceVariant(context),
                       borderRadius: BorderRadius.circular(basePadding * 1.25),
                       border: Border.all(
                         color: isActive
-                            ? AppColors.accentText.withOpacity(0.3)
-                            : AppColors.primaryBorder,
+                            ? AppTheme.primary(context).withOpacity(0.3)
+                            : AppTheme.border(context),
                       ),
                     ),
                     padding: EdgeInsets.symmetric(
@@ -166,8 +165,8 @@ class ListNavigationWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: countFontSize,
                         color: isActive
-                            ? AppColors.accentText
-                            : AppColors.secondaryText,
+                            ? AppTheme.primary(context)
+                            : AppTheme.textSecondary(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -178,8 +177,8 @@ class ListNavigationWidget extends StatelessWidget {
                     Icons.chevron_right,
                     size: iconSize * 0.85,
                     color: isActive
-                        ? AppColors.accentText
-                        : AppColors.secondaryText,
+                        ? AppTheme.primary(context)
+                        : AppTheme.textSecondary(context),
                   ),
               ],
             ),
@@ -212,3 +211,7 @@ class TabItemInfo {
     required this.count,
   });
 }
+
+// ===== grid_navigation_widget.dart =====
+
+// ===== FORM WRAPPER PATTERN =====

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// ===== responsive_grid_widget.dart =====
 class ResponsiveGridWidget extends StatelessWidget {
   final List<Widget> children;
   final bool forceGrid;
@@ -20,7 +21,6 @@ class ResponsiveGridWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🔹 Agar koi item nahi hai to directly "No items" show karo
     if (children.isEmpty) {
       return const Center(
         child: Text(
@@ -30,7 +30,6 @@ class ResponsiveGridWidget extends StatelessWidget {
       );
     }
 
-    // 🔹 Portrait (or non-grid) layout
     if (!_shouldUseGridLayout(context)) {
       return Column(
         children: children.expand((child) => [
@@ -40,7 +39,6 @@ class ResponsiveGridWidget extends StatelessWidget {
       );
     }
 
-    // 🔹 Landscape/grid layout
     final List<Widget> rows = [];
     for (int i = 0; i < children.length; i += 2) {
       if (i + 1 < children.length) {

@@ -1,8 +1,10 @@
 // lib/user_dashboard/presentation/widgets/empty_state_widget.dart
 import 'package:flutter/material.dart';
 
-import '../core/theme/user_app_theme.dart';
+import '../../../core/theme/app_theme.dart';
+import 'common/armory_constants.dart';
 
+// ===== empty_state_widget.dart =====
 class EmptyStateWidget extends StatelessWidget {
   final String message;
   final IconData? icon;
@@ -16,21 +18,21 @@ class EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: AppSizes.cardPadding,
+      padding: ArmoryConstants.cardPadding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
             Icon(
               icon,
-              color: AppColors.secondaryText,
-              size: AppSizes.largeIcon,
+              color: AppTheme.textSecondary(context),
+              size: ArmoryConstants.largeIcon,
             ),
-            const SizedBox(height: AppSizes.itemSpacing),
+            const SizedBox(height: ArmoryConstants.itemSpacing),
           ],
           Text(
             message,
-            style: AppTextStyles.emptyStateText,
+            style: AppTheme.bodySmall(context),
             textAlign: TextAlign.center,
           ),
         ],

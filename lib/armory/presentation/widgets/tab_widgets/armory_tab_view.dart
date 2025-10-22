@@ -6,7 +6,7 @@ import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../core/theme/user_app_theme.dart';
 import '../common/common_widgets.dart';
-import '../report_tab_widget.dart';
+import 'report_tab_widget.dart';
 import 'ammunition_tab_widget.dart';
 import 'firearms_tab_widget.dart';
 import 'gear_tab_widget.dart';

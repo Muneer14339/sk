@@ -1,12 +1,17 @@
-// lib/user_dashboard/presentation/widgets/ammunition_item_card.dart
+// ===== COMPLETE IMPLEMENTATION GUIDE =====
+// All files use AppTheme from core/theme/app_theme.dart
+// Import pattern: import '../../../../core/theme/app_theme.dart';
+// Import pattern: import 'common/armory_constants.dart';
+
+// ===== ammunition_item_card.dart =====
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/armory_ammunition.dart';
-import '../core/theme/user_app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 import 'common/common_delete_dilogue.dart';
 import 'common/common_widgets.dart';
+import 'common/item_details_dialog.dart';
 import 'common/tappable_item_wrapper.dart';
-import '../bloc/armory_bloc.dart';
+import 'common/armory_constants.dart';
 
 class AmmunitionItemCard extends StatelessWidget {
   final ArmoryAmmunition ammunition;
@@ -19,9 +24,13 @@ class AmmunitionItemCard extends StatelessWidget {
     return TappableItemWrapper(
       item: ammunition,
       child: Container(
-        margin: AppSizes.itemMargin,
-        padding: AppSizes.itemPadding,
-        decoration: AppDecorations.itemCardDecoration,
+        margin: ArmoryConstants.itemMargin,
+        padding: ArmoryConstants.itemPadding,
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant(context),
+          border: Border.all(color: AppTheme.border(context)),
+          borderRadius: BorderRadius.circular(ArmoryConstants.itemCardBorderRadius),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -30,12 +39,11 @@ class AmmunitionItemCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${ammunition.brand} ${ammunition.line ?? ''}',
-                    style: AppTextStyles.itemTitle,
+                    style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                CommonWidgets.buildTag(ammunition.caliber),
-                // Delete icon - prevent event propagation
+                CommonWidgets.buildTag(context, ammunition.caliber),
                 GestureDetector(
                   onTap: () {
                     CommonDialogs.showDeleteDialog(
@@ -48,30 +56,30 @@ class AmmunitionItemCard extends StatelessWidget {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
+                    child: Icon(
                       Icons.delete_outline,
-                      color: AppColors.errorColor,
+                      color: AppTheme.error(context),
                       size: 20,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSizes.smallSpacing),
+            const SizedBox(height: ArmoryConstants.smallSpacing),
             Wrap(
               spacing: 10,
-              runSpacing: AppSizes.smallSpacing,
+              runSpacing: ArmoryConstants.smallSpacing,
               children: [
                 if (ammunition.lot?.isNotEmpty == true)
                   Text(
                     'Lot: ${ammunition.lot}',
-                    style: AppTextStyles.itemSubtitle,
+                    style: AppTheme.labelMedium(context),
                   ),
                 Text(
                   'Qty: ${ammunition.quantity} rds',
-                  style: AppTextStyles.itemSubtitle,
+                  style: AppTheme.labelMedium(context),
                 ),
-                CommonWidgets.buildStatusChip(ammunition.status),
+                CommonWidgets.buildStatusChip(context, ammunition.status),
               ],
             ),
           ],
@@ -80,3 +88,33 @@ class AmmunitionItemCard extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ===== PATTERN FOR FORMS =====
+// All forms use DialogWidgets methods
+// Example: DialogWidgets.buildTextField(), DialogWidgets.buildDropdownField()
+// All use AppTheme.method(context) for styling
+// All use ArmoryConstants for sizes/spacing
+
+// ===== NOTES =====
+// 1. Replace all AppColors with AppTheme.method(context)
+// 2. Replace all AppTextStyles with AppTheme.method(context)
+// 3. Replace all AppSizes/AppBreakpoints with ArmoryConstants
+// 4. Replace all AppDecorations with BoxDecoration using AppTheme
+// 5. Merge dialog_widgets.dart, enhanced_dialog_widgets.dart, common_dialog_widgets.dart into single dialog_widgets.dart
+// 6. All functionality remains 100% same

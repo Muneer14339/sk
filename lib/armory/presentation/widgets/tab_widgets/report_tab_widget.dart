@@ -1,17 +1,16 @@
 // lib/user_dashboard/presentation/widgets/report_tab_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/armory_firearm.dart';
-import '../../domain/entities/armory_ammunition.dart';
-import '../../domain/entities/armory_gear.dart';
-import '../../domain/entities/armory_maintenance.dart';
-import '../../domain/entities/armory_tool.dart';
-import '../../domain/entities/armory_loadout.dart';
-import '../bloc/armory_bloc.dart';
-import '../bloc/armory_event.dart';
-import '../bloc/armory_state.dart';
-import '../core/theme/user_app_theme.dart';
-import 'common/common_widgets.dart';
+import '../../../domain/entities/armory_firearm.dart';
+import '../../../domain/entities/armory_ammunition.dart';
+import '../../../domain/entities/armory_gear.dart';
+import '../../../domain/entities/armory_maintenance.dart';
+import '../../../domain/entities/armory_tool.dart';
+import '../../../domain/entities/armory_loadout.dart';
+import '../../bloc/armory_bloc.dart';
+import '../../bloc/armory_event.dart';
+import '../../bloc/armory_state.dart';
+import '../common/common_widgets.dart';
 
 class ReportTabWidget extends StatefulWidget {
   final String userId;

@@ -1,15 +1,15 @@
-// lib/user_dashboard/presentation/pages/armory_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../injection_container.dart';
-import '../../../core/config/app_config.dart'; // Add this import
+import '../../../core/config/app_config.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import '../../../authentication/presentation/bloc/login_bloc/auth_event.dart';
 import '../../../authentication/presentation/bloc/login_bloc/auth_state.dart';
 import '../../../authentication/presentation/pages/login_page.dart';
 import '../bloc/armory_bloc.dart';
-import '../core/theme/user_app_theme.dart';
+import '../widgets/common/armory_constants.dart';
 import '../widgets/common/common_widgets.dart';
 import '../widgets/tab_widgets/enhanced_armory_tab_view.dart';
 
@@ -58,42 +58,42 @@ class _ArmoryPageViewState extends State<ArmoryPageView> {
       child: OrientationBuilder(
         builder: (context, orientation) {
           return Scaffold(
-            backgroundColor: AppColors.primaryBackground,
+            backgroundColor: AppTheme.background(context),
             appBar: orientation == Orientation.portrait
-                ? _buildAppBar()
-                : _buildLandscapeAppBar(),
+                ? _buildAppBar(context)
+                : _buildLandscapeAppBar(context),
             body: userId == null
                 ? _buildUnauthenticatedView()
-                : const EnhancedArmoryTabView(), // Remove navigation style parameter
+                : const EnhancedArmoryTabView(),
           );
         },
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cardBackground,
+      backgroundColor: AppTheme.surface(context),
       elevation: 0,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppConfig.appName, // Use config app name
-            style: AppTextStyles.pageTitle,
+            AppConfig.appName,
+            style: AppTheme.headingMedium(context),
           ),
           Text(
-            AppConfig.appSubtitle, // Use config subtitle
-            style: AppTextStyles.pageSubtitle,
+            AppConfig.appSubtitle,
+            style: AppTheme.labelMedium(context),
           ),
         ],
       ),
       actions: [
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.logout,
-            color: AppColors.primaryText,
-            size: AppSizes.mediumIcon,
+            color: AppTheme.textPrimary(context),
+            size: ArmoryConstants.mediumIcon,
           ),
           onPressed: () {
             context.read<AuthBloc>().add(const LogoutRequested());
@@ -103,32 +103,29 @@ class _ArmoryPageViewState extends State<ArmoryPageView> {
     );
   }
 
-  PreferredSizeWidget _buildLandscapeAppBar() {
+  PreferredSizeWidget _buildLandscapeAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cardBackground,
+      backgroundColor: AppTheme.surface(context),
       elevation: 0,
       title: Row(
         children: [
           Text(
-            AppConfig.appName, // Use config app name
-            style: AppTextStyles.pageTitle.copyWith(fontSize: 18),
+            AppConfig.appName,
+            style: AppTheme.headingMedium(context).copyWith(fontSize: 18),
           ),
           const Spacer(),
           TextButton.icon(
             onPressed: () {
               context.read<AuthBloc>().add(const LogoutRequested());
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.logout,
-              color: AppColors.primaryText,
+              color: AppTheme.textPrimary(context),
               size: 16,
             ),
             label: Text(
               'Logout',
-              style: TextStyle(
-                color: AppColors.primaryText,
-                fontSize: 12,
-              ),
+              style: AppTheme.bodySmall(context),
             ),
           ),
         ],

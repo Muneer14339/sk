@@ -1,13 +1,15 @@
 // lib/user_dashboard/presentation/widgets/gear_item_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../domain/entities/armory_gear.dart';
-import '../core/theme/user_app_theme.dart';
+import 'common/armory_constants.dart';
 import 'common/common_delete_dilogue.dart';
 import 'common/common_widgets.dart';
 import 'common/tappable_item_wrapper.dart';
 import '../bloc/armory_bloc.dart';
 
+// ===== gear_item_card.dart =====
 class GearItemCard extends StatelessWidget {
   final ArmoryGear gear;
   final String userId;
@@ -20,8 +22,12 @@ class GearItemCard extends StatelessWidget {
       item: gear,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: AppSizes.itemPadding,
-        decoration: AppDecorations.itemCardDecoration,
+        padding: ArmoryConstants.itemPadding,
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant(context),
+          border: Border.all(color: AppTheme.border(context)),
+          borderRadius: BorderRadius.circular(ArmoryConstants.itemCardBorderRadius),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -30,14 +36,13 @@ class GearItemCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     gear.model,
-                    style: AppTextStyles.itemTitle,
+                    style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
                 ),
-                const SizedBox(width: AppSizes.itemSpacing),
-                CommonWidgets.buildTag(gear.category),
-                // Delete icon - prevent event propagation
+                const SizedBox(width: ArmoryConstants.itemSpacing),
+                CommonWidgets.buildTag(context, gear.category),
                 GestureDetector(
                   onTap: () {
                     CommonDialogs.showDeleteDialog(
@@ -50,28 +55,28 @@ class GearItemCard extends StatelessWidget {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
+                    child: Icon(
                       Icons.delete_outline,
-                      color: AppColors.errorColor,
+                      color: AppTheme.error(context),
                       size: 20,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSizes.smallSpacing),
+            const SizedBox(height: ArmoryConstants.smallSpacing),
             Wrap(
               spacing: 10,
-              runSpacing: AppSizes.smallSpacing,
+              runSpacing: ArmoryConstants.smallSpacing,
               children: [
                 if (gear.serial?.isNotEmpty == true)
                   Text(
                     'SN: ${gear.serial}',
-                    style: AppTextStyles.itemSubtitle,
+                    style: AppTheme.labelMedium(context),
                   ),
                 Text(
                   'Qty: ${gear.quantity}',
-                  style: AppTextStyles.itemSubtitle,
+                  style: AppTheme.labelMedium(context),
                 ),
               ],
             ),

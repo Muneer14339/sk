@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/user_app_theme.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'armory_constants.dart';
 
+
+// ===== inline_form_wrapper.dart =====
 class InlineFormWrapper extends StatelessWidget {
   final String title;
   final String? badge;
@@ -20,10 +23,11 @@ class InlineFormWrapper extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         Container(
-          padding: const EdgeInsets.all(AppSizes.dialogPadding),
-          decoration: AppDecorations.headerBorderDecoration,
+          padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+          ),
           child: Row(
             children: [
               Expanded(
@@ -32,7 +36,7 @@ class InlineFormWrapper extends StatelessWidget {
                     Flexible(
                       child: Text(
                         title,
-                        style: AppTextStyles.cardTitle,
+                        style: AppTheme.titleLarge(context),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -40,10 +44,16 @@ class InlineFormWrapper extends StatelessWidget {
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: AppDecorations.accentBadgeDecoration,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary(context).withOpacity(0.1),
+                          border: Border.all(color: AppTheme.primary(context).withOpacity(0.2)),
+                          borderRadius: BorderRadius.circular(ArmoryConstants.badgeBorderRadius),
+                        ),
                         child: Text(
                           badge!,
-                          style: AppTextStyles.badgeText,
+                          style: AppTheme.labelMedium(context).copyWith(
+                            color: AppTheme.primary(context),
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -54,7 +64,6 @@ class InlineFormWrapper extends StatelessWidget {
             ],
           ),
         ),
-        // Form content
         child,
       ],
     );

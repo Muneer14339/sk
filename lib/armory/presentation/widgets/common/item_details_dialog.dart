@@ -1,6 +1,5 @@
 // lib/user_dashboard/presentation/widgets/common/item_details_dialog.dart
 import 'package:flutter/material.dart';
-import '../../core/theme/user_app_theme.dart';
 import 'dialog_widgets.dart';
 import 'entity_field_helper.dart';
 

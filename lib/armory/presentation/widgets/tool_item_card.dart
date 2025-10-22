@@ -1,13 +1,15 @@
 // lib/user_dashboard/presentation/widgets/tool_item_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../domain/entities/armory_tool.dart';
-import '../core/theme/user_app_theme.dart';
+import 'common/armory_constants.dart';
 import 'common/common_delete_dilogue.dart';
 import 'common/common_widgets.dart';
 import 'common/tappable_item_wrapper.dart';
 import '../bloc/armory_bloc.dart';
 
+// ===== tool_item_card.dart =====
 class ToolItemCard extends StatelessWidget {
   final ArmoryTool tool;
   final String userId;
@@ -19,9 +21,13 @@ class ToolItemCard extends StatelessWidget {
     return TappableItemWrapper(
       item: tool,
       child: Container(
-        margin: AppSizes.itemMargin,
-        padding: AppSizes.itemPadding,
-        decoration: AppDecorations.itemCardDecoration,
+        margin: ArmoryConstants.itemMargin,
+        padding: ArmoryConstants.itemPadding,
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant(context),
+          border: Border.all(color: AppTheme.border(context)),
+          borderRadius: BorderRadius.circular(ArmoryConstants.itemCardBorderRadius),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -30,11 +36,10 @@ class ToolItemCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     tool.name,
-                    style: AppTextStyles.itemTitle,
+                    style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // Delete icon - prevent event propagation
                 GestureDetector(
                   onTap: () {
                     CommonDialogs.showDeleteDialog(
@@ -47,35 +52,35 @@ class ToolItemCard extends StatelessWidget {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
+                    child: Icon(
                       Icons.delete_outline,
-                      color: AppColors.errorColor,
+                      color: AppTheme.error(context),
                       size: 20,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSizes.smallSpacing),
+            const SizedBox(height: ArmoryConstants.smallSpacing),
             Wrap(
               spacing: 10,
-              runSpacing: AppSizes.smallSpacing,
+              runSpacing: ArmoryConstants.smallSpacing,
               children: [
                 Text(
                   'Qty: ${tool.quantity}',
-                  style: AppTextStyles.itemSubtitle,
+                  style: AppTheme.labelMedium(context),
                 ),
                 if (tool.category?.isNotEmpty == true)
                   Text(
                     'Category: ${tool.category}',
-                    style: AppTextStyles.itemSubtitle,
+                    style: AppTheme.labelMedium(context),
                   ),
-                CommonWidgets.buildStatusChip(tool.status),
+                CommonWidgets.buildStatusChip(context, tool.status),
                 if (tool.notes?.isNotEmpty == true)
                   Flexible(
                     child: Text(
                       tool.notes!,
-                      style: AppTextStyles.itemSubtitle,
+                      style: AppTheme.labelMedium(context),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                     ),

@@ -1,11 +1,12 @@
 // lib/user_dashboard/presentation/widgets/common/form_wrapper_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
-import '../../core/theme/user_app_theme.dart';
 import '../tab_widgets/armory_tab_view.dart';
+import 'armory_constants.dart';
 import 'inline_form_wrapper.dart';
 import 'common_widgets.dart';
 
@@ -48,32 +49,28 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
   Widget build(BuildContext context) {
     return BlocConsumer<ArmoryBloc, ArmoryState>(
       listener: (context, state) {
-        // Only hide form on explicit actions
         if (state is ArmoryActionSuccess) {
           setState(() => _showingForm = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: AppColors.successColor,
+              backgroundColor: AppTheme.success(context),
             ),
           );
         } else if (state is ArmoryError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
-              backgroundColor: AppColors.errorColor,
+              backgroundColor: AppTheme.error(context),
             ),
           );
         } else if (state is ShowingAddForm && state.tabType == widget.tabType) {
-          // Show form when ShowAddFormEvent is triggered
           setState(() => _showingForm = true);
         } else if (state is ArmoryInitial) {
-          // Hide form when HideFormEvent is triggered
           setState(() => _showingForm = false);
         }
       },
       builder: (context, state) {
-        // Show form based on local state, not bloc state
         if (_showingForm) {
           return InlineFormWrapper(
             title: widget.formTitle,
@@ -85,28 +82,29 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
           );
         }
 
-        // Show normal list view
-        return _buildCard(state);
+        return _buildCard(context, state);
       },
     );
   }
 
-  Widget _buildCard(ArmoryState state) {
+  Widget _buildCard(BuildContext context, ArmoryState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeader(state),
+        _buildHeader(context, state),
         widget.listBuilder(state),
       ],
     );
   }
 
-  Widget _buildHeader(ArmoryState state) {
+  Widget _buildHeader(BuildContext context, ArmoryState state) {
     final itemCount = widget.getItemCount?.call(state);
 
     return Container(
-      padding: AppSizes.cardPadding,
-      decoration: AppDecorations.headerBorderDecoration,
+      padding: ArmoryConstants.cardPadding,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -118,20 +116,20 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
                     Flexible(
                       child: Text(
                         widget.cardTitle,
-                        style: AppTextStyles.cardTitle,
+                        style: AppTheme.titleLarge(context),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (itemCount != null) ...[
                       const SizedBox(width: 8),
-                      CommonWidgets.buildCountBadge(itemCount, 'items'),
+                      CommonWidgets.buildCountBadge(context, itemCount, 'items'),
                     ],
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   widget.cardDescription,
-                  style: AppTextStyles.cardDescription,
+                  style: AppTheme.labelMedium(context),
                 ),
               ],
             ),
@@ -150,17 +148,16 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
               }
             },
             icon: state is ArmoryLoadingAction
-                ? const SizedBox(
+                ? SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: AppColors.buttonText,
+                color: AppTheme.textPrimary(context),
               ),
             )
-                : const Icon(Icons.add, size: AppSizes.smallIcon),
+                : const Icon(Icons.add, size: ArmoryConstants.smallIcon),
             label: const Text('Add'),
-            style: AppButtonStyles.addButtonStyle,
           ),
         ],
       ),
