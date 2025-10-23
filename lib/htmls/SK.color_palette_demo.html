@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #121212;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1E1E1E, #2A2A2A);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 206, 209, 0.1);
+            border: 1px solid rgba(0, 206, 209, 0.2);
+        }
+
+        .header h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00CED1, #40E0D0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            text-align: center;
+            color: #B0B0B0;
+            font-size: 1.1rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: #1E1E1E;
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 206, 209, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #00CED1, #40E0D0);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 206, 209, 0.2);
+            border-color: #00CED1;
+        }
+
+        .card h3 {
+            color: #00CED1;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .card p {
+            color: #B0B0B0;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00CED1, #40E0D0);
+            color: #121212;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 206, 209, 0.4);
+        }
+
+        .btn-success {
+            background: #4CAF50;
+            color: #FFFFFF;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-error {
+            background: #FF5252;
+            color: #FFFFFF;
+        }
+
+        .btn-error:hover {
+            background: #f44336;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #00CED1;
+            color: #00CED1;
+        }
+
+        .btn-outline:hover {
+            background: #00CED1;
+            color: #121212;
+        }
+
+        /* Stats Section */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .stat-item {
+            background: #1E1E1E;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(176, 176, 176, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            border-color: #00CED1;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #00CED1;
+            display: block;
+        }
+
+        .stat-label {
+            color: #B0B0B0;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Progress Bars */
+        .progress-section {
+            background: #1E1E1E;
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 1px solid rgba(0, 206, 209, 0.2);
+        }
+
+        .progress-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #FFFFFF;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #2A2A2A;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00CED1, #40E0D0);
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .progress-fill.success {
+            background: #4CAF50;
+        }
+
+        .progress-fill.error {
+            background: #FF5252;
+        }
+
+        /* Form Elements */
+        .form-section {
+            background: #1E1E1E;
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 1px solid rgba(0, 206, 209, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #FFFFFF;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: #121212;
+            border: 2px solid #2A2A2A;
+            border-radius: 8px;
+            color: #FFFFFF;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #00CED1;
+            box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.1);
+        }
+
+        /* Color Palette Display */
+        .palette-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .color-swatch {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.05);
+        }
+
+        .swatch-primary { background: #00CED1; color: #121212; }
+        .swatch-background { background: #121212; color: #FFFFFF; border: 2px solid #2A2A2A; }
+        .swatch-surface { background: #1E1E1E; color: #FFFFFF; }
+        .swatch-success { background: #4CAF50; color: #FFFFFF; }
+        .swatch-error { background: #FF5252; color: #FFFFFF; }
+        .swatch-text-primary { background: #FFFFFF; color: #121212; }
+        .swatch-text-secondary { background: #B0B0B0; color: #121212; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #4CAF50;
+        }
+
+        .notification.error {
+            background: #FF5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header animate-in">
+            <h1>Color Palette Demo</h1>
+            <p>Modern UI showcase featuring your custom color scheme</p>
+        </div>
+
+        <div class="palette-display">
+            <div class="color-swatch swatch-primary">
+                <div>Primary</div>
+                <div>#00CED1</div>
+            </div>
+            <div class="color-swatch swatch-background">
+                <div>Background</div>
+                <div>#121212</div>
+            </div>
+            <div class="color-swatch swatch-surface">
+                <div>Surface</div>
+                <div>#1E1E1E</div>
+            </div>
+            <div class="color-swatch swatch-success">
+                <div>Success</div>
+                <div>#4CAF50</div>
+            </div>
+            <div class="color-swatch swatch-error">
+                <div>Error</div>
+                <div>#FF5252</div>
+            </div>
+            <div class="color-swatch swatch-text-primary">
+                <div>Text Primary</div>
+                <div>#FFFFFF</div>
+            </div>
+            <div class="color-swatch swatch-text-secondary">
+                <div>Text Secondary</div>
+                <div>#B0B0B0</div>
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card animate-in">
+                <h3>Interactive Elements</h3>
+                <p>Experience the color palette through various UI components with smooth hover effects and modern animations.</p>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="showNotification('success')">Primary Action</button>
+                    <button class="btn btn-outline">Secondary</button>
+                </div>
+            </div>
+
+            <div class="card animate-in">
+                <h3>Status Indicators</h3>
+                <p>Clear visual feedback using success and error colors for better user experience and accessibility.</p>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="showNotification('success')">Success Action</button>
+                    <button class="btn btn-error" onclick="showNotification('error')">Error Action</button>
+                </div>
+            </div>
+
+            <div class="card animate-in">
+                <h3>Modern Design</h3>
+                <p>Contemporary styling with glassmorphism effects, gradient accents, and responsive layout design.</p>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="animateProgress()">Demo Progress</button>
+                    <button class="btn btn-outline">Learn More</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item animate-in">
+                <span class="stat-number">98%</span>
+                <div class="stat-label">User Satisfaction</div>
+            </div>
+            <div class="stat-item animate-in">
+                <span class="stat-number">2.4s</span>
+                <div class="stat-label">Load Time</div>
+            </div>
+            <div class="stat-item animate-in">
+                <span class="stat-number">100+</span>
+                <div class="stat-label">Components</div>
+            </div>
+            <div class="stat-item animate-in">
+                <span class="stat-number">4.9★</span>
+                <div class="stat-label">Rating</div>
+            </div>
+        </div>
+
+        <div class="progress-section animate-in">
+            <h3 style="color: #00CED1; margin-bottom: 1.5rem;">Performance Metrics</h3>
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>Overall Performance</span>
+                    <span>92%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 92%"></div>
+                </div>
+            </div>
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>Success Rate</span>
+                    <span>87%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill success" style="width: 87%"></div>
+                </div>
+            </div>
+            <div class="progress-item">
+                <div class="progress-label">
+                    <span>Error Rate</span>
+                    <span>13%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill error" style="width: 13%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section animate-in">
+            <h3 style="color: #00CED1; margin-bottom: 1.5rem;">Contact Form</h3>
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" class="form-control" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" class="form-control" rows="4" placeholder="Enter your message"></textarea>
+            </div>
+            <button class="btn btn-primary">Send Message</button>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        function showNotification(type) {
+            const notification = document.getElementById('notification');
+            const messages = {
+                success: 'Action completed successfully!',
+                error: 'An error occurred. Please try again.'
+            };
+            
+            notification.textContent = messages[type];
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function animateProgress() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+            
+            showNotification('success');
+        }
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Add some interactive touches
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate progress bars on load
+            setTimeout(() => {
+                document.querySelectorAll('.progress-fill').forEach(bar => {
+                    bar.style.width = bar.style.width || '0%';
+                });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

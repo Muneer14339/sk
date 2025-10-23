@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a1929;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+        
+        .back-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 15px;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .header-spacer {
+            width: 52px;
+        }
+        
+        /* Info Card */
+        .info-card {
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        
+        .drill-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00d9ff;
+            margin-bottom: 4px;
+        }
+        
+        .session-meta {
+            font-size: 12px;
+            color: #8b9299;
+        }
+        
+        /* Table */
+        .table-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .table-header {
+            display: grid;
+            grid-template-columns: 35px 45px 55px 55px 1fr;
+            gap: 6px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 10px;
+            color: #8b9299;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .table-body {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        
+        .table-row {
+            display: grid;
+            grid-template-columns: 35px 45px 55px 55px 1fr;
+            gap: 6px;
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .table-row:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .table-row.pressing {
+            background: rgba(0, 217, 255, 0.1);
+        }
+        
+        .cell {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .cell-shot {
+            font-weight: 700;
+            color: #00d9ff;
+        }
+        
+        .cell-score {
+            font-weight: 600;
+        }
+        
+        .cell-time, .cell-split {
+            font-size: 12px;
+            color: #8b9299;
+        }
+        
+        .cell-stability {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .stability-bar {
+            flex: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .stability-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        .stability-fill.high {
+            background: #4caf50;
+        }
+        
+        .stability-fill.medium {
+            background: #ff9800;
+        }
+        
+        .stability-fill.low {
+            background: #f44336;
+        }
+        
+        .stability-text {
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 32px;
+        }
+        
+        .stability-text.high {
+            color: #4caf50;
+        }
+        
+        .stability-text.medium {
+            color: #ff9800;
+        }
+        
+        .stability-text.low {
+            color: #f44336;
+        }
+        
+        .indicator {
+            margin-left: 2px;
+            font-size: 14px;
+        }
+        
+        /* Chart */
+        .chart-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #8b9299;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+        }
+        
+        .chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 100px;
+            position: relative;
+        }
+        
+        .chart-bar {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            padding-top: 4px;
+        }
+        
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+        
+        .chart-bar.high {
+            background: #4caf50;
+        }
+        
+        .chart-bar.medium {
+            background: #ff9800;
+        }
+        
+        .chart-bar.low {
+            background: #f44336;
+        }
+        
+        .chart-bar.most-stable {
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #4caf50;
+        }
+        
+        .chart-value {
+            font-size: 9px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .average-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px dashed rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+        
+        .stability-line-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            pointer-events: none;
+        }
+        
+        .stability-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .split-time-dot {
+            fill: #00d9ff;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+        
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #8b9299;
+        }
+        
+        .legend-bar {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            background: #4caf50;
+        }
+        
+        .legend-line {
+            width: 16px;
+            height: 2px;
+            background: #00d9ff;
+            border-radius: 1px;
+        }
+        
+        .legend-dot {
+            width: 6px;
+            height: 6px;
+            background: #00d9ff;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+        
+        /* Stats Compact */
+        .stats-compact {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .stats-row {
+            font-size: 12px;
+            color: #8b9299;
+            line-height: 1.6;
+        }
+        
+        .stats-row span {
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        /* Traceline Modal */
+        .traceline-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .traceline-modal.active {
+            display: flex;
+        }
+        
+        .traceline-content {
+            background: #1a2332;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 380px;
+            width: 100%;
+        }
+        
+        .traceline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .traceline-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .close-modal-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .traceline-target {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #fff;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        
+        .traceline-circles {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .circle {
+            position: absolute;
+            border: 2px solid #e53935;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .circle:nth-child(1) { width: 10%; height: 10%; background: #e53935; }
+        .circle:nth-child(2) { width: 20%; height: 20%; }
+        .circle:nth-child(3) { width: 35%; height: 35%; }
+        .circle:nth-child(4) { width: 50%; height: 50%; }
+        .circle:nth-child(5) { width: 65%; height: 65%; }
+        .circle:nth-child(6) { width: 80%; height: 80%; }
+        .circle:nth-child(7) { width: 95%; height: 95%; }
+        
+        .traceline-path {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .traceline-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .shot-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #2196f3;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+        
+        .traceline-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .traceline-stat {
+            text-align: center;
+        }
+        
+        .traceline-stat-label {
+            font-size: 10px;
+            color: #8b9299;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .traceline-stat-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #00d9ff;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .btn {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .btn-primary {
+            background: #00d9ff;
+            color: #0a1929;
+            grid-column: 1 / -1;
+        }
+        
+        .btn-primary:hover {
+            background: #00c4e6;
+        }
+        
+        svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Scrollbar styling */
+        .table-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .table-body::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        
+        .table-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .table-body::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </button>
+            <div class="header-title">Session Details</div>
+            <div class="header-spacer"></div>
+        </div>
+        
+        <!-- Info Card -->
+        <div class="info-card">
+            <div class="drill-name">Precision Fundamentals</div>
+            <div class="session-meta">03:10 • 15 shots • 130/150 points</div>
+        </div>
+        
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <div>Shot</div>
+                <div>Score</div>
+                <div>Time</div>
+                <div>Split</div>
+                <div>Stability</div>
+            </div>
+            
+            <div class="table-body" id="tableBody">
+                <!-- Rows will be populated here -->
+            </div>
+        </div>
+        
+        <!-- Split Time Chart -->
+        <div class="chart-section">
+            <div class="section-title">Performance Analysis</div>
+            <div class="chart-wrapper">
+                <div class="chart" id="splitChart">
+                    <!-- Chart bars will be populated here -->
+                </div>
+                <div class="stability-line-overlay">
+                    <svg class="stability-svg" id="stabilitySvg">
+                        <!-- Stability line will be drawn here -->
+                    </svg>
+                </div>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-bar"></div>
+                    <span>Stability</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-line"></div>
+                    <div class="legend-dot"></div>
+                    <span>Split Time</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Compact -->
+        <div class="stats-compact">
+            <div class="stats-row">
+                Avg: <span id="avgSplit">14.2s</span> • 
+                Fast: <span id="fastestSplit">⚡5.0s</span> • 
+                Slow: <span id="slowestSplit">🐌15.0s</span> • 
+                Stable: <span id="mostStable">⭐100%</span>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="exportCSV()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export CSV
+            </button>
+            
+            <button class="btn btn-secondary" onclick="shareImage()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                Share
+            </button>
+            
+            <button class="btn btn-primary" onclick="goBack()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Summary
+            </button>
+        </div>
+    </div>
+    
+    <!-- Traceline Modal -->
+    <div class="traceline-modal" id="tracelineModal" onclick="closeTraceline()">
+        <div class="traceline-content" onclick="event.stopPropagation()">
+            <div class="traceline-header">
+                <div class="traceline-title" id="tracelineTitle">Shot 1 Traceline</div>
+                <button class="close-modal-btn" onclick="closeTraceline()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="traceline-target">
+                <div class="traceline-circles">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                </div>
+                <div class="traceline-path">
+                    <svg class="traceline-svg" id="tracelineSvg">
+                        <!-- Traceline will be drawn here -->
+                    </svg>
+                </div>
+                <div class="shot-marker" id="tracelineMarker" style="left: 50%; top: 30%;">1</div>
+            </div>
+            
+            <div class="traceline-info">
+                <div class="traceline-stat">
+                    <div class="traceline-stat-label">Score</div>
+                    <div class="traceline-stat-value" id="tracelineScore">8</div>
+                </div>
+                <div class="traceline-stat">
+                    <div class="traceline-stat-label">Time</div>
+                    <div class="traceline-stat-value" id="tracelineTime">00:05</div>
+                </div>
+                <div class="traceline-stat">
+                    <div class="traceline-stat-label">Split</div>
+                    <div class="traceline-stat-value" id="tracelineSplit">5.0s</div>
+                </div>
+                <div class="traceline-stat">
+                    <div class="traceline-stat-label">Stability</div>
+                    <div class="traceline-stat-value" id="tracelineStability">75%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const shots = [
+            { number: 1, score: 8, time: 5, split: 5.0, stability: 75, x: 45, y: 30 },
+            { number: 2, score: 9, time: 12, split: 7.0, stability: 82, x: 52, y: 48 },
+            { number: 3, score: 10, time: 23, split: 11.0, stability: 88, x: 50, y: 50 },
+            { number: 4, score: 7, time: 38, split: 15.0, stability: 91, x: 35, y: 55 },
+            { number: 5, score: 9, time: 51, split: 13.0, stability: 100, x: 48, y: 52 },
+            { number: 6, score: 8, time: 64, split: 13.0, stability: 78, x: 46, y: 45 },
+            { number: 7, score: 10, time: 78, split: 14.0, stability: 95, x: 51, y: 49 },
+            { number: 8, score: 9, time: 92, split: 14.0, stability: 87, x: 49, y: 51 },
+            { number: 9, score: 7, time: 107, split: 15.0, stability: 72, x: 38, y: 58 },
+            { number: 10, score: 10, time: 120, split: 13.0, stability: 98, x: 50, y: 48 },
+            { number: 11, score: 8, time: 135, split: 15.0, stability: 80, x: 44, y: 52 },
+            { number: 12, score: 9, time: 149, split: 14.0, stability: 89, x: 53, y: 50 },
+            { number: 13, score: 10, time: 162, split: 13.0, stability: 96, x: 51, y: 51 },
+            { number: 14, score: 8, time: 177, split: 15.0, stability: 76, x: 42, y: 47 },
+            { number: 15, score: 9, time: 190, split: 13.0, stability: 92, x: 48, y: 49 }
+        ];
+        
+        let pressTimer;
+        let isPressing = false;
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        function getStabilityClass(stability) {
+            if (stability >= 80) return 'high';
+            if (stability >= 50) return 'medium';
+            return 'low';
+        }
+        
+        function findFastest() {
+            return shots.reduce((min, shot) => shot.split < min.split ? shot : min);
+        }
+        
+        function findSlowest() {
+            return shots.reduce((max, shot) => shot.split > max.split ? shot : max);
+        }
+        
+        function findMostStable() {
+            return shots.reduce((max, shot) => shot.stability > max.stability ? shot : max);
+        }
+        
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            const fastest = findFastest();
+            const slowest = findSlowest();
+            const mostStable = findMostStable();
+            
+            tableBody.innerHTML = shots.map(shot => {
+                const stabilityClass = getStabilityClass(shot.stability);
+                let indicator = '';
+                if (shot.number === fastest.number) indicator = '⚡';
+                if (shot.number === slowest.number) indicator = '🐌';
+                if (shot.number === mostStable.number) indicator = '⭐';
+                
+                return `
+                    <div class="table-row" 
+                         data-shot="${shot.number}"
+                         onmousedown="startPress(${shot.number})" 
+                         onmouseup="endPress()" 
+                         onmouseleave="endPress()"
+                         ontouchstart="startPress(${shot.number})" 
+                         ontouchend="endPress()">
+                        <div class="cell cell-shot">${shot.number}</div>
+                        <div class="cell cell-score">${shot.score}</div>
+                        <div class="cell cell-time">${formatTime(shot.time)}</div>
+                        <div class="cell cell-split">${shot.split}s</div>
+                        <div class="cell cell-stability">
+                            <div class="stability-bar">
+                                <div class="stability-fill ${stabilityClass}" style="width: ${shot.stability}%"></div>
+                            </div>
+                            <span class="stability-text ${stabilityClass}">${shot.stability}%</span>
+                            ${indicator ? `<span class="indicator">${indicator}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderChart() {
+            const chartEl = document.getElementById('splitChart');
+            const stabilitySvg = document.getElementById('stabilitySvg');
+            const mostStable = findMostStable();
+            const maxSplit = Math.max(...shots.map(s => s.split));
+            const avgStability = shots.reduce((sum, s) => sum + s.stability, 0) / shots.length;
+            
+            // Render stability bars
+            chartEl.innerHTML = shots.map(shot => {
+                const height = shot.stability; // Direct percentage
+                let barClass = getStabilityClass(shot.stability);
+                if (shot.number === mostStable.number) {
+                    barClass += ' most-stable';
+                }
+                
+                return `
+                    <div class="chart-bar ${barClass}" style="height: ${height}%;">
+                        <div class="chart-value">${shot.stability}%</div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add average stability line
+            chartEl.innerHTML += `<div class="average-line" style="bottom: ${avgStability}%;"></div>`;
+            
+            // Render split time line overlay
+            const barWidth = 100 / shots.length;
+            
+            // Calculate points for split time line (normalized to 0-100 scale)
+            let pathPoints = '';
+            shots.forEach((shot, index) => {
+                const x = (index * barWidth) + (barWidth / 2); // Center of each bar
+                const normalizedSplit = (shot.split / maxSplit) * 100; // Scale to 0-100
+                const y = 100 - normalizedSplit; // Invert for SVG coordinates
+                pathPoints += `${x},${y} `;
+            });
+            
+            // Draw split time line with dots
+            let svgContent = `<polyline points="${pathPoints}" fill="none" stroke="#00d9ff" stroke-width="2" opacity="0.8"/>`;
+            
+            // Add dots at each point
+            shots.forEach((shot, index) => {
+                const x = (index * barWidth) + (barWidth / 2);
+                const normalizedSplit = (shot.split / maxSplit) * 100;
+                const y = 100 - normalizedSplit;
+                svgContent += `<circle cx="${x}%" cy="${y}%" r="4" class="split-time-dot"/>`;
+            });
+            
+            // Add average split time line
+            const avgSplit = shots.reduce((sum, s) => sum + s.split, 0) / shots.length;
+            const normalizedAvgSplit = (avgSplit / maxSplit) * 100;
+            const avgSplitY = 100 - normalizedAvgSplit;
+            svgContent += `<line x1="0" y1="${avgSplitY}%" x2="100%" y2="${avgSplitY}%" stroke="#00d9ff" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>`;
+            
+            stabilitySvg.innerHTML = svgContent;
+        }
+        
+        function startPress(shotNumber) {
+            isPressing = true;
+            const row = document.querySelector(`[data-shot="${shotNumber}"]`);
+            row.classList.add('pressing');
+            
+            pressTimer = setTimeout(() => {
+                if (isPressing) {
+                    showTraceline(shotNumber);
+                }
+            }, 500);
+        }
+        
+        function endPress() {
+            isPressing = false;
+            clearTimeout(pressTimer);
+            document.querySelectorAll('.table-row').forEach(row => {
+                row.classList.remove('pressing');
+            });
+        }
+        
+        function showTraceline(shotNumber) {
+            const shot = shots.find(s => s.number === shotNumber);
+            if (!shot) return;
+            
+            document.getElementById('tracelineTitle').textContent = `Shot ${shot.number} Traceline`;
+            document.getElementById('tracelineScore').textContent = shot.score;
+            document.getElementById('tracelineTime').textContent = formatTime(shot.time);
+            document.getElementById('tracelineSplit').textContent = `${shot.split}s`;
+            document.getElementById('tracelineStability').textContent = `${shot.stability}%`;
+            
+            const marker = document.getElementById('tracelineMarker');
+            marker.textContent = shot.number;
+            marker.style.left = `${shot.x}%`;
+            marker.style.top = `${shot.y}%`;
+            
+            const svg = document.getElementById('tracelineSvg');
+            const points = generateTraceline(shot.x, shot.y, shot.stability);
+            svg.innerHTML = `<polyline points="${points}" fill="none" stroke="#2196f3" stroke-width="2" opacity="0.6"/>`;
+            
+            document.getElementById('tracelineModal').classList.add('active');
+        }
+        
+        function generateTraceline(endX, endY, stability) {
+            const centerX = 50;
+            const centerY = 50;
+            const wobble = (100 - stability) / 10;
+            
+            let points = `${centerX}% ${centerY}%`;
+            const steps = 8;
+            
+            for (let i = 1; i <= steps; i++) {
+                const progress = i / steps;
+                const x = centerX + (endX - centerX) * progress + (Math.random() - 0.5) * wobble;
+                const y = centerY + (endY - centerY) * progress + (Math.random() - 0.5) * wobble;
+                points += `, ${x}% ${y}%`;
+            }
+            
+            return points;
+        }
+        
+        function closeTraceline() {
+            document.getElementById('tracelineModal').classList.remove('active');
+        }
+        
+        function exportCSV() {
+            const headers = ['Shot', 'Score', 'Time (s)', 'Split (s)', 'Stability (%)', 'Position X', 'Position Y'];
+            const rows = shots.map(shot => [
+                shot.number,
+                shot.score,
+                shot.time,
+                shot.split,
+                shot.stability,
+                shot.x,
+                shot.y
+            ]);
+            
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'session-details.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('CSV exported successfully!');
+        }
+        
+        function shareImage() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Session Details',
+                    text: `Precision Fundamentals Session\n5 shots • 35/50 points\nAverage Stability: 88%\nAverage Split: 14.2s`,
+                }).then(() => {
+                    console.log('Shared successfully');
+                }).catch(err => {
+                    console.log('Share failed', err);
+                    fallbackShare();
+                });
+            } else {
+                fallbackShare();
+            }
+        }
+        
+        function fallbackShare() {
+            alert('Share functionality:\n\nIn a real app, this would:\n1. Generate an image of your results\n2. Open the native share dialog\n3. Allow sharing to social media or messaging apps');
+        }
+        
+        function goBack() {
+            alert('Navigating back to Session Summary...');
+        }
+        
+        // Initialize
+        renderTable();
+        renderChart();
+        
+        const fastest = findFastest();
+        const slowest = findSlowest();
+        const mostStable = findMostStable();
+        const avgSplit = shots.reduce((sum, s) => sum + s.split, 0) / shots.length;
+        
+        document.getElementById('avgSplit').textContent = `${avgSplit.toFixed(1)}s`;
+        document.getElementById('fastestSplit').textContent = `⚡${fastest.split}s`;
+        document.getElementById('slowestSplit').textContent = `🐌${slowest.split}s`;
+        document.getElementById('mostStable').textContent = `⭐${mostStable.stability}%`;
+    </script>
+</body>
+</html>

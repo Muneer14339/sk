@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Session</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a1929;
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .back-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        
+        .ble-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+        }
+        
+        .ble-status.disconnected {
+            background: #f44336;
+        }
+        
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Drill Card */
+        .drill-card {
+            background: rgba(0, 217, 255, 0.15);
+            padding: 12px 16px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+            transition: all 0.3s ease;
+            max-height: 200px;
+            overflow: hidden;
+        }
+        
+        .drill-card.collapsed {
+            max-height: 0;
+            padding: 0 16px;
+            border-bottom: none;
+        }
+        
+        .drill-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .drill-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #00d9ff;
+        }
+        
+        .drill-details {
+            font-size: 13px;
+            color: #8b9299;
+        }
+        
+        /* Metrics */
+        .metrics {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 11px;
+            color: #8b9299;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00d9ff;
+        }
+        
+        /* Target */
+        .target-container {
+            padding: 16px;
+            flex-shrink: 0;
+        }
+        
+        .target {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #fff;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .target-circles {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .circle {
+            position: absolute;
+            border: 2px solid #e53935;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .circle:nth-child(1) { width: 10%; height: 10%; background: #e53935; }
+        .circle:nth-child(2) { width: 20%; height: 20%; }
+        .circle:nth-child(3) { width: 35%; height: 35%; }
+        .circle:nth-child(4) { width: 50%; height: 50%; }
+        .circle:nth-child(5) { width: 65%; height: 65%; }
+        .circle:nth-child(6) { width: 80%; height: 80%; }
+        .circle:nth-child(7) { width: 95%; height: 95%; }
+        
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .crosshair-line {
+            position: absolute;
+            background: #bbb;
+        }
+        
+        .crosshair-h {
+            width: 100%;
+            height: 1px;
+            top: 50%;
+            left: 0;
+        }
+        
+        .crosshair-v {
+            width: 1px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+        }
+        
+        .shot-marker {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #2196f3;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            flex-shrink: 0;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary {
+            background: #00d9ff;
+            color: #0a1929;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .btn-danger {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        
+        /* Stability Bar */
+        .stability-section {
+            padding: 16px;
+            flex-shrink: 0;
+        }
+        
+        .stability-label {
+            font-size: 12px;
+            color: #8b9299;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stability-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #00d9ff;
+        }
+        
+        .stability-bar {
+            width: 100%;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f44336 0%, #ff9800 40%, #4caf50 70%, #4caf50 100%);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .stability-indicator {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #fff;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Shot Log */
+        .shot-log-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .shot-log-header {
+            padding: 12px 16px;
+            font-size: 12px;
+            color: #8b9299;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+        
+        .shot-log-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+        
+        .shot-log-item {
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        
+        .shot-log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .shot-number {
+            font-weight: 600;
+            color: #00d9ff;
+        }
+        
+        .shot-score {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4caf50;
+        }
+        
+        .shot-time {
+            font-size: 13px;
+            color: #8b9299;
+            text-align: right;
+        }
+        
+        .shot-stability {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+        }
+        
+        .shot-stability.stable {
+            color: #4caf50;
+        }
+        
+        .shot-stability.unstable {
+            color: #ff9800;
+        }
+        
+        .shot-stability.poor {
+            color: #f44336;
+        }
+        
+        .empty-log {
+            padding: 32px 16px;
+            text-align: center;
+            color: #8b9299;
+            font-size: 14px;
+        }
+        
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <div class="header-title">Steadiness Trainer</div>
+            </div>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <div class="ble-status" id="bleStatus"></div>
+                </div>
+                <div class="battery">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
+                        <line x1="23" y1="13" x2="23" y2="11"></line>
+                    </svg>
+                    <span id="batteryLevel">85%</span>
+                </div>
+                <button class="icon-btn" title="Settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6"></path>
+                        <path d="M17 12h6M1 12h6"></path>
+                        <path d="m16.24 7.76 4.25-4.25M3.51 20.49l4.25-4.25"></path>
+                        <path d="m16.24 16.24 4.25 4.25M3.51 3.51l4.25 4.25"></path>
+                    </svg>
+                </button>
+                <button class="icon-btn" title="Tools">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Drill Card (collapsible) -->
+        <div class="drill-card" id="drillCard">
+            <div class="drill-info">
+                <div class="drill-name">Precision Fundamentals</div>
+                <div class="drill-details">Beginner • 7yd • Dry Fire</div>
+            </div>
+        </div>
+        
+        <!-- Metrics -->
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-label">Shots</div>
+                <div class="metric-value" id="shotCount">0/5</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">Time</div>
+                <div class="metric-value" id="timeElapsed">00:00</div>
+            </div>
+        </div>
+        
+        <!-- Target -->
+        <div class="target-container">
+            <div class="target" id="target">
+                <div class="target-circles">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                </div>
+                <div class="crosshair">
+                    <div class="crosshair-line crosshair-h"></div>
+                    <div class="crosshair-line crosshair-v"></div>
+                </div>
+                <div id="shotMarkers"></div>
+            </div>
+        </div>
+        
+        <!-- Buttons -->
+        <div class="button-group" id="buttonGroup">
+            <button class="btn btn-primary" id="startBtn" onclick="startTraining()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Start Training
+            </button>
+            <button class="btn btn-secondary hidden" id="pauseBtn" onclick="pauseTraining()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+                Pause
+            </button>
+            <button class="btn btn-danger hidden" id="stopBtn" onclick="stopTraining()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                </svg>
+                Stop
+            </button>
+        </div>
+        
+        <!-- Stability Bar -->
+        <div class="stability-section">
+            <div class="stability-label">
+                <span>Stability</span>
+                <span class="stability-value" id="stabilityValue">0%</span>
+            </div>
+            <div class="stability-bar">
+                <div class="stability-fill" id="stabilityFill" style="width: 0%">
+                    <div class="stability-indicator"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shot Log -->
+        <div class="shot-log-section">
+            <div class="shot-log-header">Shot Log</div>
+            <div class="shot-log-list" id="shotLogList">
+                <div class="empty-log">No shots recorded yet</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let isTraining = false;
+        let isPaused = false;
+        let shotCount = 0;
+        let totalShots = 5;
+        let startTime = null;
+        let timerInterval = null;
+        let stabilityInterval = null;
+        let currentStability = 0;
+        let shots = [];
+        
+        // Auto-collapse drill card after 3 seconds
+        function autoCollapseDrillCard() {
+            setTimeout(() => {
+                document.getElementById('drillCard').classList.add('collapsed');
+            }, 3000);
+        }
+        
+        function startTraining() {
+            isTraining = true;
+            isPaused = false;
+            shotCount = 0;
+            shots = [];
+            startTime = Date.now();
+            
+            // Update UI
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('pauseBtn').classList.remove('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+            
+            // Start timer
+            timerInterval = setInterval(updateTimer, 100);
+            
+            // Start stability simulation
+            stabilityInterval = setInterval(updateStability, 200);
+            
+            // Auto-collapse drill card
+            autoCollapseDrillCard();
+            
+            // Clear shot markers and log
+            document.getElementById('shotMarkers').innerHTML = '';
+            document.getElementById('shotLogList').innerHTML = '<div class="empty-log">No shots recorded yet</div>';
+        }
+        
+        function pauseTraining() {
+            if (isPaused) {
+                isPaused = false;
+                document.getElementById('pauseBtn').innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    Pause
+                `;
+                timerInterval = setInterval(updateTimer, 100);
+                stabilityInterval = setInterval(updateStability, 200);
+            } else {
+                isPaused = true;
+                document.getElementById('pauseBtn').innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Resume
+                `;
+                clearInterval(timerInterval);
+                clearInterval(stabilityInterval);
+            }
+        }
+        
+        function stopTraining() {
+            isTraining = false;
+            isPaused = false;
+            clearInterval(timerInterval);
+            clearInterval(stabilityInterval);
+            
+            // Update UI
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('pauseBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('pauseBtn').innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+                Pause
+            `;
+            
+            alert('Training session ended!\n\nShots: ' + shotCount + '/' + totalShots + '\nTime: ' + document.getElementById('timeElapsed').textContent);
+        }
+        
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('timeElapsed').textContent = 
+                String(minutes).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+        
+        function updateStability() {
+            // Simulate stability fluctuation
+            const change = (Math.random() - 0.5) * 20;
+            currentStability = Math.max(0, Math.min(100, currentStability + change));
+            
+            document.getElementById('stabilityValue').textContent = Math.round(currentStability) + '%';
+            document.getElementById('stabilityFill').style.width = currentStability + '%';
+        }
+        
+        // Simulate shot trigger (in real app, this would be triggered by user action)
+        document.getElementById('target').addEventListener('click', function(e) {
+            if (!isTraining || isPaused || shotCount >= totalShots) return;
+            
+            shotCount++;
+            const rect = this.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            // Calculate distance from center for scoring
+            const centerX = 50;
+            const centerY = 50;
+            const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+            
+            // Ring-based scoring (0-10 scale)
+            let score;
+            if (distance < 5) score = 10;        // Center
+            else if (distance < 10) score = 9;   // Ring 1
+            else if (distance < 17.5) score = 8; // Ring 2
+            else if (distance < 25) score = 7;   // Ring 3
+            else if (distance < 32.5) score = 6; // Ring 4
+            else if (distance < 40) score = 5;   // Ring 5
+            else if (distance < 47.5) score = 4; // Ring 6
+            else score = 3;                      // Outer ring
+            
+            // Add shot marker
+            const marker = document.createElement('div');
+            marker.className = 'shot-marker';
+            marker.textContent = shotCount;
+            marker.style.left = x + '%';
+            marker.style.top = y + '%';
+            document.getElementById('shotMarkers').appendChild(marker);
+            
+            // Update shot count
+            document.getElementById('shotCount').textContent = shotCount + '/' + totalShots;
+            
+            // Add to shot log
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const timeStr = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+            
+            const stabilityClass = currentStability >= 70 ? 'stable' : currentStability >= 40 ? 'unstable' : 'poor';
+            
+            const shot = {
+                number: shotCount,
+                score: score,
+                time: timeStr,
+                stability: Math.round(currentStability)
+            };
+            shots.push(shot);
+            
+            // Update log
+            const logList = document.getElementById('shotLogList');
+            if (shots.length === 1) {
+                logList.innerHTML = '';
+            }
+            
+            const logItem = document.createElement('div');
+            logItem.className = 'shot-log-item';
+            logItem.innerHTML = `
+                <span class="shot-number">Shot ${shot.number}</span>
+                <span class="shot-score">${shot.score}</span>
+                <span class="shot-time">${shot.time}</span>
+                <span class="shot-stability ${stabilityClass}">${shot.stability}%</span>
+            `;
+            logList.appendChild(logItem);
+            logList.scrollTop = logList.scrollHeight;
+            
+            // End training if all shots taken
+            if (shotCount >= totalShots) {
+                setTimeout(stopTraining, 500);
+            }
+        });
+        
+        // Simulate BLE connection status
+        setInterval(() => {
+            const bleStatus = document.getElementById('bleStatus');
+            const isConnected = Math.random() > 0.1; // 90% connected
+            bleStatus.className = 'ble-status' + (isConnected ? '' : ' disconnected');
+        }, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precision Analysis - Replay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a1929;
+            min-height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+        
+        .back-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* Shot Selection - Scrollable */
+        .shot-selector-wrapper {
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        
+        .shot-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .shot-selector::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .shot-btn {
+            min-width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .shot-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.15);
+            color: #00d9ff;
+        }
+        
+        .shot-btn.missing {
+            opacity: 0.4;
+            cursor: not-allowed;
+            position: relative;
+        }
+        
+        .shot-btn.missing::before {
+            content: '×';
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            font-size: 14px;
+            color: #f44336;
+        }
+        
+        .shot-btn:not(.missing):hover {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+        
+        /* Target */
+        .target-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            min-height: 0;
+        }
+        
+        .target {
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1;
+            background: #fff;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .target-circles {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .circle {
+            position: absolute;
+            border: 2px solid #e53935;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .circle:nth-child(1) { width: 10%; height: 10%; background: #e53935; }
+        .circle:nth-child(2) { width: 20%; height: 20%; }
+        .circle:nth-child(3) { width: 35%; height: 35%; }
+        .circle:nth-child(4) { width: 50%; height: 50%; }
+        .circle:nth-child(5) { width: 65%; height: 65%; }
+        .circle:nth-child(6) { width: 80%; height: 80%; }
+        .circle:nth-child(7) { width: 95%; height: 95%; }
+        
+        .traceline-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .traceline-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .shot-marker {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: #2196f3;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+        
+        .not-detected-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #f44336;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* Shot Info - Compact */
+        .shot-info {
+            text-align: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        
+        .shot-title {
+            font-size: 13px;
+            color: #8b9299;
+            margin-bottom: 2px;
+        }
+        
+        .shot-details {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-shrink: 0;
+            margin-bottom: 12px;
+        }
+        
+        .control-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .control-btn.primary {
+            width: 68px;
+            height: 68px;
+            background: #f44336;
+        }
+        
+        .control-btn.primary:hover {
+            background: #d32f2f;
+        }
+        
+        .control-btn.primary.playing {
+            background: #f44336;
+        }
+        
+        /* Speed Control - Bigger Buttons */
+        .speed-control {
+            text-align: center;
+            font-size: 12px;
+            color: #8b9299;
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+        
+        .speed-label {
+            margin-bottom: 8px;
+        }
+        
+        .speed-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .speed-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #8b9299;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 60px;
+        }
+        
+        .speed-btn.active {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.15);
+            color: #00d9ff;
+        }
+        
+        .speed-btn:hover:not(.active) {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .control-btn.primary svg {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <div class="header-title">Precision Analysis</div>
+        </div>
+        
+        <!-- Shot Selector - Scrollable -->
+        <div class="shot-selector-wrapper">
+            <div class="shot-selector" id="shotSelector">
+                <button class="shot-btn active" onclick="selectShot(1)">1</button>
+                <button class="shot-btn missing" onclick="selectShot(2)">2</button>
+                <button class="shot-btn" onclick="selectShot(3)">3</button>
+                <button class="shot-btn" onclick="selectShot(4)">4</button>
+                <button class="shot-btn" onclick="selectShot(5)">5</button>
+                <button class="shot-btn" onclick="selectShot(6)">6</button>
+                <button class="shot-btn" onclick="selectShot(7)">7</button>
+                <button class="shot-btn" onclick="selectShot(8)">8</button>
+                <button class="shot-btn" onclick="selectShot(9)">9</button>
+                <button class="shot-btn" onclick="selectShot(10)">10</button>
+                <button class="shot-btn" onclick="selectShot(11)">11</button>
+                <button class="shot-btn" onclick="selectShot(12)">12</button>
+                <button class="shot-btn" onclick="selectShot(13)">13</button>
+                <button class="shot-btn" onclick="selectShot(14)">14</button>
+                <button class="shot-btn" onclick="selectShot(15)">15</button>
+            </div>
+        </div>
+        
+        <!-- Target - Larger -->
+        <div class="target-container">
+            <div class="target" id="target">
+                <div class="target-circles">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                </div>
+                <div class="traceline-overlay">
+                    <svg class="traceline-svg" id="tracelineSvg">
+                        <!-- Traceline will be drawn here -->
+                    </svg>
+                </div>
+                <div class="shot-marker" id="shotMarker" style="display: none;">1</div>
+                <div class="not-detected-msg" id="notDetectedMsg" style="display: none;">
+                    Shot Not Detected
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shot Info - Simplified -->
+        <div class="shot-info">
+            <div class="shot-title" id="shotTitle">Shot 1 of 15</div>
+            <div class="shot-details" id="shotDetails">8 pts • 75% stability • 1.2s duration</div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <button class="control-btn" onclick="previousShot()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn primary" id="playBtn" onclick="togglePlay()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            </button>
+            
+            <button class="control-btn" onclick="nextShot()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16 18h2V6h-2zm-11-6l8.5-6v12z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Speed Control - Bigger -->
+        <div class="speed-control">
+            <div class="speed-label">Playback Speed</div>
+            <div class="speed-selector">
+                <button class="speed-btn" onclick="setSpeed(0.5)">0.5×</button>
+                <button class="speed-btn active" onclick="setSpeed(1)">1×</button>
+                <button class="speed-btn" onclick="setSpeed(2)">2×</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const shots = [
+            { number: 1, score: 8, duration: 1.2, stability: 75, x: 45, y: 30, detected: true },
+            { number: 2, score: 0, duration: 0, stability: 0, x: 0, y: 0, detected: false },
+            { number: 3, score: 10, duration: 1.5, stability: 88, x: 50, y: 50, detected: true },
+            { number: 4, score: 7, duration: 1.8, stability: 91, x: 35, y: 55, detected: true },
+            { number: 5, score: 9, duration: 1.3, stability: 100, x: 48, y: 52, detected: true },
+            { number: 6, score: 8, duration: 1.4, stability: 78, x: 46, y: 45, detected: true },
+            { number: 7, score: 10, duration: 1.1, stability: 95, x: 51, y: 49, detected: true },
+            { number: 8, score: 9, duration: 1.6, stability: 87, x: 49, y: 51, detected: true },
+            { number: 9, score: 7, duration: 1.9, stability: 72, x: 38, y: 58, detected: true },
+            { number: 10, score: 10, duration: 1.2, stability: 98, x: 50, y: 48, detected: true },
+            { number: 11, score: 8, duration: 1.5, stability: 80, x: 44, y: 52, detected: true },
+            { number: 12, score: 9, duration: 1.3, stability: 89, x: 53, y: 50, detected: true },
+            { number: 13, score: 10, duration: 1.1, stability: 96, x: 51, y: 51, detected: true },
+            { number: 14, score: 8, duration: 1.7, stability: 76, x: 42, y: 47, detected: true },
+            { number: 15, score: 9, duration: 1.4, stability: 92, x: 48, y: 49, detected: true }
+        ];
+        
+        let currentShotIndex = 0;
+        let isPlaying = false;
+        let playbackSpeed = 1;
+        let animationFrame = 0;
+        let animationInterval;
+        const totalFrames = 100;
+        
+        function selectShot(shotNumber) {
+            const shot = shots.find(s => s.number === shotNumber);
+            if (!shot || !shot.detected) {
+                if (shot && !shot.detected) {
+                    currentShotIndex = shotNumber - 1;
+                    updateDisplay();
+                    showNotDetected();
+                    if (isPlaying) {
+                        togglePlay();
+                    }
+                }
+                return;
+            }
+            
+            currentShotIndex = shotNumber - 1;
+            animationFrame = 0;
+            updateDisplay();
+            
+            // Update active button
+            document.querySelectorAll('.shot-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', index === currentShotIndex);
+            });
+            
+            // Scroll selected button into view
+            const selectedBtn = document.querySelectorAll('.shot-btn')[currentShotIndex];
+            selectedBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+        
+        function updateDisplay() {
+            const shot = shots[currentShotIndex];
+            
+            // Update shot info
+            document.getElementById('shotTitle').textContent = `Shot ${shot.number} of ${shots.length}`;
+            
+            if (shot.detected) {
+                document.getElementById('shotDetails').textContent = 
+                    `${shot.score} pts • ${shot.stability}% stability • ${shot.duration}s duration`;
+                document.getElementById('notDetectedMsg').style.display = 'none';
+            } else {
+                document.getElementById('shotDetails').textContent = 'Shot not detected';
+            }
+            
+            // Draw traceline
+            if (shot.detected) {
+                drawTraceline(shot);
+            } else {
+                clearTraceline();
+            }
+        }
+        
+        function showNotDetected() {
+            document.getElementById('notDetectedMsg').style.display = 'block';
+            document.getElementById('shotMarker').style.display = 'none';
+            clearTraceline();
+        }
+        
+        function drawTraceline(shot) {
+            const svg = document.getElementById('tracelineSvg');
+            const marker = document.getElementById('shotMarker');
+            
+            // Generate traceline path with 3 phases
+            const centerX = 50;
+            const centerY = 50;
+            const wobble = (100 - shot.stability) / 10;
+            const steps = 30;
+            
+            const currentProgress = animationFrame / totalFrames;
+            const totalSteps = Math.floor(steps * currentProgress);
+            
+            // Phase 1: Aiming (0-40% of path) - Blue
+            let aimingPath = `${centerX},${centerY} `;
+            const aimingSteps = Math.floor(steps * 0.4);
+            for (let i = 1; i <= Math.min(aimingSteps, totalSteps); i++) {
+                const progress = i / steps;
+                const x = centerX + (shot.x - centerX) * progress + (Math.random() - 0.5) * wobble * 1.5;
+                const y = centerY + (shot.y - centerY) * progress + (Math.random() - 0.5) * wobble * 1.5;
+                aimingPath += `${x},${y} `;
+            }
+            
+            // Phase 2: Pre-trigger (40-70% of path) - Cyan
+            let preTriggerPath = '';
+            const preTriggerStart = aimingSteps;
+            const preTriggerEnd = Math.floor(steps * 0.7);
+            if (totalSteps > preTriggerStart) {
+                const lastAimPoint = aimingPath.trim().split(' ').pop();
+                preTriggerPath = lastAimPoint + ' ';
+                for (let i = preTriggerStart + 1; i <= Math.min(preTriggerEnd, totalSteps); i++) {
+                    const progress = i / steps;
+                    const x = centerX + (shot.x - centerX) * progress + (Math.random() - 0.5) * wobble;
+                    const y = centerY + (shot.y - centerY) * progress + (Math.random() - 0.5) * wobble;
+                    preTriggerPath += `${x},${y} `;
+                }
+            }
+            
+            // Phase 3: Post-trigger (70-100% of path) - Green
+            let postTriggerPath = '';
+            if (totalSteps > preTriggerEnd) {
+                const lastPrePoint = preTriggerPath.trim().split(' ').pop() || aimingPath.trim().split(' ').pop();
+                postTriggerPath = lastPrePoint + ' ';
+                for (let i = preTriggerEnd + 1; i <= totalSteps; i++) {
+                    const progress = i / steps;
+                    const x = centerX + (shot.x - centerX) * progress + (Math.random() - 0.5) * wobble * 0.5;
+                    const y = centerY + (shot.y - centerY) * progress + (Math.random() - 0.5) * wobble * 0.5;
+                    postTriggerPath += `${x},${y} `;
+                }
+            }
+            
+            svg.innerHTML = '';
+            if (aimingPath.split(' ').length > 2) {
+                svg.innerHTML += `<polyline points="${aimingPath}" fill="none" stroke="#2196f3" stroke-width="3" opacity="0.8"/>`;
+            }
+            if (preTriggerPath.split(' ').length > 2) {
+                svg.innerHTML += `<polyline points="${preTriggerPath}" fill="none" stroke="#00d9ff" stroke-width="3" opacity="0.8"/>`;
+            }
+            if (postTriggerPath.split(' ').length > 2) {
+                svg.innerHTML += `<polyline points="${postTriggerPath}" fill="none" stroke="#4caf50" stroke-width="3" opacity="0.8"/>`;
+            }
+            
+            // Show marker at end if animation complete
+            if (animationFrame >= totalFrames) {
+                marker.style.display = 'flex';
+                marker.style.left = shot.x + '%';
+                marker.style.top = shot.y + '%';
+                marker.textContent = shot.number;
+            } else {
+                marker.style.display = 'none';
+            }
+        }
+        
+        function clearTraceline() {
+            document.getElementById('tracelineSvg').innerHTML = '';
+            document.getElementById('shotMarker').style.display = 'none';
+        }
+        
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const playBtn = document.getElementById('playBtn');
+            
+            if (isPlaying) {
+                playBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                `;
+                playBtn.classList.add('playing');
+                startAnimation();
+            } else {
+                playBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                `;
+                playBtn.classList.remove('playing');
+                stopAnimation();
+            }
+        }
+        
+        function startAnimation() {
+            const frameDelay = (50 / playbackSpeed);
+            
+            animationInterval = setInterval(() => {
+                if (animationFrame < totalFrames) {
+                    animationFrame++;
+                    updateDisplay();
+                } else {
+                    // Move to next shot
+                    if (currentShotIndex < shots.length - 1) {
+                        nextShot();
+                        animationFrame = 0;
+                    } else {
+                        togglePlay();
+                    }
+                }
+            }, frameDelay);
+        }
+        
+        function stopAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+        }
+        
+        function previousShot() {
+            if (currentShotIndex > 0) {
+                currentShotIndex--;
+                animationFrame = 0;
+                selectShot(currentShotIndex + 1);
+            }
+        }
+        
+        function nextShot() {
+            if (currentShotIndex < shots.length - 1) {
+                currentShotIndex++;
+                animationFrame = 0;
+                selectShot(currentShotIndex + 1);
+            }
+        }
+        
+        function setSpeed(speed) {
+            playbackSpeed = speed;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (isPlaying) {
+                stopAnimation();
+                startAnimation();
+            }
+        }
+        
+        function goBack() {
+            alert('Returning to Session Summary...');
+        }
+        
+        // Initialize
+        updateDisplay();
+    </script>
+</body>
+</html>

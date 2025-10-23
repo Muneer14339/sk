@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Setup - Preview & Configure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a4d4e 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            margin-bottom: 24px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            color: #8b9299;
+        }
+        
+        /* Alert */
+        .alert {
+            background: rgba(255, 193, 7, 0.15);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: start;
+        }
+        
+        .alert-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-content strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #ffc107;
+        }
+        
+        .alert-content p {
+            font-size: 14px;
+            color: #e0e0e0;
+            margin: 0;
+        }
+        
+        /* Section */
+        .section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8b9299;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-label.required::after {
+            content: " *";
+            color: #ff5252;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            color: #fff;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #00d9ff;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: #6b7280;
+        }
+        
+        .form-input:read-only {
+            cursor: pointer;
+        }
+        
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238b9299' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        /* Toggle Group */
+        .toggle-group {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px;
+            border-radius: 8px;
+        }
+        
+        .toggle-option {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b9299;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toggle-option.active {
+            background: #00d9ff;
+            color: #0a1929;
+        }
+        
+        .toggle-option:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .summary-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px;
+        }
+        
+        .summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8b9299;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .summary-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+        
+        .summary-meta {
+            color: #6b7280;
+            font-size: 12px;
+        }
+        
+        /* Conditional Section */
+        .conditional-section {
+            background: rgba(0, 217, 255, 0.08);
+            border: 2px dashed rgba(0, 217, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .conditional-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            color: #00d9ff;
+            margin-bottom: 16px;
+        }
+        
+        /* Chip styles for drill configuration */
+        .chips-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .chip {
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #8b9299;
+            transition: all 0.2s;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .chip.active {
+            background: #00d9ff;
+            color: #0a1929;
+            border-color: #00d9ff;
+            font-weight: 600;
+        }
+        
+        .chip:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        /* Buttons */
+        .btn {
+            width: 100%;
+            background: #00d9ff;
+            color: #0a1929;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        
+        .btn-group .btn {
+            flex: 1;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+            align-items: start;
+            justify-content: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+        
+        .modal {
+            background: #1a2332;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 12px;
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px 40px 12px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 15px;
+            color: #fff;
+        }
+        
+        .search-input::placeholder {
+            color: #6b7280;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8b9299;
+        }
+        
+        /* List Items */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .list-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .list-item:hover, .list-item.selected {
+            border-color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+        }
+        
+        .item-name {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .item-meta {
+            color: #8b9299;
+            font-size: 13px;
+        }
+        
+        .create-new-btn {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            background: transparent;
+            color: #00d9ff;
+            justify-content: center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 72px;
+            background: #1a1a2e;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            color: #00d9ff;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+        }
+        
+        /* Demo Controls */
+        .demo-controls {
+            background: rgba(255, 193, 7, 0.15);
+            border: 2px dashed rgba(255, 193, 7, 0.5);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .demo-controls strong {
+            color: #ffc107;
+            display: block;
+            margin-bottom: 12px;
+        }
+        
+        .demo-controls button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Preview & Configure</h1>
+            <p>Review your setup and complete session details</p>
+        </div>
+        
+        <!-- Demo Controls (Remove in production) -->
+        <div class="demo-controls">
+            <strong>Demo Controls:</strong>
+            <button onclick="toggleLoadout()">
+                Toggle Loadout (Currently: <span id="loadout-status">Selected</span>)
+            </button>
+            <button onclick="toggleDrill()">
+                Toggle Drill (Currently: <span id="drill-status">Selected</span>)
+            </button>
+        </div>
+        
+        <!-- Alert if no loadout -->
+        <div class="alert" id="no-loadout-alert" style="display:none">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-content">
+                <strong>No loadout selected</strong>
+                <p>Please provide complete firearm and ammunition details below.</p>
+            </div>
+        </div>
+        
+        <!-- Session Information -->
+        <div class="section">
+            <div class="section-title">Session Information</div>
+            
+            <div class="form-group">
+                <label class="form-label required">Session Name</label>
+                <input type="text" class="form-input" id="session-name" placeholder="e.g., Morning Practice - Bill Drill">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">Range Name</label>
+                <input type="text" class="form-input" id="range-name" placeholder="Select range" readonly onclick="openModal('range')">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Session Notes (Optional)</label>
+                <textarea class="form-textarea" id="session-notes" placeholder="Add any notes about this session..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Loadout Summary (shown if loadout selected) -->
+        <div class="section" id="loadout-section">
+            <div class="section-title">Loadout Summary</div>
+            
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Firearm</div>
+                    <div class="summary-value">Glock 19</div>
+                    <div class="summary-meta">9mm Pistol</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Ammunition</div>
+                    <div class="summary-value">Federal HST</div>
+                    <div class="summary-meta">124gr JHP</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Full Parameters (shown if no loadout) -->
+        <div class="conditional-section" id="full-params-section" style="display:none">
+            <div class="conditional-title">
+                <span>🔫</span>
+                <span>Firearm & Ammunition Details</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">Firearm Type</label>
+                <select class="form-select" id="firearm-type">
+                    <option value="">Select type</option>
+                    <option value="pistol">Pistol</option>
+                    <option value="rifle">Rifle</option>
+                    <option value="shotgun">Shotgun</option>
+                </select>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label required">Make</label>
+                    <input type="text" class="form-input" id="firearm-make" placeholder="e.g., Glock">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Model</label>
+                    <input type="text" class="form-input" id="firearm-model" placeholder="e.g., 19">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">Caliber</label>
+                <select class="form-select" id="caliber">
+                    <option value="">Select caliber</option>
+                    <option value="9mm">9mm</option>
+                    <option value=".45acp">.45 ACP</option>
+                    <option value=".40sw">.40 S&W</option>
+                    <option value="5.56">5.56 NATO</option>
+                    <option value=".308">.308 Win</option>
+                </select>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label required">Ammo Brand</label>
+                    <input type="text" class="form-input" id="ammo-brand" placeholder="e.g., Federal">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Bullet Weight</label>
+                    <input type="text" class="form-input" id="bullet-weight" placeholder="e.g., 124gr">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Gear & Accessories</label>
+                <input type="text" class="form-input" id="gear" placeholder="e.g., Red dot, suppressor">
+            </div>
+        </div>
+        
+        <!-- Drill Information (shown if drill selected) -->
+        <div class="section" id="drill-selected-section">
+            <div class="section-title">Drill Configuration</div>
+            
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Drill Name</div>
+                    <div class="summary-value">Bill Drill</div>
+                    <div class="summary-meta">System Drill</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Parameters</div>
+                    <div class="summary-value">7 yards</div>
+                    <div class="summary-meta">6 rounds • Par 2.5s</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Drill Configuration (shown if no drill) -->
+        <div class="conditional-section" id="no-drill-section" style="display:none">
+            <div class="conditional-title">
+                <span>🎯</span>
+                <span>Drill Configuration</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Drill Name (Optional)</label>
+                <input type="text" class="form-input" id="drill-name" placeholder="Name your drill (optional)">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Gun Type</label>
+                <select class="form-select" id="gun-type">
+                    <option>Glock 19</option>
+                    <option>Glock 17</option>
+                    <option>SIG P320</option>
+                    <option>Springfield XD</option>
+                    <option>S&W M&P</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Ammunition</label>
+                <select class="form-select" id="ammo-type">
+                    <option>9mm</option>
+                    <option>.45 ACP</option>
+                    <option>.40 S&W</option>
+                    <option>.380 ACP</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Gear</label>
+                <select class="form-select" id="gear-type">
+                    <option>Iron Sights</option>
+                    <option>Red Dot</option>
+                    <option>Holographic</option>
+                    <option>Scope</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Fire Type</label>
+                <div class="toggle-group">
+                    <button class="toggle-option active" onclick="selectFireType('dry')">Dry Fire</button>
+                    <button class="toggle-option" onclick="selectFireType('live')">Live Fire</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Sensitivity Level</label>
+                <div class="chips-group">
+                    <button class="chip active" onclick="selectSensitivity('beginner')">Beginner</button>
+                    <button class="chip" onclick="selectSensitivity('intermediate')">Intermediate</button>
+                    <button class="chip" onclick="selectSensitivity('advanced')">Advanced</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label required">Distance (Yards)</label>
+                <div class="chips-group">
+                    <button class="chip active" onclick="selectDistance('7')">7</button>
+                    <button class="chip" onclick="selectDistance('10')">10</button>
+                    <button class="chip" onclick="selectDistance('15')">15</button>
+                    <button class="chip" onclick="selectDistance('20')">20</button>
+                    <button class="chip" onclick="selectDistance('25')">25</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Time</label>
+                <div class="chips-group">
+                    <button class="chip active" onclick="selectTime('10')">10s</button>
+                    <button class="chip" onclick="selectTime('15')">15s</button>
+                    <button class="chip" onclick="selectTime('30')">30s</button>
+                    <button class="chip" onclick="selectTime('custom')">Custom</button>
+                </div>
+                <div id="custom-time-input" style="display:none;margin-top:12px">
+                    <input type="number" class="form-input" id="custom-time" placeholder="Enter seconds">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Environment</label>
+                <div class="toggle-group">
+                    <button class="toggle-option active" onclick="selectEnvironment('indoor')">Indoor</button>
+                    <button class="toggle-option" onclick="selectEnvironment('outdoor')">Outdoor</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Notes (Optional)</label>
+                <textarea class="form-textarea" id="drill-notes" placeholder="Add any additional notes about this drill..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+            <button class="btn" onclick="startSession()">Start Session</button>
+        </div>
+    </div>
+    
+    <!-- Range Selection Modal -->
+    <div class="modal-overlay" id="modal-range" onclick="closeModalOnOverlay(event)">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Select Range</h2>
+                <button class="close-btn" onclick="closeModal('range')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="range-search" placeholder="Search ranges..." oninput="filterRanges()">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <div class="item-list" id="range-list">
+                    <div class="list-item" onclick="selectRange('Thunder Range')">
+                        <div class="item-name">Thunder Range</div>
+                        <div class="item-meta">Indoor • Bradenton, FL</div>
+                    </div>
+                    <div class="list-item" onclick="selectRange('Manatee Gun & Archery')">
+                        <div class="item-name">Manatee Gun & Archery</div>
+                        <div class="item-meta">Outdoor • Myakka City, FL</div>
+                    </div>
+                    <div class="list-item" onclick="selectRange('Shooter\'s World')">
+                        <div class="item-name">Shooter's World</div>
+                        <div class="item-meta">Indoor • Tampa, FL</div>
+                    </div>
+                    <div class="list-item" onclick="selectRange('Knight Trail Park')">
+                        <div class="item-name">Knight Trail Park</div>
+                        <div class="item-meta">Outdoor • Nokomis, FL</div>
+                    </div>
+                </div>
+                
+                <button class="list-item create-new-btn" onclick="addNewRange()">
+                    <span>+ Add New Range</span>
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('range')">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a class="nav-item">
+            <span class="nav-icon">🔫</span>
+            <span>Armory</span>
+        </a>
+        <a class="nav-item active">
+            <span class="nav-icon">🎯</span>
+            <span>Training</span>
+        </a>
+        <a class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span>History</span>
+        </a>
+        <a class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span>Profile</span>
+        </a>
+    </nav>
+    
+    <script>
+        // Configuration state (simulated from previous pages)
+        let hasLoadout = true;
+        let hasDrill = true;
+        let drillFormData = {
+            fireType: 'dry',
+            sensitivity: 'beginner',
+            distance: '7',
+            time: '10',
+            environment: 'indoor'
+        };
+        
+        // Initialize page based on configuration
+        function initializePage() {
+            // Handle loadout section
+            if (!hasLoadout) {
+                document.getElementById('no-loadout-alert').style.display = 'flex';
+                document.getElementById('loadout-section').style.display = 'none';
+                document.getElementById('full-params-section').style.display = 'block';
+            } else {
+                document.getElementById('no-loadout-alert').style.display = 'none';
+                document.getElementById('loadout-section').style.display = 'block';
+                document.getElementById('full-params-section').style.display = 'none';
+            }
+            
+            // Handle drill section
+            if (hasDrill) {
+                document.getElementById('drill-selected-section').style.display = 'block';
+                document.getElementById('no-drill-section').style.display = 'none';
+            } else {
+                document.getElementById('drill-selected-section').style.display = 'none';
+                document.getElementById('no-drill-section').style.display = 'block';
+            }
+        }
+        
+        // Modal functions
+        function openModal(type) {
+            document.getElementById('modal-' + type).classList.add('active');
+        }
+        
+        function closeModal(type) {
+            document.getElementById('modal-' + type).classList.remove('active');
+        }
+        
+        function closeModalOnOverlay(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                const modals = document.querySelectorAll('.modal-overlay');
+                modals.forEach(modal => modal.classList.remove('active'));
+            }
+        }
+        
+        // Select Range
+        function selectRange(name) {
+            document.getElementById('range-name').value = name;
+            closeModal('range');
+        }
+        
+        // Add New Range
+        function addNewRange() {
+            const searchInput = document.getElementById('range-search');
+            const newRangeName = searchInput.value.trim();
+            
+            if (newRangeName) {
+                const rangeList = document.getElementById('range-list');
+                const newItem = document.createElement('div');
+                newItem.className = 'list-item';
+                newItem.onclick = () => selectRange(newRangeName);
+                newItem.innerHTML = `
+                    <div class="item-name">${newRangeName}</div>
+                    <div class="item-meta">Custom range</div>
+                `;
+                rangeList.insertBefore(newItem, rangeList.firstChild);
+                
+                selectRange(newRangeName);
+                searchInput.value = '';
+            } else {
+                const name = prompt('Enter new range name:');
+                if (name) {
+                    const rangeList = document.getElementById('range-list');
+                    const newItem = document.createElement('div');
+                    newItem.className = 'list-item';
+                    newItem.onclick = () => selectRange(name);
+                    newItem.innerHTML = `
+                        <div class="item-name">${name}</div>
+                        <div class="item-meta">Custom range</div>
+                    `;
+                    rangeList.insertBefore(newItem, rangeList.firstChild);
+                    selectRange(name);
+                }
+            }
+        }
+        
+        // Filter ranges
+        function filterRanges() {
+            const search = document.getElementById('range-search').value.toLowerCase();
+            const items = document.querySelectorAll('#range-list .list-item:not(.create-new-btn)');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(search) ? 'block' : 'none';
+            });
+        }
+        
+        // Drill form selections
+        function selectFireType(type) {
+            drillFormData.fireType = type;
+            document.querySelectorAll('#no-drill-section .toggle-group')[0].querySelectorAll('.toggle-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        function selectSensitivity(level) {
+            drillFormData.sensitivity = level;
+            document.querySelectorAll('#no-drill-section .chip').forEach(chip => {
+                if (chip.textContent.toLowerCase() === level) {
+                    chip.classList.add('active');
+                } else if (['beginner', 'intermediate', 'advanced'].includes(chip.textContent.toLowerCase())) {
+                    chip.classList.remove('active');
+                }
+            });
+        }
+        
+        function selectDistance(distance) {
+            drillFormData.distance = distance;
+            document.querySelectorAll('#no-drill-section .chips-group')[1].querySelectorAll('.chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        function selectTime(time) {
+            drillFormData.time = time;
+            document.querySelectorAll('#no-drill-section .chips-group')[2].querySelectorAll('.chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            if (time === 'custom') {
+                document.getElementById('custom-time-input').style.display = 'block';
+            } else {
+                document.getElementById('custom-time-input').style.display = 'none';
+            }
+        }
+        
+        function selectEnvironment(env) {
+            drillFormData.environment = env;
+            document.querySelectorAll('#no-drill-section .toggle-group')[1].querySelectorAll('.toggle-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+        
+        // Validate and start session
+        function startSession() {
+            const sessionName = document.getElementById('session-name').value.trim();
+            const rangeName = document.getElementById('range-name').value.trim();
+            
+            if (!sessionName) {
+                alert('Please enter a Session Name');
+                document.getElementById('session-name').focus();
+                return;
+            }
+            
+            if (!rangeName || rangeName === 'Select range') {
+                alert('Please select a Range Name');
+                document.getElementById('range-name').click();
+                return;
+            }
+            
+            // Validate full parameters if no loadout
+            if (!hasLoadout) {
+                const firearmType = document.getElementById('firearm-type').value;
+                const firearmMake = document.getElementById('firearm-make').value.trim();
+                const firearmModel = document.getElementById('firearm-model').value.trim();
+                const caliber = document.getElementById('caliber').value;
+                const ammoBrand = document.getElementById('ammo-brand').value.trim();
+                const bulletWeight = document.getElementById('bullet-weight').value.trim();
+                
+                if (!firearmType || !firearmMake || !firearmModel || !caliber || !ammoBrand || !bulletWeight) {
+                    alert('Please complete all required firearm and ammunition fields');
+                    return;
+                }
+            }
+            
+            // Validate drill parameters if no drill selected
+            if (!hasDrill) {
+                const distance = drillFormData.distance;
+                
+                if (!distance) {
+                    alert('Please select a distance for your drill');
+                    return;
+                }
+                
+                // Check if custom time is selected and filled
+                if (drillFormData.time === 'custom') {
+                    const customTime = document.getElementById('custom-time').value;
+                    if (!customTime) {
+                        alert('Please enter a custom time value');
+                        document.getElementById('custom-time').focus();
+                        return;
+                    }
+                }
+            }
+            
+            alert('✓ Validation passed!\n\nStarting session...\n\nSession: ' + sessionName + '\nRange: ' + rangeName);
+            // Would navigate to Active Session page
+        }
+        
+        // Go back to previous page
+        function goBack() {
+            if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
+                alert('Going back to session setup...');
+                // Would navigate back to session setup page
+            }
+        }
+        
+        // Toggle demo modes (for testing)
+        function toggleLoadout() {
+            hasLoadout = !hasLoadout;
+            document.getElementById('loadout-status').textContent = hasLoadout ? 'Selected' : 'NOT Selected';
+            initializePage();
+        }
+        
+        function toggleDrill() {
+            hasDrill = !hasDrill;
+            document.getElementById('drill-status').textContent = hasDrill ? 'Selected' : 'NOT Selected';
+            initializePage();
+        }
+        
+        // Initialize on load
+        initializePage();
+    </script>
+</body>
+</html>

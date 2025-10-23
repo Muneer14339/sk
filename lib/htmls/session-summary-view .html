@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a1929;
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 4px 0;
+            flex-shrink: 0;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .header-spacer {
+            width: 32px;
+        }
+        
+        /* Complete Card */
+        .complete-card {
+            background: linear-gradient(135deg, #00d9ff 0%, #00a8cc 100%);
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+        
+        .checkmark {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+        
+        .checkmark svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 3;
+        }
+        
+        .complete-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        
+        .drill-name {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+        
+        /* Metrics Card */
+        .metrics-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            font-size: 13px;
+            color: #8b9299;
+        }
+        
+        .metric-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .metric-value.highlight {
+            color: #00d9ff;
+        }
+        
+        .metric-value.success {
+            color: #4caf50;
+        }
+        
+        .metric-row.clickable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .metric-row.clickable:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin: 0 -8px;
+            padding: 12px 8px;
+        }
+        
+        .metric-value-with-arrow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 8px 0;
+        }
+        
+        /* Stability Trend */
+        .trend-section {
+            margin-top: 8px;
+        }
+        
+        .trend-label {
+            font-size: 11px;
+            color: #8b9299;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .trend-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            height: 50px;
+            padding: 4px 0;
+        }
+        
+        .trend-bar {
+            flex: 1;
+            background: linear-gradient(to top, #00d9ff, #4caf50);
+            border-radius: 4px 4px 0 0;
+            min-height: 20%;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .trend-bar:hover {
+            opacity: 0.8;
+        }
+        
+        /* Improvement Badge */
+        .improvement-badge {
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .improvement-icon {
+            color: #4caf50;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .improvement-text {
+            color: #4caf50;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .action-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        
+        .button-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 4px 0;
+        }
+        
+        .btn-primary {
+            background: #00d9ff;
+            color: #0a1929;
+            font-size: 14px;
+        }
+        
+        .btn-primary:hover {
+            background: #00c4e6;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 14px;
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .btn-danger {
+            background: transparent;
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            font-size: 14px;
+        }
+        
+        .btn-danger:hover {
+            background: rgba(244, 67, 54, 0.1);
+        }
+        
+        .btn-small {
+            font-size: 12px;
+            padding: 10px 8px;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .btn-small svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: #1a2332;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 360px;
+            padding: 24px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .modal-text {
+            font-size: 15px;
+            color: #8b9299;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #4caf50;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 2000;
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="close-btn" onclick="promptSaveOnClose()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <div class="header-title">Session Summary</div>
+            <div class="header-spacer"></div>
+        </div>
+        
+        <!-- Complete Card -->
+        <div class="complete-card">
+            <div class="checkmark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <div class="complete-title">Session Complete</div>
+            <div class="drill-name">Precision Fundamentals</div>
+        </div>
+        
+        <!-- Metrics Card -->
+        <div class="metrics-card">
+            <div class="metric-row">
+                <span class="metric-label">Session Duration</span>
+                <span class="metric-value">01:11</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Total Shots</span>
+                <span class="metric-value">5</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Total Score</span>
+                <span class="metric-value highlight">35/50</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Average Score</span>
+                <span class="metric-value highlight">7.0</span>
+            </div>
+            
+            <div class="section-divider"></div>
+            
+            <div class="metric-row">
+                <span class="metric-label">Average Stability</span>
+                <span class="metric-value success">85%</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Best Stability</span>
+                <span class="metric-value success">100%</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Split Time (avg)</span>
+                <span class="metric-value-with-arrow">
+                    <span class="metric-value">14.2s</span>
+                    </svg>
+                </span>
+            </div>
+            
+            <div class="trend-section">
+                <div class="trend-label">Stability Trend</div>
+                <div class="trend-chart">
+                    <div class="trend-bar" style="height: 65%;" title="Shot 1: 65%"></div>
+                    <div class="trend-bar" style="height: 78%;" title="Shot 2: 78%"></div>
+                    <div class="trend-bar" style="height: 88%;" title="Shot 3: 88%"></div>
+                    <div class="trend-bar" style="height: 92%;" title="Shot 4: 92%"></div>
+                    <div class="trend-bar" style="height: 100%;" title="Shot 5: 100%"></div>
+                </div>
+            </div>
+            
+            <div class="improvement-badge">
+                <span class="improvement-icon">↑</span>
+                <span class="improvement-text">12% better than last session</span>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <div class="action-row">
+                <button class="btn btn-secondary btn-small" onclick="viewDetails()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    Details
+                </button>
+                
+                <button class="btn btn-secondary btn-small" onclick="replayShots()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Replay
+                </button>
+                
+                <button class="btn btn-secondary btn-small" onclick="shareResults()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                        <polyline points="16 6 12 2 8 6"></polyline>
+                        <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                    Share
+                </button>
+            </div>
+            
+            <div class="button-divider"></div>
+            
+            <button class="btn btn-primary" onclick="saveSession()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Save Session
+            </button>
+            
+            <button class="btn btn-outline" onclick="startNewSession()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                Start New Session
+            </button>
+            
+            <button class="btn btn-danger" onclick="confirmDiscard()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Discard
+            </button>
+        </div>
+    </div>
+    
+    <!-- Discard Confirmation Modal -->
+    <div class="modal-overlay" id="discardModal">
+        <div class="modal">
+            <div class="modal-title">Discard Session?</div>
+            <div class="modal-text">Are you sure you want to discard this session? All data will be lost and cannot be recovered.</div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeDiscardModal()">Cancel</button>
+                <button class="btn btn-danger" style="flex: 1;" onclick="discardSession()">Yes, Discard</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save on Close Modal -->
+    <div class="modal-overlay" id="saveOnCloseModal">
+        <div class="modal">
+            <div class="modal-title">Save Session?</div>
+            <div class="modal-text">Would you like to save this session before closing?</div>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" style="flex: 1;" onclick="closeWithoutSaving()">Don't Save</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="saveAndClose()">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">Session saved</div>
+    
+    <script>
+        function saveSession() {
+            showToast('Session saved to history');
+            setTimeout(() => {
+                alert('Returning to drill selection...');
+                // Navigate to drill selection screen
+            }, 1500);
+        }
+        
+        function startNewSession() {
+            // Auto-save current session
+            showToast('Session saved');
+            setTimeout(() => {
+                alert('Starting new session with same drill settings...');
+                // Navigate to training session screen
+            }, 1500);
+        }
+        
+        function confirmDiscard() {
+            document.getElementById('discardModal').classList.add('active');
+        }
+        
+        function closeDiscardModal() {
+            document.getElementById('discardModal').classList.remove('active');
+        }
+        
+        function discardSession() {
+            closeDiscardModal();
+            showToast('Session discarded');
+            setTimeout(() => {
+                alert('Returning to drill selection...');
+                // Navigate to drill selection screen
+            }, 1500);
+        }
+        
+        function promptSaveOnClose() {
+            document.getElementById('saveOnCloseModal').classList.add('active');
+        }
+        
+        function saveAndClose() {
+            document.getElementById('saveOnCloseModal').classList.remove('active');
+            showToast('Session saved');
+            setTimeout(() => {
+                alert('Returning to drill selection...');
+                // Navigate to drill selection screen
+            }, 1500);
+        }
+        
+        function closeWithoutSaving() {
+            document.getElementById('saveOnCloseModal').classList.remove('active');
+            alert('Returning to drill selection...');
+            // Navigate to drill selection screen
+        }
+        
+        function viewDetails() {
+            alert('Navigating to details screen:\n- Split times for each shot\n- Shot breakdown with scores');
+            // Navigate to details screen
+        }
+        
+        function viewSplitTimes() {
+            alert('Navigating to split times screen...');
+            // Navigate to split times screen
+        }
+        
+        function replayShots() {
+            alert('Navigating to replay screen:\n- Shot-by-shot traceline playback');
+            // Navigate to replay screen
+        }
+        
+        function shareResults() {
+            alert('Opening share dialog...');
+            // Open native share dialog
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
