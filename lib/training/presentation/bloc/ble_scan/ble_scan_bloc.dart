@@ -113,7 +113,7 @@ class BleScanBloc extends Bloc<BleScanEvent, BleScanState> {
 
         // Line ~123-128 ko replace karo
         final settingsString =
-            '${settings['pfi']}/${settings['ppf']}/${settings['pwd']}/${settings['spi']}/1/1/1';  // ✅ Added 7th value for haptic
+            '${settings['pfi']}/${settings['ppf']}/${settings['pwd']}/${settings['spi']}/1/1/0';  // ✅ Added 7th value for haptic
         sensitivity = settingsString;
         await prefs?.setString(sensitivityKey, settingsString);
         print('✅ Settings saved: $settingsString');

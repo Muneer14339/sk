@@ -134,12 +134,8 @@ class TrainingSessionBloc
     final currentDuration = state.sessionStartTime != null
         ? DateTime.now().difference(state.sessionStartTime!)
         : Duration.zero;
-
-    print("***************Working Without in statement **************");
     // ✅ Stop haptic when pausing
     if (state.device != null) {
-      print("************************Working Within in statement**************** ");
-
       add(SendHapticCommand(intensity: 0, device: state.device!));
     }
     _lastHapticIntensity = 0;
@@ -357,11 +353,12 @@ class TrainingSessionBloc
     final distanceFromCenter = math.sqrt(
       math.pow(position.dx - 200, 2) + math.pow(position.dy - 200, 2),
     );
+    final hapticKey = prefs?.getInt(hapticCustomSettingsKey) ?? 0;
 
     // Load custom settings
     final customSettingsJson = prefs?.getString(hapticCustomSettingsKey);
     Map<int, int> hapticMap = {
-      10: 0, 9: 0, 8: 1, 7: 1, 6: 1, 5: 1,
+      10: 0, 9: 0, 8: hapticKey, 7: hapticKey, 6: hapticKey, 5: hapticKey,
     };
 
     if (customSettingsJson != null) {
