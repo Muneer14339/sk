@@ -1,941 +1,453 @@
+// lib/training/presentation/pages/session_preview_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/utils/toast_utils.dart';
-import '../../../armory/presentation/bloc/armory_bloc.dart';
-import '../../../armory/presentation/bloc/armory_event.dart';
-import '../../../armory/presentation/bloc/armory_state.dart';
-import '../../../armory/domain/entities/armory_loadout.dart';
-import '../../data/datasources/ProgramsDataSource.dart';
-import '../../data/model/programs_model.dart';
-import '../../../injection_container.dart' as di;
-import '../widgets/advanced_tab_data.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-class TrainingProgramBuilder extends StatefulWidget {
-  const TrainingProgramBuilder({super.key});
+import '../../../core/theme/app_theme.dart';
+import '../../data/model/programs_model.dart';
+import '../bloc/training_session/training_session_bloc.dart';
+import '../bloc/training_session/training_session_event.dart';
+import 'steadiness_trainer_page.dart';
+
+class SessionPreviewPage extends StatefulWidget {
+  final ProgramsModel program;
+  final BluetoothDevice connectedDevice;
+  final String loadoutInfo;
+  final String alertsInfo;
+  final String drillInfo;
+
+  const SessionPreviewPage({
+    super.key,
+    required this.program,
+    required this.connectedDevice,
+    required this.loadoutInfo,
+    required this.alertsInfo,
+    required this.drillInfo,
+  });
 
   @override
-  State<TrainingProgramBuilder> createState() => _TrainingProgramBuilderState();
+  State<SessionPreviewPage> createState() => _SessionPreviewPageState();
 }
 
-class _TrainingProgramBuilderState extends State<TrainingProgramBuilder> with SingleTickerProviderStateMixin {
-  String currentMode = 'simple';
-  Map<String, dynamic> simpleSettings = {
-    'trainingType': 'Dry Fire',
-    'focus': 'Accuracy',
-    'difficulty': 'Beginner',
-    'shots': 10,
-    'pressure': 'None',
-    'loadout': null,
-  };
-
-  ProgramsModel programsModel = ProgramsModel();
-  final TextEditingController programNameController = TextEditingController();
-  String programDescription = 'Your custom training program designed for optimal performance.';
-
-  bool isTrainingTypeOpen = false;
-  bool isFocusOpen = false;
-  bool isDifficultyOpen = false;
-  bool isShotsOpen = false;
-  bool isPressureOpen = false;
-  bool isLoadoutOpen = false;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<ArmoryBloc>().add(LoadLoadoutsEvent(userId: FirebaseAuth.instance.currentUser!.uid));
-    programsModel = ProgramsModel(
-      modeName: currentMode,
-      trainingType: simpleSettings['trainingType'],
-      focusArea: simpleSettings['focus'],
-      difficultyLevel: simpleSettings['difficulty'],
-      noOfShots: simpleSettings['shots'],
-      timePressure: simpleSettings['pressure'],
-      weaponProfile: simpleSettings['loadout'],
-      programName: programNameController.text,
-      programDescription: programDescription,
-    );
-  }
+class _SessionPreviewPageState extends State<SessionPreviewPage> {
+  final _sessionNameController = TextEditingController();
+  final _rangeNameController = TextEditingController();
+  final _notesController = TextEditingController();
+  final _shotCountController = TextEditingController(text: '10');
 
   @override
   void dispose() {
-    programNameController.dispose();
+    _sessionNameController.dispose();
+    _rangeNameController.dispose();
+    _notesController.dispose();
+    _shotCountController.dispose();
     super.dispose();
   }
 
-  void switchMode(String mode) {
-    setState(() => currentMode = mode);
-  }
-
-  void _updateSimpleSetting(String key, dynamic value) {
-    setState(() {
-      simpleSettings[key] = value;
-      programsModel = ProgramsModel(
-        modeName: currentMode,
-        trainingType: simpleSettings['trainingType'],
-        focusArea: simpleSettings['focus'],
-        difficultyLevel: simpleSettings['difficulty'],
-        noOfShots: simpleSettings['shots'],
-        timePressure: simpleSettings['pressure'],
-        weaponProfile: simpleSettings['loadout'],
-        programName: programNameController.text,
-        programDescription: programDescription,
-      );
-    });
-  }
-
-  Widget _buildCompactOption({
-    required String icon,
-    required String title,
-    required String description,
-    String? metrics,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(metrics != null ? 15.0 : 12.0),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F4F8) : Colors.white,
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? Colors.transparent : const Color(0xFFF8F9FA),
-              width: 1.0,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: metrics != null ? 30.0 : 20.0,
-              alignment: Alignment.center,
-              child: Text(icon, style: TextStyle(fontSize: metrics != null ? 24.0 : 18.0)),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background(context),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Preview & Configure',
+                style: AppTheme.headingLarge(context),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Review your setup and complete session details',
+                style: AppTheme.bodyMedium(context).copyWith(
+                  color: AppTheme.textSecondary(context),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildSection(
+                title: 'Session Information',
+                child: Column(
+                  children: [
+                    _buildTextField(
+                      controller: _sessionNameController,
+                      label: 'Session Name',
+                      hint: 'e.g., Morning Practice - Bill Drill',
+                      isRequired: true,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _rangeNameController,
+                      label: 'Range Name',
+                      hint: 'Select range',
+                      isRequired: true,
+                      readOnly: true,
+                      onTap: _showRangeDialog,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _notesController,
+                      label: 'Session Notes (Optional)',
+                      hint: 'Add any notes about this session...',
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildSection(
+                title: 'Loadout Summary',
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceVariant(context),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    widget.loadoutInfo,
+                    style: AppTheme.bodyMedium(context).copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: metrics != null ? 16.0 : 14.0,
-                      color: isSelected ? const Color(0xFF0C5460) : Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(description, style: const TextStyle(fontSize: 12.0, color: Color(0xFF6C757D))),
-                  if (metrics != null) ...[
-                    const SizedBox(height: 4),
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildSection(
+                title: 'Drill Configuration',
+                child: Column(
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0x330C5460) : const Color(0xFFF8F9FA),
+                        color: AppTheme.surfaceVariant(context),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        metrics,
-                        style: TextStyle(
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? const Color(0xFF0C5460) : const Color(0xFF6C757D),
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.drillInfo,
+                            style: AppTheme.bodyMedium(context).copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            controller: _shotCountController,
+                            label: 'Number of Shots',
+                            hint: 'Enter shot count',
+                            keyboardType: TextInputType.number,
+                            isRequired: true,
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ],
+                ),
               ),
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
+      bottomSheet: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
+        ),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: AppTheme.surfaceVariant(context),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: AppTheme.border(context).withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    'Back',
+                    style: AppTheme.button(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _startSession,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: AppTheme.primary(context),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Start Session',
+                    style: AppTheme.button(context).copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCompactSelector({
-    required String label,
-    required String currentIcon,
-    required String currentText,
-    required bool isOpen,
-    required VoidCallback onToggle,
-    required List<Widget> options,
+  Widget _buildSection({
+    required String title,
+    required Widget child,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w600, color: Color(0xFF495057)),
-          ),
-        ),
-        GestureDetector(
-          onTap: onToggle,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: isOpen ? const Color(0xFF2C3E50) : const Color(0xFFE9ECEF), width: 2),
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(8),
-                topRight: const Radius.circular(8),
-                bottomLeft: Radius.circular(isOpen ? 0 : 8),
-                bottomRight: Radius.circular(isOpen ? 0 : 8),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(currentIcon, style: const TextStyle(fontSize: 18.0)),
-                    const SizedBox(width: 10),
-                    Text(currentText, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  ],
-                ),
-                Icon(
-                  isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  size: 16.0,
-                  color: const Color(0xFF6C757D),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Container(
-          constraints: BoxConstraints(maxHeight: isOpen ? 300.0 : 0.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: isOpen ? Border.all(color: const Color(0xFF2C3E50), width: 2, style: BorderStyle.none) : null,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(8),
-              bottomRight: Radius.circular(8),
-            ),
-          ),
-          child: SingleChildScrollView(
-            physics: isOpen ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
-            child: Column(children: options),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPreviewSection(String title, Map<String, dynamic> items) {
     return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(6),
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppTheme.border(context).withValues(alpha: 0.1),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50)),
+            style: AppTheme.titleLarge(context).copyWith(
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          const SizedBox(height: 12),
-          ...items.entries.map((entry) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 6.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(entry.key, style: const TextStyle(fontSize: 13.0, color: Color(0xFF6C757D))),
-                  Text('${entry.value}', style: const TextStyle(fontSize: 13.0, fontWeight: FontWeight.w600, color: Color(0xFF2C3E50))),
-                ],
-              ),
-            );
-          })
+          const SizedBox(height: 16),
+          child,
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F7F9),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 60,
-        leadingWidth: 100,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: TextButton.icon(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            label: const Text('Back', style: TextStyle(color: Colors.black)),
-            style: TextButton.styleFrom(foregroundColor: Colors.black),
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    bool isRequired = false,
+    bool readOnly = false,
+    VoidCallback? onTap,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: AppTheme.labelLarge(context).copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary(context),
+              ),
+            ),
+            if (isRequired)
+              Text(
+                ' *',
+                style: AppTheme.labelLarge(context).copyWith(
+                  color: AppTheme.error(context),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          readOnly: readOnly,
+          onTap: onTap,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          style: AppTheme.bodyMedium(context),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: AppTheme.bodyMedium(context).copyWith(
+              color: AppTheme.textSecondary(context),
+            ),
+            filled: true,
+            fillColor: AppTheme.surfaceVariant(context),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: AppTheme.border(context),
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: AppTheme.border(context),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: AppTheme.primary(context),
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
           ),
         ),
-        title: const Text('Custom Program', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.black),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Help functionality coming soon!')),
-              );
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      ],
+    );
+  }
+
+  void _showRangeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))
-                ],
-              ),
-              child: Column(
-                children: const [
-                  Text(
-                    'Create Custom Training Program',
-                    style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold, color: Colors.white),
-                    textAlign: TextAlign.center,
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.border(context).withValues(alpha: 0.1),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Choose a template or design your own from scratch',
-                    style: TextStyle(fontSize: 14.0, color: Colors.white70),
-                    textAlign: TextAlign.center,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Select Range',
+                      style: AppTheme.headingMedium(context),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.close,
+                      color: AppTheme.textPrimary(context),
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFE9ECEF)),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              constraints: const BoxConstraints(maxHeight: 400),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
                 children: [
-                  Row(children: const [
-                    Icon(Icons.rocket_launch, color: Color(0xFF2C3E50)),
-                    SizedBox(width: 8),
-                    Text('Setup Mode', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)))
-                  ]),
-                  const SizedBox(height: 15),
-                  Row(children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => switchMode('simple'),
-                        child: ModeCard(
-                          isSelected: currentMode == 'simple',
-                          modeEmoji: '⚡',
-                          modeName: 'Quick Setup',
-                          modeDescription: 'Choose from templates',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => switchMode('advanced'),
-                        child: ModeCard(
-                          isSelected: currentMode == 'advanced',
-                          modeEmoji: '🔧',
-                          modeName: 'Advanced Options',
-                          modeDescription: 'Full customization',
-                        ),
-                      ),
-                    )
-                  ])
+                  _buildRangeItem('Thunder Range', 'Indoor • Bradenton, FL'),
+                  _buildRangeItem('Manatee Gun & Archery', 'Outdoor • Myakka City, FL'),
+                  _buildRangeItem('Shooter\'s World', 'Indoor • Tampa, FL'),
+                  _buildRangeItem('Knight Trail Park', 'Outdoor • Nokomis, FL'),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            Visibility(
-              visible: currentMode == 'simple',
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFE9ECEF)),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: const [
-                          Icon(Icons.track_changes, color: Color(0xFF2C3E50)),
-                          SizedBox(width: 8),
-                          Text('Training Configuration', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                        ]),
-                        const SizedBox(height: 15),
-                        _buildCompactSelector(
-                          label: 'Training Type',
-                          currentIcon: simpleSettings['trainingType'] == 'Dry Fire' ? '🏠' : '🔥',
-                          currentText: simpleSettings['trainingType'] == 'Dry Fire' ? 'Dry Fire' : 'Live Fire',
-                          isOpen: isTrainingTypeOpen,
-                          onToggle: () {
-                            setState(() {
-                              isTrainingTypeOpen = !isTrainingTypeOpen;
-                              isFocusOpen = false;
-                              isDifficultyOpen = false;
-                              isShotsOpen = false;
-                              isPressureOpen = false;
-                              isLoadoutOpen = false;
-                            });
-                          },
-                          options: [
-                            _buildCompactOption(
-                              icon: '🏠',
-                              title: 'Dry Fire',
-                              description: 'No ammunition training',
-                              isSelected: simpleSettings['trainingType'] == 'Dry Fire',
-                              onTap: () {
-                                _updateSimpleSetting('trainingType', 'Dry Fire');
-                                setState(() => isTrainingTypeOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🔥',
-                              title: 'Live Fire',
-                              description: 'Range with ammunition',
-                              isSelected: simpleSettings['trainingType'] == 'Live Fire',
-                              onTap: () {
-                                _updateSimpleSetting('trainingType', 'Live Fire');
-                                setState(() => isTrainingTypeOpen = false);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        _buildCompactSelector(
-                          label: 'Focus Area',
-                          currentIcon: simpleSettings['focus'] == 'Accuracy' ? '🎯' : simpleSettings['focus'] == 'Speed' ? '⚡' : simpleSettings['focus'] == 'Competition' ? '🏆' : '📚',
-                          currentText: simpleSettings['focus'] == 'Accuracy' ? 'Accuracy Improvement' : simpleSettings['focus'] == 'Speed' ? 'Speed Training' : simpleSettings['focus'] == 'Competition' ? 'Competition Prep' : 'Fundamentals',
-                          isOpen: isFocusOpen,
-                          onToggle: () {
-                            setState(() {
-                              isFocusOpen = !isFocusOpen;
-                              isTrainingTypeOpen = false;
-                              isDifficultyOpen = false;
-                              isShotsOpen = false;
-                              isPressureOpen = false;
-                              isLoadoutOpen = false;
-                            });
-                          },
-                          options: [
-                            _buildCompactOption(
-                              icon: '🎯',
-                              title: 'Accuracy Improvement',
-                              description: 'Focus on stability and trigger control',
-                              metrics: 'Stability + Trigger Control',
-                              isSelected: simpleSettings['focus'] == 'Accuracy',
-                              onTap: () {
-                                _updateSimpleSetting('focus', 'Accuracy');
-                                setState(() => isFocusOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '⚡',
-                              title: 'Speed Training',
-                              description: 'Improve split times and consistency',
-                              metrics: 'Split Time + Consistency',
-                              isSelected: simpleSettings['focus'] == 'Speed',
-                              onTap: () {
-                                _updateSimpleSetting('focus', 'Speed');
-                                setState(() => isFocusOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🏆',
-                              title: 'Competition Prep',
-                              description: 'All metrics balanced for matches',
-                              metrics: 'All Metrics Balanced',
-                              isSelected: simpleSettings['focus'] == 'Competition',
-                              onTap: () {
-                                _updateSimpleSetting('focus', 'Competition');
-                                setState(() => isFocusOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '📚',
-                              title: 'Fundamentals',
-                              description: 'Master basic stability first',
-                              metrics: 'Stability Focus Only',
-                              isSelected: simpleSettings['focus'] == 'Fundamentals',
-                              onTap: () {
-                                _updateSimpleSetting('focus', 'Fundamentals');
-                                setState(() => isFocusOpen = false);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        _buildCompactSelector(
-                          label: 'Difficulty Level',
-                          currentIcon: simpleSettings['difficulty'] == 'Beginner' ? '🌱' : simpleSettings['difficulty'] == 'Intermediate' ? '🌿' : '🌳',
-                          currentText: simpleSettings['difficulty'] == 'Beginner' ? 'Beginner' : simpleSettings['difficulty'] == 'Intermediate' ? 'Intermediate' : 'Advanced',
-                          isOpen: isDifficultyOpen,
-                          onToggle: () {
-                            setState(() {
-                              isDifficultyOpen = !isDifficultyOpen;
-                              isTrainingTypeOpen = false;
-                              isFocusOpen = false;
-                              isShotsOpen = false;
-                              isPressureOpen = false;
-                              isLoadoutOpen = false;
-                            });
-                          },
-                          options: [
-                            _buildCompactOption(
-                              icon: '🌱',
-                              title: 'Beginner',
-                              description: 'Learning basics',
-                              isSelected: simpleSettings['difficulty'] == 'Beginner',
-                              onTap: () {
-                                _updateSimpleSetting('difficulty', 'Beginner');
-                                setState(() => isDifficultyOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🌿',
-                              title: 'Intermediate',
-                              description: 'Building skills',
-                              isSelected: simpleSettings['difficulty'] == 'Intermediate',
-                              onTap: () {
-                                _updateSimpleSetting('difficulty', 'Intermediate');
-                                setState(() => isDifficultyOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🌳',
-                              title: 'Advanced',
-                              description: 'Mastering technique',
-                              isSelected: simpleSettings['difficulty'] == 'Advanced',
-                              onTap: () {
-                                _updateSimpleSetting('difficulty', 'Advanced');
-                                setState(() => isDifficultyOpen = false);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        _buildCompactSelector(
-                          label: 'Number of Shots',
-                          currentIcon: '🎯',
-                          currentText: '${simpleSettings['shots']} shots',
-                          isOpen: isShotsOpen,
-                          onToggle: () {
-                            setState(() {
-                              isShotsOpen = !isShotsOpen;
-                              isTrainingTypeOpen = false;
-                              isFocusOpen = false;
-                              isDifficultyOpen = false;
-                              isPressureOpen = false;
-                              isLoadoutOpen = false;
-                            });
-                          },
-                          options: [
-                            _buildCompactOption(
-                              icon: '🎯',
-                              title: '5 shots',
-                              description: 'Quick session',
-                              isSelected: simpleSettings['shots'] == 5,
-                              onTap: () {
-                                _updateSimpleSetting('shots', 5);
-                                setState(() => isShotsOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🎯',
-                              title: '10 shots',
-                              description: 'Standard session',
-                              isSelected: simpleSettings['shots'] == 10,
-                              onTap: () {
-                                _updateSimpleSetting('shots', 10);
-                                setState(() => isShotsOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🎯',
-                              title: '15 shots',
-                              description: 'Extended session',
-                              isSelected: simpleSettings['shots'] == 15,
-                              onTap: () {
-                                _updateSimpleSetting('shots', 15);
-                                setState(() => isShotsOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '🎯',
-                              title: '20 shots',
-                              description: 'Long session',
-                              isSelected: simpleSettings['shots'] == 20,
-                              onTap: () {
-                                _updateSimpleSetting('shots', 20);
-                                setState(() => isShotsOpen = false);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        _buildCompactSelector(
-                          label: 'Time Pressure',
-                          currentIcon: simpleSettings['pressure'] == 'None' ? '⏱️' : simpleSettings['pressure'] == 'Some' ? '⏰' : '⚡',
-                          currentText: simpleSettings['pressure'] == 'None' ? 'None' : simpleSettings['pressure'] == 'Some' ? 'Some' : 'High',
-                          isOpen: isPressureOpen,
-                          onToggle: () {
-                            setState(() {
-                              isPressureOpen = !isPressureOpen;
-                              isTrainingTypeOpen = false;
-                              isFocusOpen = false;
-                              isDifficultyOpen = false;
-                              isShotsOpen = false;
-                              isLoadoutOpen = false;
-                            });
-                          },
-                          options: [
-                            _buildCompactOption(
-                              icon: '⏱️',
-                              title: 'None',
-                              description: 'Take your time',
-                              isSelected: simpleSettings['pressure'] == 'None',
-                              onTap: () {
-                                _updateSimpleSetting('pressure', 'None');
-                                setState(() => isPressureOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '⏰',
-                              title: 'Some',
-                              description: 'Moderate pace',
-                              isSelected: simpleSettings['pressure'] == 'Some',
-                              onTap: () {
-                                _updateSimpleSetting('pressure', 'Some');
-                                setState(() => isPressureOpen = false);
-                              },
-                            ),
-                            _buildCompactOption(
-                              icon: '⚡',
-                              title: 'High',
-                              description: 'Fast splits required',
-                              isSelected: simpleSettings['pressure'] == 'High',
-                              onTap: () {
-                                _updateSimpleSetting('pressure', 'High');
-                                setState(() => isPressureOpen = false);
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        BlocBuilder<ArmoryBloc, ArmoryState>(
-                          builder: (context, state) {
-                            if (state is ArmoryLoading) {
-                              return const LinearProgressIndicator();
-                            }
-
-                            final loadouts = state is LoadoutsLoaded ? state.loadouts : <ArmoryLoadout>[];
-                            ArmoryLoadout? selectedLoadout = simpleSettings['loadout'];
-
-                            return _buildCompactSelector(
-                              label: 'Loadout',
-                              currentIcon: '🔫',
-                              currentText: selectedLoadout?.name ?? 'Select loadout',
-                              isOpen: isLoadoutOpen,
-                              onToggle: () {
-                                setState(() {
-                                  isLoadoutOpen = !isLoadoutOpen;
-                                  isTrainingTypeOpen = false;
-                                  isFocusOpen = false;
-                                  isDifficultyOpen = false;
-                                  isShotsOpen = false;
-                                  isPressureOpen = false;
-                                });
-                              },
-                              options: [
-                                ...List.generate(
-                                  loadouts.length,
-                                      (index) {
-                                    final loadout = loadouts[index];
-                                    return _buildCompactOption(
-                                      icon: '🔫',
-                                      title: loadout.name,
-                                      description: loadout.notes ?? '',
-                                      isSelected: loadout == selectedLoadout,
-                                      onTap: () {
-                                        _updateSimpleSetting('loadout', loadout);
-                                        setState(() => isLoadoutOpen = false);
-                                      },
-                                    );
-                                  },
-                                )
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFE9ECEF)),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: const [
-                            Icon(Icons.edit_note, color: Color(0xFF2C3E50)),
-                            SizedBox(width: 8),
-                            Text('Program Name', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50))),
-                          ],
-                        ),
-                        const SizedBox(height: 15),
-                        TextField(
-                          controller: programNameController,
-                          onChanged: (value) {
-                            programsModel = programsModel.copyWith(programName: value);
-                            setState(() {});
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Generated automatically...',
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE9ECEF), width: 2),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE9ECEF), width: 2),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFF2C3E50), width: 2),
-                            ),
-                          ),
-                          style: const TextStyle(fontSize: 14.0),
-                        ),
-                        const SizedBox(height: 5),
-                        const Text(
-                          'Name will be generated based on your selections, or enter your own',
-                          style: TextStyle(fontSize: 12.0, color: Color(0xFF6C757D)),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (currentMode == 'advanced')
-              AdvancedTabContent(
-                programsModel: programsModel,
-                onProgramNameChanged: (value) {
-                  setState(() {
-                    programsModel = value ?? programsModel;
-                  });
-                },
-              ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F4F8),
-                border: Border.all(color: const Color(0xFF17A2B8), width: 2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.visibility, color: Color(0xFF0C5460)),
-                      SizedBox(width: 8),
-                      Text('Program Preview', style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Color(0xFF0C5460))),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFB3D7E6)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          programsModel.programName ?? 'Program Name',
-                          style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Color(0xFF2C3E50)),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          programsModel.programDescription ?? 'Program Description',
-                          style: const TextStyle(fontSize: 14.0, color: Color(0xFF6C757D), height: 1.4),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildPreviewSection('Specs', {
-                          'Training Type': programsModel.trainingType ?? '',
-                          'Focus Area': programsModel.focusArea ?? '',
-                          'Difficulty': programsModel.difficultyLevel ?? '',
-                          'Shots': programsModel.noOfShots ?? 0,
-                          'Time Pressure': programsModel.timePressure ?? '',
-                          if (programsModel.modeName == 'advanced') ...{
-                            'Recommended Distance': programsModel.recommenedDistance ?? '',
-                            'Success Threshold': programsModel.successThreshold ?? '',
-                            'Success Criteria': programsModel.successCriteria ?? ''
-                          },
-                          'Time Limit': programsModel.timeLimit ?? 'None',
-                          'Loadout': programsModel.weaponProfile?.name ?? '',
-                        }),
-                        if (currentMode == 'advanced' && programsModel.performanceMetrics != null)
-                          ...List.generate(
-                            programsModel.performanceMetrics!.length,
-                                (index) => _buildPreviewSection(
-                              'Metrics ${index + 1}',
-                              {
-                                'Type': programsModel.performanceMetrics![index].stability ?? '',
-                                'Target': programsModel.performanceMetrics![index].target ?? '',
-                                'Unit': programsModel.performanceMetrics![index].unit ?? '',
-                                'Consistency': '-',
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Testing program...')),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFC107),
-                    foregroundColor: const Color(0xFF333333),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 2,
-                    shadowColor: Colors.black.withValues(alpha: 0.2),
-                  ),
-                  icon: const Text('🧪', style: TextStyle(fontSize: 20)),
-                  label: const Text('Test Program', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    if (programsModel.programName!.isEmpty) {
-                      ToastUtils.showError(context, message: 'Program name is required');
-                    } else if (programsModel.weaponProfile == null) {
-                      ToastUtils.showError(context, message: 'Loadout is required');
-                    } else {
-                      await di.sl<ProgramsDataSource>().addProgram(programsModel);
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ToastUtils.showSuccess(context, message: 'Program saved successfully');
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF28A745),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 2,
-                    shadowColor: Colors.black.withValues(alpha: 0.2),
-                  ),
-                  icon: const Text('💾', style: TextStyle(fontSize: 20)),
-                  label: const Text('Save Program', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                ),
-              )
-            ])
           ],
         ),
       ),
     );
   }
-}
 
-class ModeCard extends StatelessWidget {
-  const ModeCard({
-    super.key,
-    required this.modeEmoji,
-    required this.modeName,
-    required this.modeDescription,
-    required this.isSelected,
-  });
-
-  final String modeEmoji;
-  final String modeName;
-  final String modeDescription;
-  final bool isSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF2C3E50) : Colors.white,
-        border: Border.all(
-          color: isSelected ? const Color(0xFF2C3E50) : const Color(0xFFE9ECEF),
-          width: 2,
+  Widget _buildRangeItem(String name, String location) {
+    return GestureDetector(
+      onTap: () {
+        _rangeNameController.text = name;
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.border(context).withValues(alpha: 0.1),
+            width: 2,
+          ),
         ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          if (isSelected)
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
-        ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: AppTheme.titleMedium(context).copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              location,
+              style: AppTheme.bodySmall(context).copyWith(
+                color: AppTheme.textSecondary(context),
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Column(children: [
-        Text(modeEmoji, style: TextStyle(fontSize: 20.0, color: isSelected ? Colors.white : null)),
-        const SizedBox(height: 8),
-        Text(modeName, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
-        const SizedBox(height: 4),
-        Text(
-          modeDescription,
-          style: TextStyle(fontSize: 12.0, color: isSelected ? Colors.white70 : const Color(0xCC6C757D)),
-        )
-      ]),
+    );
+  }
+
+  void _startSession() {
+    if (_sessionNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a Session Name'),
+          backgroundColor: AppTheme.error(context),
+        ),
+      );
+      return;
+    }
+
+    if (_rangeNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a Range Name'),
+          backgroundColor: AppTheme.error(context),
+        ),
+      );
+      return;
+    }
+
+    final shotCount = int.tryParse(_shotCountController.text) ?? 10;
+    final updatedProgram = widget.program.copyWith(
+      programName: _sessionNameController.text,
+      noOfShots: shotCount,
+    );
+
+    context.read<TrainingSessionBloc>().add(
+      EnableSensors(device: widget.connectedDevice),
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SteadinessTrainerPage(
+          program: updatedProgram,
+        ),
+      ),
     );
   }
 }

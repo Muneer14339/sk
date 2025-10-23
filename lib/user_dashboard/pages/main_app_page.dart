@@ -104,7 +104,7 @@ class _MainAppViewState extends State<MainAppView> {
       case 1:
         return const EnhancedArmoryTabView();
       case 2:
-        return const TrainingProgramsPage();
+        return const TrainingSessionSetupPage();
       case 3:
         return const HistoryTabWidget();
       case 4:

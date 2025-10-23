@@ -1,524 +1,209 @@
+// lib/training/presentation/pages/training_session_setup_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../../../core/services/prefs.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/dialog_utils.dart';
-import '../../../core/utils/toast_utils.dart';
-import '../../../core/widgets/custom_appbar.dart';
 import '../../../core/widgets/custom_dialog.dart';
-import '../../../core/widgets/icon_container.dart';
-import '../../../armory/presentation/bloc/armory_bloc.dart';
-import '../../../armory/presentation/bloc/armory_event.dart';
-import '../../../armory/presentation/bloc/armory_state.dart';
-import '../../data/datasources/ProgramsDataSource.dart';
 import '../../data/model/programs_model.dart';
-import '../../../injection_container.dart' as di;
 import '../bloc/ble_scan/ble_scan_bloc.dart';
 import '../bloc/ble_scan/ble_scan_event.dart';
 import '../bloc/ble_scan/ble_scan_state.dart';
 import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_event.dart';
 import '../widgets/device_calibration_dialog.dart';
-import '../widgets/matrics_section_card.dart';
-import '../widgets/program_stats_card.dart';
-import 'steadiness_trainer_page.dart';
 import 'training_program_builder.dart';
 
-class TrainingProgramsPage extends StatefulWidget {
-  const TrainingProgramsPage({super.key});
+class TrainingSessionSetupPage extends StatefulWidget {
+  const TrainingSessionSetupPage({super.key});
 
   @override
-  _TrainingProgramsPageState createState() => _TrainingProgramsPageState();
+  State<TrainingSessionSetupPage> createState() => _TrainingSessionSetupPageState();
 }
 
-class _TrainingProgramsPageState extends State<TrainingProgramsPage> with TickerProviderStateMixin {
-  String selectedFilter = 'beginner';
-  final String userId = FirebaseAuth.instance.currentUser!.uid;
-  ProgramsModel? _defaultProgram;
+class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
+  bool _connectionCompleted = false;
+  bool _loadoutCompleted = false;
+  bool _alertsCompleted = false;
+  bool _drillCompleted = false;
 
-  @override
-  void initState() {
-    super.initState();
-    context.read<ArmoryBloc>().add(LoadLoadoutsEvent(userId: userId));
-    _loadDefaultProgram();
-  }
+  String? _connectedDeviceName;
+  String? _selectedLoadout;
+  String _alertsSettings = 'Default settings';
+  String _drillInfo = 'Open practice';
 
-  Future<void> _loadDefaultProgram() async {
-    final programs = await di.sl<ProgramsDataSource>().getPrograms();
-    if (programs.isNotEmpty && mounted) {
-      setState(() => _defaultProgram = programs.first);
-    }
-  }
+  BluetoothDevice? _connectedDevice;
 
-  void _hapticFeedback() {
-    HapticFeedback.mediumImpact();
-  }
+  bool get _canContinue => _connectionCompleted && _loadoutCompleted;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.background(context),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.all(16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _buildGearStatusBanner(),
-                  const SizedBox(height: 24),
-                  _buildQuickStartSection(),
-                  const SizedBox(height: 24),
-                  _buildRecentPrograms(),
-                  const SizedBox(height: 24),
-                  _buildModernFilterTabs(),
-                  const SizedBox(height: 24),
-                  FutureBuilder<List<ProgramsModel>>(
-                    future: di.sl<ProgramsDataSource>().getPrograms(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError) {
-                          return _buildErrorState('Failed to load programs: ${snapshot.error}');
-                        } else {
-                          return _buildProgramsList(snapshot.data ?? []);
-                        }
-                      } else {
-                        return _buildLoadingState();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  _buildCreateCustomButton(),
-                  const SizedBox(height: 100),
-                ]),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(String error) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.transparent, AppTheme.error(context)..withValues(alpha: .05)],
-      ),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppTheme.error(context)..withValues(alpha: .2)),
-    ),
-    child: Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppTheme.error(context)..withValues(alpha: .1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(Icons.error_outline, color: AppTheme.error(context), size: 32),
-        ),
-        const SizedBox(height: 16),
-        Text('Loading Error', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
-        const SizedBox(height: 8),
-        Text(error, style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context), height: 1.4), textAlign: TextAlign.center),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () => setState(() {}),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .8)]),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Text('Retry', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 14, fontWeight: FontWeight.w600)),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildLoadingState() => Container(
-    padding: const EdgeInsets.all(40),
-    child: Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [AppTheme.primary(context)..withValues(alpha: .1), Colors.transparent]),
-            shape: BoxShape.circle,
-          ),
-          child: SizedBox(
-            width: 48,
-            height: 48,
-            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary(context)), strokeWidth: 3),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text('Loading Programs', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
-        const SizedBox(height: 8),
-        Text('Preparing your training catalog...', style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context))),
-      ],
-    ),
-  );
-
-  Widget _buildGearStatusBanner() => BlocBuilder<ArmoryBloc, ArmoryState>(
-    builder: (context, state) {
-      final loadouts = state is LoadoutsLoaded ? state.loadouts : [];
-      final currentLoadout = loadouts.isNotEmpty ? loadouts.first : null;
-
-      return GestureDetector(
-        onTap: () {
-          _hapticFeedback();
-          _openGearSetup();
-        },
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppTheme.primary(context).withValues(alpha: .4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary(context).withValues(alpha: .4),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.settings, color: AppTheme.textPrimary(context), size: 18),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Current Setup',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppTheme.textPrimary(context)..withValues(alpha: .9),
-                                ),
-                              ),
-                              Text(
-                                currentLoadout?.name ?? 'No Loadout Selected',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      currentLoadout != null ? '${currentLoadout.notes ?? "Ready to train"}' : 'Configure a loadout to start',
-                      style: TextStyle(fontSize: 13, color: AppTheme.textPrimary(context)..withValues(alpha: .8), height: 1.3),
-                    ),
-                  ],
+              Text(
+                'Training Session',
+                style: AppTheme.headingLarge(context),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Configure your training setup',
+                style: AppTheme.bodyMedium(context).copyWith(
+                  color: AppTheme.textSecondary(context),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary(context).withValues(alpha: .4),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Icon(Icons.arrow_forward_ios, color: AppTheme.textPrimary(context), size: 16),
+              const SizedBox(height: 24),
+              Text(
+                'REQUIRED SETUP',
+                style: AppTheme.labelSmall(context),
               ),
+              const SizedBox(height: 12),
+              _buildSetupCard(
+                icon: '📡',
+                title: 'Connection',
+                description: 'Connect to your device via Bluetooth',
+                value: _connectedDeviceName ?? 'Not connected',
+                isCompleted: _connectionCompleted,
+                isRequired: true,
+                onTap: _showConnectionDialog,
+              ),
+              const SizedBox(height: 16),
+              _buildSetupCard(
+                icon: '🔫',
+                title: 'Loadout',
+                description: 'Select your firearm and ammunition',
+                value: _selectedLoadout ?? 'No loadout selected',
+                isCompleted: _loadoutCompleted,
+                isRequired: true,
+                onTap: _showLoadoutDialog,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'OPTIONAL SETUP',
+                style: AppTheme.labelSmall(context),
+              ),
+              const SizedBox(height: 12),
+              _buildSetupCard(
+                icon: '🔔',
+                title: 'Alerts',
+                description: 'Configure haptics and audio feedback',
+                value: _alertsSettings,
+                isCompleted: _alertsCompleted,
+                isRequired: false,
+                onTap: _showAlertsDialog,
+              ),
+              const SizedBox(height: 16),
+              _buildSetupCard(
+                icon: '🎯',
+                title: 'Drill',
+                description: 'Choose a training drill or practice freely',
+                value: _drillInfo,
+                isCompleted: _drillCompleted,
+                isRequired: false,
+                onTap: _showDrillDialog,
+              ),
+              const SizedBox(height: 100),
             ],
           ),
         ),
-      );
-    },
-  );
-
-  Widget _buildQuickStartSection() => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(8)),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            IconContainer(icon: Icons.bolt),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      bottomSheet: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppTheme.background(context).withValues(alpha: 0),
+              AppTheme.background(context),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _canContinue ? _continueToPreview : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _canContinue
+                    ? AppTheme.primary(context)
+                    : AppTheme.textSecondary(context).withValues(alpha: 0.3),
+                foregroundColor: _canContinue
+                    ? Colors.white
+                    : AppTheme.textSecondary(context),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Quick Start', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
                   Text(
-                    'Jump right into training with your current setup',
-                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context), height: 1.4),
+                    'Continue to Preview',
+                    style: AppTheme.button(context).copyWith(
+                      color: _canContinue
+                          ? Colors.white
+                          : AppTheme.textSecondary(context),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 20,
+                    color: _canContinue
+                        ? Colors.white
+                        : AppTheme.textSecondary(context),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        BlocBuilder<BleScanBloc, BleScanState>(
-          builder: (_, state) => _buildModernQuickStartButton(
-            'Start Precision Training',
-            state.isConnected ? AppTheme.success(context) : Colors.grey,
-            state,
-          ),
-        )
-      ],
-    ),
-  );
-
-  Widget _buildModernQuickStartButton(String title, Color color, BleScanState state) => GestureDetector(
-    onTap: () {
-      if (_defaultProgram == null) {
-        ToastUtils.showError(context, message: 'Please create a program first');
-        return;
-      }
-
-      if (state.isConnected && state.needsCalibration) {
-        _showCalibrationDialog(context, state.connectedDevice!, _defaultProgram!);
-      } else if (state.isConnected) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => SteadinessTrainerPage(program: _defaultProgram!)));
-      } else {
-        _showBleDeviceDialog(context);
-      }
-    },
-    child: Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-      child: Center(
-        child: Text(title, style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 16, fontWeight: FontWeight.w500)),
-      ),
-    ),
-  );
-
-  Widget _buildRecentPrograms() => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: AppTheme.surface(context),
-      borderRadius: BorderRadius.circular(8),
-      boxShadow: [BoxShadow(color: Colors.black..withValues(alpha: .2), blurRadius: 20, offset: const Offset(0, 8))],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            IconContainer(icon: Icons.history),
-            const SizedBox(width: 16),
-            Expanded(child: Text('Recently Used', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context)))),
-          ],
-        ),
-        const SizedBox(height: 16),
-        FutureBuilder<List<ProgramsModel>>(
-          future: di.sl<ProgramsDataSource>().getPrograms(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              final recentPrograms = snapshot.data!.take(2).toList();
-              return Column(
-                children: [
-                  ...recentPrograms.asMap().entries.map((entry) {
-                    final program = entry.value;
-                    return Column(
-                      children: [
-                        if (entry.key > 0) const SizedBox(height: 12),
-                        _buildModernRecentProgramItem(
-                          '🎯',
-                          program.programName ?? 'Training Program',
-                          'Tap to start',
-                          AppTheme.primary(context),
-                          program,
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ],
-              );
-            } else {
-              return Center(
-                child: Text(
-                  'No recent programs',
-                  style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context)),
-                ),
-              );
-            }
-          },
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildModernRecentProgramItem(String icon, String title, String subtitle, Color accentColor, ProgramsModel program) => GestureDetector(
-    onTap: () {
-      _hapticFeedback();
-      _navigateToTrainingPage(context, program);
-    },
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(8)),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: accentColor..withValues(alpha: .1), borderRadius: BorderRadius.circular(12)),
-            child: Center(child: Text(icon, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context)))),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(1),
-                      decoration: BoxDecoration(color: accentColor..withValues(alpha: .1), shape: BoxShape.circle),
-                      child: Icon(Icons.star, size: 12),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(subtitle, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context))),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          IconContainer(icon: Icons.arrow_forward_ios),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildModernFilterTabs() => Container(
-    padding: const EdgeInsets.all(4),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [AppTheme.surface(context), AppTheme.background(context)],
-      ),
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: AppTheme.textSecondary(context)..withValues(alpha: .3)),
-    ),
-    child: Row(
-      children: [
-        _buildModernFilterTab('Beginner', 'beginner'),
-        _buildModernFilterTab('Intermediate', 'intermediate'),
-        _buildModernFilterTab('Advanced', 'advanced'),
-      ],
-    ),
-  );
-
-  Widget _buildModernFilterTab(String title, String filter) {
-    final isActive = selectedFilter == filter;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          _hapticFeedback();
-          setState(() => selectedFilter = filter);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-          margin: const EdgeInsets.only(right: 2),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                isActive ? AppTheme.primary(context) : AppTheme.textSecondary(context),
-                isActive ? AppTheme.primary(context).withValues(alpha: .8) : AppTheme.textSecondary(context)..withValues(alpha: .8)
-              ],
-            ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: isActive ? AppTheme.primary(context) : AppTheme.textSecondary(context)..withValues(alpha: .3)),
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 12, fontWeight: isActive ? FontWeight.w500 : FontWeight.w400),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProgramsList(List<ProgramsModel> programs) {
-    final filteredPrograms = programs.where((program) {
-      if (selectedFilter == 'all') return true;
-      return program.difficultyLevel?.toLowerCase() == selectedFilter;
-    }).toList();
-
-    if (filteredPrograms.isEmpty) {
-      return _buildEmptyProgramsState();
-    }
-
-    return Column(
-      children: filteredPrograms.map((program) => Padding(padding: const EdgeInsets.only(bottom: 16), child: _buildModernProgramCard(program))).toList(),
-    );
-  }
-
-  Widget _buildEmptyProgramsState() => Container(
-    padding: const EdgeInsets.all(40),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.transparent, AppTheme.primary(context)..withValues(alpha: .05)],
-      ),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppTheme.primary(context)..withValues(alpha: .2)),
-    ),
-    child: Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(gradient: LinearGradient(colors: [AppTheme.primary(context)..withValues(alpha: .1), Colors.transparent]), shape: BoxShape.circle),
-          child: Icon(Icons.library_books_outlined, color: AppTheme.primary(context), size: 48),
+  Widget _buildSetupCard({
+    required String icon,
+    required String title,
+    required String description,
+    required String value,
+    required bool isCompleted,
+    required bool isRequired,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isCompleted
+                ? AppTheme.success(context).withValues(alpha: 0.5)
+                : isRequired
+                ? AppTheme.error(context).withValues(alpha: 0.5)
+                : AppTheme.border(context).withValues(alpha: 0.1),
+            width: 2,
+          ),
         ),
-        const SizedBox(height: 16),
-        Text('No Programs Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
-        const SizedBox(height: 8),
-        Text('Try adjusting your filters or create a custom program', style: TextStyle(fontSize: 14, color: AppTheme.textSecondary(context)), textAlign: TextAlign.center),
-      ],
-    ),
-  );
-
-  Widget _buildModernProgramCard(ProgramsModel program) => Stack(
-    children: [
-      Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: AppTheme.surface(context), borderRadius: BorderRadius.circular(8)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .7)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(Icons.place, color: AppTheme.textPrimary(context), size: 28),
+                Text(
+                  icon,
+                  style: const TextStyle(fontSize: 28),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,361 +211,94 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
                       Row(
                         children: [
                           Expanded(
-                            child: Text(program.programName ?? '', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .8)]),
-                              borderRadius: BorderRadius.circular(8),
+                            child: Text(
+                              title,
+                              style: AppTheme.titleLarge(context),
                             ),
-                            child: Text((program.difficultyLevel ?? '').toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
                           ),
+                          if (isRequired && !isCompleted)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.error(context)
+                                    .withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'REQUIRED',
+                                style: AppTheme.labelSmall(context).copyWith(
+                                  color: AppTheme.error(context),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          if (isCompleted)
+                            Icon(
+                              Icons.check_circle,
+                              color: AppTheme.success(context),
+                              size: 24,
+                            ),
+                          if (!isCompleted && !isRequired)
+                            Icon(
+                              Icons.radio_button_unchecked,
+                              color: AppTheme.textSecondary(context),
+                              size: 24,
+                            ),
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(program.trainingType ?? '', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context), fontWeight: FontWeight.w500)),
+                      Text(
+                        description,
+                        style: AppTheme.bodySmall(context).copyWith(
+                          color: AppTheme.textSecondary(context),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(program.programDescription ?? '', style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 14, height: 1.5)),
-            const SizedBox(height: 20),
-            _buildModernProgramSpecs(program),
-            const SizedBox(height: 20),
-            const MetricsSectionCard(),
-            const ProgramStatsCard(),
-            const SizedBox(height: 16),
-            _buildModernProgramActions(program),
-          ],
-        ),
-      ),
-      if (program.badgeColor != null)
-        Positioned(
-          top: 12,
-          right: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: Color(int.parse(program.badgeColor ?? '0xFF00CED1')), borderRadius: BorderRadius.circular(12)),
-            child: Text(program.badge ?? '', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 11, fontWeight: FontWeight.w500)),
-          ),
-        ),
-    ],
-  );
-
-  Widget _buildModernProgramSpecs(ProgramsModel program) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [AppTheme.surface(context)..withValues(alpha: .5), AppTheme.background(context)..withValues(alpha: .5)],
-      ),
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppTheme.primary(context).withValues(alpha: .08)),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(gradient: LinearGradient(colors: [AppTheme.primary(context)..withValues(alpha: .2), Colors.transparent]), shape: BoxShape.circle),
-              child: Icon(Icons.build, color: AppTheme.primary(context), size: 18),
-            ),
-            const SizedBox(width: 12),
-            Text('Recommended Setup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _buildModernSpecRow('Loadout', program.weaponProfile?.name ?? 'Not specified', Icons.local_fire_department),
-        _buildModernSpecRow('Distance', program.recommenedDistance ?? 'Not specified', Icons.straighten),
-        _buildModernSpecRow('Notes', program.weaponProfile?.notes ?? 'No notes', Icons.edit),
-        _buildModernSpecRow('Threshold', program.successThreshold ?? 'Not set', Icons.check_circle_outline),
-      ],
-    ),
-  );
-
-  Widget _buildModernSpecRow(String label, String value, IconData icon) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(color: AppTheme.primary(context).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, color: AppTheme.primary(context), size: 16),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: TextStyle(fontSize: 12, color: AppTheme.textSecondary(context), fontWeight: FontWeight.w500)),
-              const SizedBox(height: 2),
-              Text(value, style: TextStyle(fontSize: 13, color: AppTheme.textPrimary(context), fontWeight: FontWeight.w600)),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildModernProgramActions(ProgramsModel program) => BlocBuilder<BleScanBloc, BleScanState>(
-    builder: (context, state) => Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              if (state.isConnected && state.needsCalibration) {
-                _showCalibrationDialog(context, state.connectedDevice!, program);
-              } else if (state.isConnected) {
-                _navigateToTrainingPage(context, program);
-              } else {
-                _showBleDeviceDialog(context, program: program);
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.error(context), AppTheme.error(context)..withValues(alpha: .8)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.error(context)..withValues(alpha: .3)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(colors: [AppTheme.textPrimary(context)..withValues(alpha: .2), Colors.transparent]),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.play_arrow, color: AppTheme.textPrimary(context), size: 18),
-                  ),
-                  const SizedBox(width: 8),
-                  Text('Start Training', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 14, fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<ArmoryBloc>(), // if already provided higher up
-                child: const TrainingProgramBuilder(),
-              ),
-            ),
-          )
-          ,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [AppTheme.textSecondary(context), AppTheme.textSecondary(context)..withValues(alpha: .8)]),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.textSecondary(context)..withValues(alpha: .3)),
-            ),
-            child: Icon(Icons.edit, color: AppTheme.textPrimary(context), size: 18),
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildCreateCustomButton() => BlocBuilder<ArmoryBloc, ArmoryState>(
-    builder: (context, state) {
-      final loadouts = state is LoadoutsLoaded ? state.loadouts : [];
-      return GestureDetector(
-        onTap: () {
-          if (loadouts.isEmpty) {
-            _showNoLoadoutsDialog();
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider.value(
-                  value: context.read<ArmoryBloc>(), // if already provided higher up
-                  child: const TrainingProgramBuilder(),
-                ),
-              ),
-            );
-          }
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppTheme.surface(context), AppTheme.primary(context)..withValues(alpha: .8)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconContainer(icon: Icons.add),
-              const SizedBox(width: 12),
-              Text('Create Custom Program', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 16, fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-
-  void _showNoLoadoutsDialog() => showDialog(
-    context: context,
-    builder: (context) => Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(24),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppTheme.surface(context), AppTheme.background(context)]),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.textSecondary(context)..withValues(alpha: .3)),
-          boxShadow: [BoxShadow(color: Colors.black..withValues(alpha: .4), blurRadius: 30, spreadRadius: 0)],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [AppTheme.primary(context), AppTheme.primary(context)..withValues(alpha: .8)]),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                color: AppTheme.surfaceVariant(context),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.warning_amber, color: AppTheme.textPrimary(context), size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text('No Loadouts Configured', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 18, fontWeight: FontWeight.w500))),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Text(
-                    'To create custom training programs, you need to configure at least one loadout.',
-                    style: TextStyle(fontSize: 15, color: AppTheme.textPrimary(context), height: 1.4),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(color: AppTheme.textSecondary(context), borderRadius: BorderRadius.circular(12)),
-                            child: Text('Cancel', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary(context), fontWeight: FontWeight.w500)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                            _openGearSetup();
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [AppTheme.success(context), AppTheme.success(context)..withValues(alpha: .8)]),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [BoxShadow(color: AppTheme.success(context)..withValues(alpha: .3), blurRadius: 8, offset: const Offset(0, 2))],
-                            ),
-                            child: Text('Add Loadout', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textPrimary(context), fontWeight: FontWeight.w500)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              child: Text(
+                value,
+                style: AppTheme.bodyMedium(context).copyWith(
+                  color: AppTheme.primary(context),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
         ),
       ),
-    ),
-  );
-
-  void _openGearSetup() {
-    //Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const BottomNavPage(initialIndex: 1)), (route) => false);
+    );
   }
 
-  void _showBleDeviceDialog(BuildContext context, {ProgramsModel? program}) async {
+  void _showConnectionDialog() {
     context.read<BleScanBloc>().add(const StartBleScan());
     showDialog(
       context: context,
       builder: (_) => BlocConsumer<BleScanBloc, BleScanState>(
         listener: (ctx, state) {
           if (state.isConnected && state.needsCalibration) {
-            context.read<TrainingSessionBloc>().add(SendCommand(
-              ditCommand: 2,
-              dvcCommand: 1,
-              swdCommand: 1,
-              swbdCommand: 1,
-              avdCommand: 1,
-              avdtCommand: 1,
-              hapticCommand: 1,
-              device: state.connectedDevice!,
-            ));
-            String sensitivity = '2/1/1/1/1/1/1';
-            prefs?.setString(sensitivityKey, sensitivity);
             Navigator.of(context).pop();
-            _showCalibrationDialog(context, state.connectedDevice!, program);
+            _showCalibrationDialog(state.connectedDevice!);
           } else if (state.isConnected) {
-            context.read<TrainingSessionBloc>().add(SendCommand(
-              ditCommand: 2,
-              dvcCommand: 1,
-              swdCommand: 1,
-              swbdCommand: 1,
-              avdCommand: 1,
-              avdtCommand: 1,
-              hapticCommand: 1,
-              device: state.connectedDevice!,
-            ));
-            String sensitivity = '2/1/1/1/1/1/1';
-            prefs?.setString(sensitivityKey, sensitivity);
             Navigator.of(context).pop();
-            if (program != null) {
-              _navigateToTrainingPage(context, program);
-            } else if (_defaultProgram != null) {
-              DialogUtils.showConfirmationDialog(
-                context: context,
-                title: 'Device Connected',
-                message: 'Battery Level: ${state.deviceInfo?['batteryLevel']}%\n\nCurrent settings: ${state.sensitivity}\n\nContinue with default training program?',
-                confirmText: 'Continue',
-                cancelText: 'Cancel',
-              ).then((value) {
-                if (value) {
-                  _navigateToTrainingPage(context, _defaultProgram!);
-                }
-              });
-            } else {
-              ToastUtils.showError(context, message: 'Please create a program first');
-            }
-          } else if (state.error != null && !state.isConnecting) {
-            _showConnectionErrorDialog(context, state.error!);
+            setState(() {
+              _connectionCompleted = true;
+              _connectedDeviceName = state.connectedDeviceName;
+              _connectedDevice = state.connectedDevice;
+            });
           }
         },
         builder: (__, state) => ModernCustomDialog(
@@ -897,7 +315,7 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
     );
   }
 
-  void _showCalibrationDialog(BuildContext context, BluetoothDevice device, ProgramsModel? program) {
+  void _showCalibrationDialog(BluetoothDevice device) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -907,59 +325,385 @@ class _TrainingProgramsPageState extends State<TrainingProgramsPage> with Ticker
           await Future.delayed(const Duration(seconds: 6));
           context.read<BleScanBloc>().add(const MarkCalibrationComplete());
           Navigator.of(context).pop();
-          if (program != null) {
-            _navigateToTrainingPage(context, program);
-          } else if (_defaultProgram != null) {
-            DialogUtils.showConfirmationDialog(
-              context: context,
-              title: 'Calibration Complete',
-              message: 'Device is ready for training.',
-              confirmText: 'Start Training',
-              cancelText: 'Cancel',
-            ).then((value) {
-              if (value) {
-                _navigateToTrainingPage(context, _defaultProgram!);
-              }
-            });
-          }
+          setState(() {
+            _connectionCompleted = true;
+            _connectedDeviceName = device.platformName;
+            _connectedDevice = device;
+          });
         },
         onFactoryReset: () async {
           await context.read<TrainingSessionBloc>().bleRepository.factoryReset(device);
-          ToastUtils.showSuccess(context, message: 'Factory reset completed');
         },
       ),
     );
   }
 
-  void _showConnectionErrorDialog(BuildContext context, String error) {
+  void _showLoadoutDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
+      builder: (context) => Dialog(
         backgroundColor: AppTheme.surface(context),
-        title: Row(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, color: AppTheme.error(context)),
-            const SizedBox(width: 8),
-            Text('Connection Error', style: TextStyle(color: AppTheme.textPrimary(context))),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.border(context).withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Select Loadout',
+                      style: AppTheme.headingMedium(context),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.close,
+                      color: AppTheme.textPrimary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 400),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildLoadoutItem('Primary EDC', 'Glock 19 • Federal HST • 124gr'),
+                  _buildLoadoutItem('Competition Setup', 'CZ Shadow 2 • S&B 124gr • Red Dot'),
+                  _buildLoadoutItem('Practice Loadout', 'Glock 17 • Winchester • 115gr'),
+                ],
+              ),
+            ),
           ],
         ),
-        content: Text(error, style: TextStyle(color: AppTheme.textSecondary(context))),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.pop(context);
-            },
-            style: TextButton.styleFrom(foregroundColor: AppTheme.primary(context)),
-            child: const Text('OK'),
-          ),
-        ],
       ),
     );
   }
 
-  void _navigateToTrainingPage(BuildContext context, ProgramsModel program) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => SteadinessTrainerPage(program: program)));
+  Widget _buildLoadoutItem(String name, String details) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _loadoutCompleted = true;
+          _selectedLoadout = '$name • $details';
+        });
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.border(context).withValues(alpha: 0.1),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: AppTheme.titleMedium(context).copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              details,
+              style: AppTheme.bodySmall(context).copyWith(
+                color: AppTheme.textSecondary(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAlertsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.border(context).withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Alert Settings',
+                      style: AppTheme.headingMedium(context),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.close,
+                      color: AppTheme.textPrimary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Haptic Feedback',
+                    style: AppTheme.titleMedium(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _buildAlertOption('Off', 'haptic')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildAlertOption('Low', 'haptic')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildAlertOption('High', 'haptic')),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Audio Alerts',
+                    style: AppTheme.titleMedium(context).copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _buildAlertOption('Off', 'audio')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildAlertOption('Beep', 'audio')),
+                      const SizedBox(width: 8),
+                      Expanded(child: _buildAlertOption('Voice', 'audio')),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: AppTheme.surfaceVariant(context),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: AppTheme.button(context),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _alertsCompleted = true;
+                              _alertsSettings = 'Haptic: Low • Audio: Beep';
+                            });
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: AppTheme.primary(context),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Save Settings',
+                            style: AppTheme.button(context).copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlertOption(String label, String type) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceVariant(context),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: AppTheme.border(context).withValues(alpha: 0.1),
+        ),
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: AppTheme.bodyMedium(context).copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDrillDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.border(context).withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Select Drill',
+                      style: AppTheme.headingMedium(context),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.close,
+                      color: AppTheme.textPrimary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 400),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildDrillItem('Open Practice', 'No structure • Untimed'),
+                  _buildDrillItem('Bill Drill', '6 rounds @ 7yd • Par 2.5s'),
+                  _buildDrillItem('El Presidente', '12 rounds @ 10yd • Par 10s'),
+                  _buildDrillItem('Mozambique Drill', '3 rounds @ 7yd • Par 2.5s'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrillItem(String name, String details) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _drillCompleted = true;
+          _drillInfo = '$name • $details';
+        });
+        Navigator.pop(context);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceVariant(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.border(context).withValues(alpha: 0.1),
+            width: 2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: AppTheme.titleMedium(context).copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              details,
+              style: AppTheme.bodySmall(context).copyWith(
+                color: AppTheme.textSecondary(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _continueToPreview() {
+    final program = ProgramsModel(
+      programName: 'Custom Training Session',
+      noOfShots: 10,
+      trainingType: 'Live Fire',
+      difficultyLevel: 'Intermediate',
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SessionPreviewPage(
+          program: program,
+          connectedDevice: _connectedDevice!,
+          loadoutInfo: _selectedLoadout!,
+          alertsInfo: _alertsSettings,
+          drillInfo: _drillInfo,
+        ),
+      ),
+    );
   }
 }
