@@ -1,8 +1,8 @@
 // lib/user_dashboard/presentation/widgets/empty_state_widget.dart
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
-import 'common/armory_constants.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'armory_constants.dart';
 
 // ===== empty_state_widget.dart =====
 class EmptyStateWidget extends StatelessWidget {

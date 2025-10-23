@@ -13,11 +13,10 @@ import '../common/armory_constants.dart';
 import '../common/common_delete_dilogue.dart';
 import '../common/common_widgets.dart';
 import '../common/inline_form_wrapper.dart';
-import '../common/inline_form_wrapper.dart';
 import '../common/responsive_grid_widget.dart';
-import '../empty_state_widget.dart';
-import '../maintenance_item_card.dart';
-import '../tool_item_card.dart';
+import '../common/empty_state_widget.dart';
+import '../item_cards/maintenance_item_card.dart';
+import '../item_cards/tool_item_card.dart';
 
 class ToolsTabWidget extends StatefulWidget {
   final String userId;

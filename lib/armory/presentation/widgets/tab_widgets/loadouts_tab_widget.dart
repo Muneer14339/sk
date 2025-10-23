@@ -6,8 +6,9 @@ import '../common/common_delete_dilogue.dart';
 import '../common/common_widgets.dart';
 import '../common/form_wrapper_widget.dart';
 import '../common/responsive_grid_widget.dart';
-import '../empty_state_widget.dart';
-import '../loadout_item_card.dart';
+import '../common/empty_state_widget.dart';
+import '../item_cards/loadout_item_card.dart';
+
 
 class LoadoutsTabWidget extends StatelessWidget {
   final String userId;

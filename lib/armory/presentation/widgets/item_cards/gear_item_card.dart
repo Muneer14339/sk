@@ -1,25 +1,25 @@
-// lib/user_dashboard/presentation/widgets/firearm_item_card.dart
+// lib/user_dashboard/presentation/widgets/gear_item_card.dart
 import 'package:flutter/material.dart';
-import '../../domain/entities/armory_firearm.dart';
-import 'common/common_delete_dilogue.dart';
-import 'common/common_widgets.dart';
-import 'common/tappable_item_wrapper.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../domain/entities/armory_gear.dart';
+import '../common/armory_constants.dart';
+import '../common/common_delete_dilogue.dart';
+import '../common/common_widgets.dart';
+import '../common/tappable_item_wrapper.dart';
 
-import '../../../core/theme/app_theme.dart';
-import 'common/armory_constants.dart';
-
-class FirearmItemCard extends StatelessWidget {
-  final ArmoryFirearm firearm;
+// ===== gear_item_card.dart =====
+class GearItemCard extends StatelessWidget {
+  final ArmoryGear gear;
   final String userId;
 
-  const FirearmItemCard({super.key, required this.firearm, required this.userId});
+  const GearItemCard({super.key, required this.gear, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return TappableItemWrapper(
-      item: firearm,
+      item: gear,
       child: Container(
-        margin: ArmoryConstants.itemMargin,
+        margin: const EdgeInsets.symmetric(vertical: 4),
         padding: ArmoryConstants.itemPadding,
         decoration: BoxDecoration(
           color: AppTheme.surfaceVariant(context),
@@ -33,20 +33,22 @@ class FirearmItemCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${firearm.make} ${firearm.model}',
+                    gear.model,
                     style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
-                CommonWidgets.buildTag(context, firearm.caliber),
+                const SizedBox(width: ArmoryConstants.itemSpacing),
+                CommonWidgets.buildTag(context, gear.category),
                 GestureDetector(
                   onTap: () {
                     CommonDialogs.showDeleteDialog(
                       context: context,
                       userId: userId,
-                      armoryType: ArmoryTabType.firearms,
-                      itemName: '${firearm.make} ${firearm.model}',
-                      item: firearm,
+                      armoryType: ArmoryTabType.gear,
+                      itemName: gear.model,
+                      item: gear,
                     );
                   },
                   child: Container(
@@ -65,12 +67,15 @@ class FirearmItemCard extends StatelessWidget {
               spacing: 10,
               runSpacing: ArmoryConstants.smallSpacing,
               children: [
-                if (firearm.nickname.isNotEmpty)
+                if (gear.serial?.isNotEmpty == true)
                   Text(
-                    '"${firearm.nickname}"',
+                    'SN: ${gear.serial}',
                     style: AppTheme.labelMedium(context),
                   ),
-                CommonWidgets.buildStatusChip(context, firearm.status),
+                Text(
+                  'Qty: ${gear.quantity}',
+                  style: AppTheme.labelMedium(context),
+                ),
               ],
             ),
           ],

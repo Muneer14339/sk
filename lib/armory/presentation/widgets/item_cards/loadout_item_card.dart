@@ -1,13 +1,11 @@
 // lib/user_dashboard/presentation/widgets/loadout_item_card.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../domain/entities/armory_loadout.dart';
-import 'common/armory_constants.dart';
-import 'common/common_delete_dilogue.dart';
-import 'common/common_widgets.dart';
-import 'common/tappable_item_wrapper.dart';
-import '../bloc/armory_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../domain/entities/armory_loadout.dart';
+import '../common/armory_constants.dart';
+import '../common/common_delete_dilogue.dart';
+
+import '../common/tappable_item_wrapper.dart';
 
 // ===== loadout_item_card.dart =====
 class LoadoutItemCard extends StatelessWidget {

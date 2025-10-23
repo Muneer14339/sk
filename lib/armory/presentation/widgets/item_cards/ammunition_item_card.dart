@@ -1,25 +1,28 @@
-// lib/user_dashboard/presentation/widgets/tool_item_card.dart
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../domain/entities/armory_tool.dart';
-import 'common/armory_constants.dart';
-import 'common/common_delete_dilogue.dart';
-import 'common/common_widgets.dart';
-import 'common/tappable_item_wrapper.dart';
-import '../bloc/armory_bloc.dart';
+// ===== COMPLETE IMPLEMENTATION GUIDE =====
+// All files use AppTheme from core/theme/app_theme.dart
+// Import pattern: import '../../../../core/theme/app_theme.dart';
+// Import pattern: import 'common/armory_constants.dart';
 
-// ===== tool_item_card.dart =====
-class ToolItemCard extends StatelessWidget {
-  final ArmoryTool tool;
+// ===== ammunition_item_card.dart =====
+import 'package:flutter/material.dart';
+import '../../../domain/entities/armory_ammunition.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../common/common_delete_dilogue.dart';
+import '../common/common_widgets.dart';
+import '../common/item_details_dialog.dart';
+import '../common/tappable_item_wrapper.dart';
+import '../common/armory_constants.dart';
+
+class AmmunitionItemCard extends StatelessWidget {
+  final ArmoryAmmunition ammunition;
   final String userId;
 
-  const ToolItemCard({super.key, required this.tool, required this.userId});
+  const AmmunitionItemCard({super.key, required this.ammunition, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return TappableItemWrapper(
-      item: tool,
+      item: ammunition,
       child: Container(
         margin: ArmoryConstants.itemMargin,
         padding: ArmoryConstants.itemPadding,
@@ -35,19 +38,20 @@ class ToolItemCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    tool.name,
+                    '${ammunition.brand} ${ammunition.line ?? ''}',
                     style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                CommonWidgets.buildTag(context, ammunition.caliber),
                 GestureDetector(
                   onTap: () {
                     CommonDialogs.showDeleteDialog(
                       context: context,
                       userId: userId,
-                      armoryType: ArmoryTabType.tools,
-                      itemName: tool.name,
-                      item: tool,
+                      armoryType: ArmoryTabType.ammunition,
+                      itemName: '${ammunition.brand} ${ammunition.line ?? ''}',
+                      item: ammunition,
                     );
                   },
                   child: Container(
@@ -66,25 +70,16 @@ class ToolItemCard extends StatelessWidget {
               spacing: 10,
               runSpacing: ArmoryConstants.smallSpacing,
               children: [
-                Text(
-                  'Qty: ${tool.quantity}',
-                  style: AppTheme.labelMedium(context),
-                ),
-                if (tool.category?.isNotEmpty == true)
+                if (ammunition.lot?.isNotEmpty == true)
                   Text(
-                    'Category: ${tool.category}',
+                    'Lot: ${ammunition.lot}',
                     style: AppTheme.labelMedium(context),
                   ),
-                CommonWidgets.buildStatusChip(context, tool.status),
-                if (tool.notes?.isNotEmpty == true)
-                  Flexible(
-                    child: Text(
-                      tool.notes!,
-                      style: AppTheme.labelMedium(context),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    ),
-                  ),
+                Text(
+                  'Qty: ${ammunition.quantity} rds',
+                  style: AppTheme.labelMedium(context),
+                ),
+                CommonWidgets.buildStatusChip(context, ammunition.status),
               ],
             ),
           ],

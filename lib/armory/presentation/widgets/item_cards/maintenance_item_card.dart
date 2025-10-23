@@ -1,28 +1,25 @@
-// ===== COMPLETE IMPLEMENTATION GUIDE =====
-// All files use AppTheme from core/theme/app_theme.dart
-// Import pattern: import '../../../../core/theme/app_theme.dart';
-// Import pattern: import 'common/armory_constants.dart';
-
-// ===== ammunition_item_card.dart =====
+// lib/user_dashboard/presentation/widgets/maintenance_item_card.dart
 import 'package:flutter/material.dart';
-import '../../domain/entities/armory_ammunition.dart';
-import '../../../core/theme/app_theme.dart';
-import 'common/common_delete_dilogue.dart';
-import 'common/common_widgets.dart';
-import 'common/item_details_dialog.dart';
-import 'common/tappable_item_wrapper.dart';
-import 'common/armory_constants.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../domain/entities/armory_firearm.dart';
+import '../../../domain/entities/armory_maintenance.dart';
+import '../common/armory_constants.dart';
+import '../common/common_delete_dilogue.dart';
+import '../common/common_widgets.dart';
+import '../common/tappable_item_wrapper.dart';
 
-class AmmunitionItemCard extends StatelessWidget {
-  final ArmoryAmmunition ammunition;
+// ===== maintenance_item_card.dart =====
+class MaintenanceItemCard extends StatelessWidget {
+  final ArmoryMaintenance maintenance;
   final String userId;
 
-  const AmmunitionItemCard({super.key, required this.ammunition, required this.userId});
+  const MaintenanceItemCard({super.key, required this.maintenance, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return TappableItemWrapper(
-      item: ammunition,
+      item: maintenance,
       child: Container(
         margin: ArmoryConstants.itemMargin,
         padding: ArmoryConstants.itemPadding,
@@ -38,20 +35,20 @@ class AmmunitionItemCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${ammunition.brand} ${ammunition.line ?? ''}',
+                    maintenance.maintenanceType,
                     style: AppTheme.titleMedium(context),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                CommonWidgets.buildTag(context, ammunition.caliber),
+                CommonWidgets.buildTag(context, maintenance.assetType),
                 GestureDetector(
                   onTap: () {
                     CommonDialogs.showDeleteDialog(
                       context: context,
                       userId: userId,
-                      armoryType: ArmoryTabType.ammunition,
-                      itemName: '${ammunition.brand} ${ammunition.line ?? ''}',
-                      item: ammunition,
+                      armoryType: ArmoryTabType.maintenence,
+                      itemName: maintenance.maintenanceType,
+                      item: maintenance,
                     );
                   },
                   child: Container(
@@ -70,16 +67,24 @@ class AmmunitionItemCard extends StatelessWidget {
               spacing: 10,
               runSpacing: ArmoryConstants.smallSpacing,
               children: [
-                if (ammunition.lot?.isNotEmpty == true)
-                  Text(
-                    'Lot: ${ammunition.lot}',
-                    style: AppTheme.labelMedium(context),
-                  ),
                 Text(
-                  'Qty: ${ammunition.quantity} rds',
+                  '${maintenance.date.day}/${maintenance.date.month}/${maintenance.date.year}',
                   style: AppTheme.labelMedium(context),
                 ),
-                CommonWidgets.buildStatusChip(context, ammunition.status),
+                if (maintenance.roundsFired != null && maintenance.roundsFired! > 0)
+                  Text(
+                    'Rounds: ${maintenance.roundsFired}',
+                    style: AppTheme.labelMedium(context),
+                  ),
+                if (maintenance.notes?.isNotEmpty == true)
+                  Flexible(
+                    child: Text(
+                      maintenance.notes!,
+                      style: AppTheme.labelMedium(context),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  ),
               ],
             ),
           ],
