@@ -193,7 +193,7 @@ class TrainingSessionState extends Equatable {
 
     this.angleRangePresets = const {
       'Advanced': {
-        'name': 'Default',
+        'name': 'Advanced',
         'multiplier': 1.0,
         'description': 'Current sensitivity'
       },
@@ -471,7 +471,7 @@ class TrainingSessionState extends Equatable {
 
   Map<String, dynamic> get currentAngleRangePreset {
     return angleRangePresets[selectedAngleRange] ??
-        angleRangePresets['default']!;
+        angleRangePresets['Advanced']!;
   }
 
   double get visualRing5Deg {

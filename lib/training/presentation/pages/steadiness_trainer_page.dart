@@ -151,50 +151,50 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       finishSession: _finishSession,
                       onRecalibrate: sessionState.isSensorsEnabled ? _showRecalibrationDialog : null, // NEW
                     ),
-                    const SizedBox(height: 16),
-                    _buildDropdownSection(
-                      title: 'Training Distance',
-                      value: sessionState.selectedDistance,
-                      items: sessionState.distancePresets.entries
-                          .map(
-                            (entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(
-                                '${entry.value['name']}${entry.value['description']}',
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          context.read<TrainingSessionBloc>().add(
-                                UpdateDistancePreset(val),
-                              );
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDropdownSection(
-                      title: 'Angle Range to Outer Ring',
-                      value: sessionState.selectedAngleRange,
-                      items: sessionState.angleRangePresets.entries
-                          .map(
-                            (entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(
-                                '${entry.value['name']} - ${entry.value['description']}',
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          context.read<TrainingSessionBloc>().add(
-                                UpdateAngleRange(val),
-                              );
-                        }
-                      },
-                    ),
+                    // const SizedBox(height: 16),
+                    // _buildDropdownSection(
+                    //   title: 'Training Distance',
+                    //   value: sessionState.selectedDistance,
+                    //   items: sessionState.distancePresets.entries
+                    //       .map(
+                    //         (entry) => DropdownMenuItem(
+                    //           value: entry.key,
+                    //           child: Text(
+                    //             '${entry.value['name']}${entry.value['description']}',
+                    //           ),
+                    //         ),
+                    //       )
+                    //       .toList(),
+                    //   onChanged: (val) {
+                    //     if (val != null) {
+                    //       context.read<TrainingSessionBloc>().add(
+                    //             UpdateDistancePreset(val),
+                    //           );
+                    //     }
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    // _buildDropdownSection(
+                    //   title: 'Angle Range to Outer Ring',
+                    //   value: sessionState.selectedAngleRange,
+                    //   items: sessionState.angleRangePresets.entries
+                    //       .map(
+                    //         (entry) => DropdownMenuItem(
+                    //           value: entry.key,
+                    //           child: Text(
+                    //             '${entry.value['name']} - ${entry.value['description']}',
+                    //           ),
+                    //         ),
+                    //       )
+                    //       .toList(),
+                    //   onChanged: (val) {
+                    //     if (val != null) {
+                    //       context.read<TrainingSessionBloc>().add(
+                    //             UpdateAngleRange(val),
+                    //           );
+                    //     }
+                    //   },
+                    // ),
                     const SizedBox(height: 16),
                     _buildShotLog(sessionState),
                   ],
@@ -573,41 +573,41 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-  Widget _buildDropdownSection({
-    required String title,
-    required String value,
-    required List<DropdownMenuItem<String>> items,
-    required Function(String?) onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppTheme.background(context),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.surface(context).withOpacity(0.8)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              dropdownColor: AppTheme.surface(context),
-              style: TextStyle(color: AppTheme.textPrimary(context)),
-              items: items,
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildDropdownSection({
+  //   required String title,
+  //   required String value,
+  //   required List<DropdownMenuItem<String>> items,
+  //   required Function(String?) onChanged,
+  // }) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(
+  //         title,
+  //         style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
+  //       ),
+  //       const SizedBox(height: 8),
+  //       Container(
+  //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //         decoration: BoxDecoration(
+  //           color: AppTheme.background(context),
+  //           borderRadius: BorderRadius.circular(8),
+  //           border: Border.all(color: AppTheme.surface(context).withOpacity(0.8)),
+  //         ),
+  //         child: DropdownButtonHideUnderline(
+  //           child: DropdownButton<String>(
+  //             value: value,
+  //             isExpanded: true,
+  //             dropdownColor: AppTheme.surface(context),
+  //             style: TextStyle(color: AppTheme.textPrimary(context)),
+  //             items: items,
+  //             onChanged: onChanged,
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildShotLog(TrainingSessionState s) {
     return Container(
