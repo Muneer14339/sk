@@ -1,9 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_appbar.dart';
 import '../../data/model/programs_model.dart';
+import '../../../armory/presentation/bloc/armory_bloc.dart';
+import '../../../armory/presentation/bloc/armory_event.dart';
+import '../../../armory/presentation/bloc/armory_state.dart';
+import '../../../armory/domain/entities/armory_firearm.dart';
+import '../../../armory/domain/entities/armory_ammunition.dart';
 import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_event.dart';
 import 'steadiness_trainer_page.dart';
@@ -33,6 +39,19 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
   final _rangeNameController = TextEditingController();
   final _notesController = TextEditingController();
 
+  ArmoryFirearm? _firearm;
+  ArmoryAmmunition? _ammunition;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.program.weaponProfile != null) {
+      final userId = FirebaseAuth.instance.currentUser?.uid; // Replace with actual user ID
+      context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: userId!));
+      context.read<ArmoryBloc>().add(LoadAmmunitionEvent(userId: userId));
+    }
+  }
+
   @override
   void dispose() {
     _sessionNameController.dispose();
@@ -50,68 +69,207 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
         context: context,
         showBackButton: false,
       ),
-      body: SingleChildScrollView(
-        padding: AppTheme.paddingLarge,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSection(
-              'Session Information',
-              Column(
-                children: [
-                  _buildTextField(
-                    controller: _sessionNameController,
-                    label: 'Session Name',
-                    hint: 'e.g., Morning Practice - Bill Drill',
-                    isRequired: true,
-                  ),
-                  const SizedBox(height: AppTheme.spacingLarge),
-                  _buildTextField(
-                    controller: _rangeNameController,
-                    label: 'Range Name',
-                    hint: 'Select range',
-                    isRequired: true,
-                    readOnly: true,
-                    onTap: _showRangeDialog,
-                  ),
-                  const SizedBox(height: AppTheme.spacingLarge),
-                  _buildTextField(
-                    controller: _notesController,
-                    label: 'Session Notes (Optional)',
-                    hint: 'Add any notes about this session...',
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppTheme.spacingXXLarge),
-            _buildSection(
-              'Loadout Summary',
-              Container(
-                padding: AppTheme.paddingLarge,
-                decoration: AppTheme.inputDecoration(context),
-                child: Text(
-                  widget.program.weaponProfile!.name,
-                  style: AppTheme.bodyMedium(context)
-                      .copyWith(fontWeight: FontWeight.w600),
+      body: BlocListener<ArmoryBloc, ArmoryState>(
+        listener: (context, state) {
+          if (state is FirearmsLoaded) {
+            final firearmId = widget.program.weaponProfile?.firearmId;
+            if (firearmId != null) {
+              setState(() {
+                _firearm = state.firearms.firstWhere(
+                      (f) => f.id == firearmId,
+                  orElse: () => state.firearms.first,
+                );
+              });
+            }
+          } else if (state is AmmunitionLoaded) {
+            final ammoId = widget.program.weaponProfile?.ammunitionId;
+            if (ammoId != null) {
+              setState(() {
+                _ammunition = state.ammunition.firstWhere(
+                      (a) => a.id == ammoId,
+                  orElse: () => state.ammunition.first,
+                );
+              });
+            }
+          }
+        },
+        child: SingleChildScrollView(
+          padding: AppTheme.paddingLarge,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSection(
+                'Session Information',
+                Column(
+                  children: [
+                    _buildTextField(
+                      controller: _sessionNameController,
+                      label: 'Session Name',
+                      hint: 'e.g., Morning Practice - Bill Drill',
+                      isRequired: true,
+                    ),
+                    const SizedBox(height: AppTheme.spacingLarge),
+                    _buildTextField(
+                      controller: _rangeNameController,
+                      label: 'Range Name',
+                      hint: 'Select range',
+                      isRequired: true,
+                      readOnly: true,
+                      onTap: _showRangeDialog,
+                    ),
+                    const SizedBox(height: AppTheme.spacingLarge),
+                    _buildTextField(
+                      controller: _notesController,
+                      label: 'Session Notes (Optional)',
+                      hint: 'Add any notes about this session...',
+                      maxLines: 3,
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: AppTheme.spacingXXLarge),
-            _buildSection(
-              'Drill Summary',
-              Container(
-                padding: AppTheme.paddingLarge,
-                decoration: AppTheme.inputDecoration(context),
-                child: Text(
-                  widget.drillInfo,
-                  style: AppTheme.bodyMedium(context)
-                      .copyWith(fontWeight: FontWeight.w600),
+              const SizedBox(height: AppTheme.spacingXXLarge),
+              _buildSection(
+                'Loadout Summary',
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: AppTheme.paddingLarge,
+                          decoration: AppTheme.inputDecoration(context),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              double width = constraints.maxWidth;
+                              double titleSize = width * 0.06; // responsive title
+                              double mainTextSize = width * 0.07; // main info text
+                              double subTextSize = width * 0.05; // secondary text
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'FIREARM',
+                                      style: AppTheme.labelSmall(context).copyWith(
+                                        color: AppTheme.textSecondary(context),
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.5,
+                                        fontSize: titleSize,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _firearm != null
+                                          ? '${_firearm!.make} ${_firearm!.model}'
+                                          : widget.program.weaponProfile?.name ?? 'N/A',
+                                      style: AppTheme.bodyMedium(context).copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: mainTextSize,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _firearm != null
+                                          ? '${_firearm!.caliber} ${_firearm!.type}'
+                                          : 'Loading...',
+                                      style: AppTheme.labelMedium(context).copyWith(
+                                        color: AppTheme.textSecondary(context),
+                                        fontSize: subTextSize,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          padding: AppTheme.paddingLarge,
+                          decoration: AppTheme.inputDecoration(context),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              double width = constraints.maxWidth;
+                              double titleSize = width * 0.06;
+                              double mainTextSize = width * 0.07;
+                              double subTextSize = width * 0.05;
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      'AMMUNITION',
+                                      style: AppTheme.labelSmall(context).copyWith(
+                                        color: AppTheme.textSecondary(context),
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.5,
+                                        fontSize: titleSize,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _ammunition != null
+                                          ? '${_ammunition!.brand} ${_ammunition!.line ?? ''}'.trim()
+                                          : 'N/A',
+                                      style: AppTheme.bodyMedium(context).copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: mainTextSize,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _ammunition != null
+                                          ? '${_ammunition!.bullet}'
+                                          : 'Loading...',
+                                      style: AppTheme.labelMedium(context).copyWith(
+                                        color: AppTheme.textSecondary(context),
+                                        fontSize: subTextSize,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+
+              ),
+              const SizedBox(height: AppTheme.spacingXXLarge),
+              _buildSection(
+                'Drill Summary',
+                Container(
+                  width: double.maxFinite,
+                  padding: AppTheme.paddingLarge,
+                  decoration: AppTheme.inputDecoration(context),
+                  child: Text(
+                    widget.drillInfo,
+                    style: AppTheme.bodyMedium(context)
+                        .copyWith(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 120),
-          ],
+              const SizedBox(height: 120),
+            ],
+          ),
         ),
       ),
       bottomSheet: Container(

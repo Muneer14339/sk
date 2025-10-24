@@ -1,4 +1,6 @@
 // lib/features/training/presentation/pages/steadiness_trainer_page.dart
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -68,7 +70,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                 MaterialPageRoute(
                   builder: (_) => SettingViewPage(
                     sensPerms:
-                        sensPerms?.split('/') ?? ['5', '3', '3', '3', '3', '3'],
+                    sensPerms?.split('/') ?? ['5', '3', '3', '3', '3', '3'],
                   ),
                 ),
               );
@@ -151,6 +153,10 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       finishSession: _finishSession,
                       onRecalibrate: sessionState.isSensorsEnabled ? _showRecalibrationDialog : null, // NEW
                     ),
+                    const SizedBox(height: 16),
+
+                    buildRealtimeStability(sessionState, context),
+
                     // const SizedBox(height: 16),
                     // _buildDropdownSection(
                     //   title: 'Training Distance',
@@ -333,12 +339,12 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     // }
     if (sessionState.shotCount > 0) {
       context.read<TrainingSessionBloc>().add(
-            const PauseTrainingSession(),
-          ); // NEW
+        const PauseTrainingSession(),
+      ); // NEW
     } else {
       context.read<TrainingSessionBloc>().add(
-            const StopTrainingSession(),
-          ); // NEW
+        const StopTrainingSession(),
+      ); // NEW
     }
   }
 
@@ -358,8 +364,8 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     final bleState = context.read<BleScanBloc>().state;
     if (bleState.connectedDevice != null) {
       context.read<TrainingSessionBloc>().add(
-            DisableSensors(device: bleState.connectedDevice!),
-          );
+        DisableSensors(device: bleState.connectedDevice!),
+      );
     }
     context.read<TrainingSessionBloc>().add(const StopTrainingSession());
   }
@@ -373,13 +379,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       context,
       MaterialPageRoute(
         builder: (_) =>
-            const SessionSummaryPage(), // Changed from ManticXAnalysisPage
+        const SessionSummaryPage(), // Changed from ManticXAnalysisPage
       ),
     );
   }
 
   Widget _buildProgramHeader(String title, String desc) {
     return Container(
+      width: double.maxFinite,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -538,11 +545,11 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
 
 
   Widget _buildMetric(
-    String label,
-    String value,
-    IconData icon, {
-    Color? color,
-  }) {
+      String label,
+      String value,
+      IconData icon, {
+        Color? color,
+      }) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(8),
@@ -572,6 +579,117 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       ),
     );
   }
+
+  // ✅ UPDATED: buildRealtimeStability - Professional Distance-Based Calculation
+  Widget buildRealtimeStability(TrainingSessionState sessionState, BuildContext context) {
+    // Calculate distance from center (200, 200)
+    final double centerX = 200.0;
+    final double centerY = 200.0;
+    final double currentX = sessionState.lastDrawX;
+    final double currentY = sessionState.lastDrawY;
+
+    final double distanceFromCenter = math.sqrt(
+        math.pow(currentX - centerX, 2) + math.pow(currentY - centerY, 2)
+    );
+
+    // Get ring 10 (innermost/center) radius
+    final double ring10Radius = sessionState.ringRadii[10] ?? 0.0;
+
+    // Get ring 5 (outermost visible) radius
+    final double ring5Radius = sessionState.ringRadii[5] ?? 190.0;
+
+    // ✅ PROFESSIONAL CALCULATION: Stability based on distance from center
+    int stabilityPercent;
+    Color stabColor;
+
+    if (distanceFromCenter <= ring10Radius) {
+      // ✅ Inside ring 10 (center) = 100% stability
+      stabilityPercent = 100;
+      stabColor = AppTheme.success(context);
+    } else if (distanceFromCenter > ring5Radius) {
+      // ✅ Outside ring 5 (outer boundary) = 0% stability
+      stabilityPercent = 0;
+      stabColor = AppTheme.error(context);
+    } else {
+      // ✅ Between ring 10 and ring 5: Linear interpolation
+      // Formula: stability = 100 - (distance_ratio * 100)
+      // where distance_ratio = (current_distance - ring10_radius) / (ring5_radius - ring10_radius)
+
+      final double distanceRatio = (distanceFromCenter - ring10Radius) / (ring5Radius - ring10Radius);
+      stabilityPercent = (100 - (distanceRatio * 100)).round().clamp(0, 100);
+
+      // Dynamic color based on stability
+      if (stabilityPercent >= 80) {
+        stabColor = AppTheme.success(context);
+      } else if (stabilityPercent >= 50) {
+        stabColor = const Color(0xFFFF9800); // Orange
+      } else {
+        stabColor = AppTheme.error(context);
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context).withOpacity(0.22),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: stabColor.withOpacity(0.4), width: 2),
+      ),
+      child: Row(
+        children: [
+          Text(
+              "Stability",
+              style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary(context),
+                  fontSize: 16
+              )
+          ),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Container(
+              height: 13,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.09),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: stabilityPercent / 100.0,
+                  child: Container(
+                    height: 13,
+                    decoration: BoxDecoration(
+                      color: stabColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Text(
+              "$stabilityPercent%",
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: stabColor,
+                  fontSize: 17
+              )
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  double calculateCurrentLinearWobble(TrainingSessionState state) {
+    final preset = state.currentDistancePreset;
+    final distance = preset['distance'] as double;
+    return distance * state.thetaInstDeg * math.pi / 180;
+  }
+
 
   // Widget _buildDropdownSection({
   //   required String title,
@@ -608,7 +726,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
   //     ],
   //   );
   // }
-
   Widget _buildShotLog(TrainingSessionState s) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -616,7 +733,9 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.background(context).withOpacity(0.8)),
+        border: Border.all(
+          color: AppTheme.background(context).withOpacity(0.8),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -638,98 +757,80 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           else
             Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "Time",
-                        style: TextStyle(
-                          color: AppTheme.textSecondary(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        "θ (deg)",
-                        style: TextStyle(
-                          color: AppTheme.textSecondary(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        "Score",
-                        style: TextStyle(
-                          color: AppTheme.textSecondary(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
+                // ===== Table Header =====
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final headerFontSize = constraints.maxWidth * 0.035;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildHeaderCell(context, "Time", flex: 2, fontSize: headerFontSize),
+                        _buildHeaderCell(context, "θ (deg)", flex: 2, fontSize: headerFontSize),
+                        _buildHeaderCell(context, "Score", flex: 1, fontSize: headerFontSize),
+                        _buildHeaderCell(context, "Stability", flex: 1, fontSize: headerFontSize),
+                      ],
+                    );
+                  },
                 ),
+
                 const SizedBox(height: 8),
+
+                // ===== Table Data Rows =====
                 ...s.shotLog.take(10).map((shot) {
                   final time = shot['time'] as DateTime;
                   final theta = shot['theta'] as double;
                   final score = shot['score'] as int;
+                  final stability = shot['stability'] as int? ?? 0;
+
                   return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                          color: AppTheme.background(context).withValues(alpha: 0.8),
+                          color: AppTheme.background(context).withOpacity(0.8),
                         ),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}",
-                            style: TextStyle(
-                              color: AppTheme.textPrimary(context),
-                              fontSize: 13,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final fontSize = constraints.maxWidth * 0.035;
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildDataCell(
+                              context,
+                              "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}",
+                              flex: 2,
+                              fontSize: fontSize,
+                              textColor: AppTheme.textPrimary(context),
                             ),
-                          ),
-                        ),
-                        Expanded(
-                            flex: 2,
-                            child: Text(
-                                theta.isNaN
-                                    ? '—'
-                                    : "${theta.toStringAsFixed(2)}°",
-                                style: TextStyle(
-                                    color: AppTheme.textPrimary(context),
-                                    fontSize: 13))),
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                            _buildDataCell(
+                              context,
+                              theta.isNaN ? '—' : "${theta.toStringAsFixed(2)}°",
+                              flex: 2,
+                              fontSize: fontSize,
+                              textColor: AppTheme.textPrimary(context),
                             ),
-                            decoration: BoxDecoration(
-                              color: _getScoreColor(score).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
+                            _buildBadgeCell(
+                              context,
                               score.toString(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _getScoreColor(score),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                              _getScoreColor(score),
+                              fontSize,
                             ),
-                          ),
-                        ),
-                      ],
+                            _buildBadgeCell(
+                              context,
+                              "$stability%",
+                              stability >= 80
+                                  ? AppTheme.success(context)
+                                  : stability >= 50
+                                  ? const Color(0xFFFFA726)
+                                  : AppTheme.error(context),
+                              fontSize,
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   );
                 }),
@@ -739,6 +840,75 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       ),
     );
   }
+
+  Widget _buildHeaderCell(BuildContext context, String text,
+      {int flex = 1, double fontSize = 14}) {
+    return Expanded(
+      flex: flex,
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: AppTheme.textSecondary(context),
+              fontWeight: FontWeight.w600,
+              fontSize: fontSize,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataCell(BuildContext context, String text,
+      {int flex = 1, required double fontSize, required Color textColor}) {
+    return Expanded(
+      flex: flex,
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadgeCell(BuildContext context, String text, Color color, double fontSize) {
+    return Expanded(
+      flex: 1,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.bold,
+                fontSize: fontSize,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
 
   String _formatDuration(Duration d) =>
       "${d.inMinutes.remainder(60).toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}";

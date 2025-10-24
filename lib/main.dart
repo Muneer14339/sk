@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'armory/presentation/bloc/armory_bloc.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_event.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_state.dart';
@@ -29,6 +30,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
+        BlocProvider<ArmoryBloc>(create: (_) => sl<ArmoryBloc>()),
         BlocProvider(
           create: (context) => BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()),
         ),
@@ -38,6 +41,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => TrainingSessionBloc(bleRepository: sl()),
         ),
+
       ],
       child: MaterialApp(
         title: 'PulseSkadi',

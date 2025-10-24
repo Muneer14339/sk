@@ -750,11 +750,26 @@ class TrainingSessionBloc
     }
 
     final updatedShotLog = List<Map<String, dynamic>>.from(state.shotLog);
+    final double ring10Radius = state.ringRadii[10] ?? 0.0;
+    final double ring5Radius = state.ringRadii[5] ?? 190.0;
+
+// Stability Calculation
+    int stabilityPercent;
+    if (distanceFromCenter <= ring10Radius) {
+      stabilityPercent = 100;
+    } else if (distanceFromCenter > ring5Radius) {
+      stabilityPercent = 0;
+    } else {
+      final double ratio = (distanceFromCenter - ring10Radius) / (ring5Radius - ring10Radius);
+      stabilityPercent = (100 - ratio * 100).clamp(0, 100).round();
+    }
     updatedShotLog.insert(0, {
       'time': event.timestamp,
       'theta': thetaDot,
       'score': score,
+      'stability': stabilityPercent, // ✅ NEW FIELD
     });
+
 
     final newShotCount = state.shotCount + 1;
 
@@ -918,7 +933,8 @@ class TrainingSessionBloc
         'preShotPackets': preShotCount,
         'shotPackets': shotCount,
         'postShotPackets': postShotCount,
-        'totalTracelinePackets': completeTraceline.length
+        'totalTracelinePackets': completeTraceline.length,
+        "stability": state.shotLog.first["stability"]?? 0
       },
       analysisNotes:
       'Complete traceline: $preShotCount pre-shot + $shotCount shot + $postShotCount post-shot packets',

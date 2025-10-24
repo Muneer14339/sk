@@ -19,13 +19,7 @@ class MainAppPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<AuthBloc>(create: (_) => sl<AuthBloc>()),
-        BlocProvider<ArmoryBloc>(create: (_) => sl<ArmoryBloc>()),
-      ],
-      child: const MainAppView(),
-    );
+    return const MainAppView();
   }
 }
 
