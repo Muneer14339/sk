@@ -40,7 +40,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
 
   // Drill settings
   String _drillName = 'Open Practice';
-  String _sensitivity = 'Beginner';
+  String _sensitivity = 'Advanced';
   String _distance = '7';
   String _time = '10';
   String _environment = 'Indoor';
@@ -55,7 +55,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
   final shotCountController = TextEditingController(text: '10');
   final notesController = TextEditingController();
   String tempFireType = 'Dry Fire';
-  String tempSensitivity = 'Beginner';
+  String tempSensitivity = 'Advanced';
   String tempDistance = '7';
   String tempTime = '10';
   String tempEnvironment = 'Indoor';

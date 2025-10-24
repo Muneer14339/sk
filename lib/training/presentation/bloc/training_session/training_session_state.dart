@@ -192,7 +192,7 @@ class TrainingSessionState extends Equatable {
     },
 
     this.angleRangePresets = const {
-      'default': {
+      'Advanced': {
         'name': 'Default',
         'multiplier': 1.0,
         'description': 'Current sensitivity'
@@ -207,12 +207,12 @@ class TrainingSessionState extends Equatable {
         'multiplier': 8.0,
         'description': 'Low sensitivity'
       },
-      '45deg': {
+      'Intermediate': {
         'name': '45 Degrees',
         'multiplier': 18.0,
         'description': 'Much less sensitive'
       },
-      '90deg': {
+      'Beginner': {
         'name': '90 Degrees',
         'multiplier': 36.0,
         'description': 'Least sensitive'

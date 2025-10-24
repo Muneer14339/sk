@@ -2,6 +2,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_event.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_state.dart';
@@ -16,6 +17,7 @@ import 'user_dashboard/pages/main_app_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FlutterBluePlus.setLogLevel(LogLevel.none);
   await di.init();
   runApp(const MyApp());
 }

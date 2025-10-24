@@ -41,6 +41,13 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     context.read<TrainingSessionBloc>().add(ClearLastSession(device: device!));
     context.read<TrainingSessionBloc>().add(const InitializeRingSystem());
     context.read<TrainingSessionBloc>().add(const RecomputeScoreRadii('nov'));
+    context.read<TrainingSessionBloc>().add(
+      UpdateDistancePreset(widget.program.recommenedDistance!),
+    );
+    context.read<TrainingSessionBloc>().add(
+      UpdateAngleRange(widget.program.difficultyLevel!),
+    );
+
   }
 
   @override

@@ -257,10 +257,6 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
       programDescription: _notesController.text,
     );
 
-    context.read<TrainingSessionBloc>().add(
-      EnableSensors(device: widget.connectedDevice),
-    );
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
