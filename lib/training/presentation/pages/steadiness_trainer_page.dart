@@ -44,10 +44,10 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     context.read<TrainingSessionBloc>().add(const InitializeRingSystem());
     context.read<TrainingSessionBloc>().add(const RecomputeScoreRadii('nov'));
     context.read<TrainingSessionBloc>().add(
-      UpdateDistancePreset(widget.program.recommenedDistance!),
+      UpdateDistancePreset(widget.program.drill!.distanceYards),
     );
     context.read<TrainingSessionBloc>().add(
-      UpdateAngleRange(widget.program.difficultyLevel!),
+      UpdateAngleRange(widget.program.drill!.sensitivity),
     );
 
   }
@@ -444,7 +444,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
             children: [
               _buildMetric(
                 "Shots",
-                "${s.shotCount}/${p.noOfShots}",
+                "${s.shotCount}/${p.drill!.plannedRounds}",
                 Icons.gps_fixed,
               ),
               const SizedBox(width: 8),
@@ -690,42 +690,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     return distance * state.thetaInstDeg * math.pi / 180;
   }
 
-
-  // Widget _buildDropdownSection({
-  //   required String title,
-  //   required String value,
-  //   required List<DropdownMenuItem<String>> items,
-  //   required Function(String?) onChanged,
-  // }) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Text(
-  //         title,
-  //         style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
-  //       ),
-  //       const SizedBox(height: 8),
-  //       Container(
-  //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-  //         decoration: BoxDecoration(
-  //           color: AppTheme.background(context),
-  //           borderRadius: BorderRadius.circular(8),
-  //           border: Border.all(color: AppTheme.surface(context).withOpacity(0.8)),
-  //         ),
-  //         child: DropdownButtonHideUnderline(
-  //           child: DropdownButton<String>(
-  //             value: value,
-  //             isExpanded: true,
-  //             dropdownColor: AppTheme.surface(context),
-  //             style: TextStyle(color: AppTheme.textPrimary(context)),
-  //             items: items,
-  //             onChanged: onChanged,
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
   Widget _buildShotLog(TrainingSessionState s) {
     return Container(
       padding: const EdgeInsets.all(16),

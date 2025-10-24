@@ -45,7 +45,7 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.program.weaponProfile != null) {
+    if (widget.program.loadout != null) {
       final userId = FirebaseAuth.instance.currentUser?.uid; // Replace with actual user ID
       context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: userId!));
       context.read<ArmoryBloc>().add(LoadAmmunitionEvent(userId: userId));
@@ -72,7 +72,7 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
       body: BlocListener<ArmoryBloc, ArmoryState>(
         listener: (context, state) {
           if (state is FirearmsLoaded) {
-            final firearmId = widget.program.weaponProfile?.firearmId;
+            final firearmId = widget.program.loadout?.firearmId;
             if (firearmId != null) {
               setState(() {
                 _firearm = state.firearms.firstWhere(
@@ -82,7 +82,7 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
               });
             }
           } else if (state is AmmunitionLoaded) {
-            final ammoId = widget.program.weaponProfile?.ammunitionId;
+            final ammoId = widget.program.loadout?.ammunitionId;
             if (ammoId != null) {
               setState(() {
                 _ammunition = state.ammunition.firstWhere(
@@ -164,7 +164,7 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
                                     child: Text(
                                       _firearm != null
                                           ? '${_firearm!.make} ${_firearm!.model}'
-                                          : widget.program.weaponProfile?.name ?? 'N/A',
+                                          : widget.program.loadout?.name ?? 'N/A',
                                       style: AppTheme.bodyMedium(context).copyWith(
                                         fontWeight: FontWeight.w700,
                                         fontSize: mainTextSize,

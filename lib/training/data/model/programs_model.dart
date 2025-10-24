@@ -1,43 +1,44 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../armory/domain/entities/armory_loadout.dart';
+import 'drill_model.dart';
 
 class ProgramsModel {
   final String? programName;
   final String? programDescription;
   final String? modeName;
-  final String? trainingType;
   final String? focusArea;
-  final String? difficultyLevel;
-  final int? noOfShots;
   final String? timePressure;
-  final ArmoryLoadout? weaponProfile;
-  final String? recommenedDistance;
+  final ArmoryLoadout? loadout;
+
+  // ✅ moved OUT of ProgramsModel: trainingType, difficultyLevel, noOfShots,
+  //    timeLimit, recommenedDistance → now inside DrillModel
+  //    Keep program-level success/metrics separate from drill.
+
   final String? successThreshold;
   final String? successCriteria;
-  final String? timeLimit;
   final List<PerformanceMetrics>? performanceMetrics;
+
   final String? type;
   final String? badge;
   final String? badgeColor;
+
+  /// NEW: nested drill object
+  final DrillModel? drill;
 
   ProgramsModel({
     this.programName,
     this.programDescription,
     this.modeName,
-    this.trainingType,
     this.focusArea,
-    this.difficultyLevel,
-    this.noOfShots,
     this.timePressure,
-    this.weaponProfile,
-    this.recommenedDistance,
+    this.loadout,
     this.successThreshold,
     this.successCriteria,
-    this.timeLimit,
     this.performanceMetrics,
     this.type,
     this.badge,
     this.badgeColor,
+    this.drill,
   });
 
   Map<String, dynamic> toMap() {
@@ -45,21 +46,16 @@ class ProgramsModel {
       'programName': programName,
       'programDescription': programDescription,
       'modeName': modeName,
-      'trainingType': trainingType,
       'focusArea': focusArea,
-      'difficultyLevel': difficultyLevel,
-      'noOfShots': noOfShots,
       'timePressure': timePressure,
-      'weaponProfileId': weaponProfile?.id,
-      'recommenedDistance': recommenedDistance,
+      'weaponProfileId': loadout?.id,
       'successThreshold': successThreshold,
       'successCriteria': successCriteria,
-      'timeLimit': timeLimit,
-      'performanceMetrics':
-      performanceMetrics?.map((e) => e.toMap()).toList(),
+      'performanceMetrics': performanceMetrics?.map((e) => e.toMap()).toList(),
       'type': type,
       'badge': badge,
       'badgeColor': badgeColor,
+      'drill': drill?.toMap(), // ✅ nested
     };
   }
 
@@ -67,39 +63,31 @@ class ProgramsModel {
     String? programName,
     String? programDescription,
     String? modeName,
-    String? trainingType,
     String? focusArea,
-    String? difficultyLevel,
-    int? noOfShots,
     String? timePressure,
-    ArmoryLoadout? weaponProfile,
-    String? recommenedDistance,
+    ArmoryLoadout? loadout,
     String? successThreshold,
     String? successCriteria,
-    String? timeLimit,
     List<PerformanceMetrics>? performanceMetrics,
     String? type,
     String? badge,
     String? badgeColor,
+    DrillModel? drill,
   }) {
     return ProgramsModel(
       programName: programName ?? this.programName,
       programDescription: programDescription ?? this.programDescription,
       modeName: modeName ?? this.modeName,
-      trainingType: trainingType ?? this.trainingType,
       focusArea: focusArea ?? this.focusArea,
-      difficultyLevel: difficultyLevel ?? this.difficultyLevel,
-      noOfShots: noOfShots ?? this.noOfShots,
       timePressure: timePressure ?? this.timePressure,
-      weaponProfile: weaponProfile ?? this.weaponProfile,
-      recommenedDistance: recommenedDistance ?? this.recommenedDistance,
+      loadout: loadout ?? this.loadout,
       successThreshold: successThreshold ?? this.successThreshold,
       successCriteria: successCriteria ?? this.successCriteria,
-      timeLimit: timeLimit ?? this.timeLimit,
       performanceMetrics: performanceMetrics ?? this.performanceMetrics,
       type: type ?? this.type,
       badge: badge ?? this.badge,
       badgeColor: badgeColor ?? this.badgeColor,
+      drill: drill ?? this.drill,
     );
   }
 }
@@ -109,25 +97,13 @@ class PerformanceMetrics {
   final String? target;
   final String? unit;
 
-  PerformanceMetrics({
-    this.stability,
-    this.target,
-    this.unit,
-  });
+  PerformanceMetrics({this.stability, this.target, this.unit});
 
   Map<String, dynamic> toMap() {
-    return {
-      'stability': stability,
-      'target': target,
-      'unit': unit,
-    };
+    return {'stability': stability, 'target': target, 'unit': unit};
   }
 
-  PerformanceMetrics copyWith({
-    String? stability,
-    String? target,
-    String? unit,
-  }) {
+  PerformanceMetrics copyWith({String? stability, String? target, String? unit}) {
     return PerformanceMetrics(
       stability: stability ?? this.stability,
       target: target ?? this.target,

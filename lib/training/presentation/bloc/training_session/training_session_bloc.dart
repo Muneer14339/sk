@@ -330,7 +330,7 @@ class TrainingSessionBloc
     ));
 
     // Rest of existing code...
-    final targetShotCount = state.program?.noOfShots?.toInt() ?? 5;
+    final targetShotCount = state.program?.drill!.plannedRounds!.toInt() ?? 5;
     final totalShots = state.shotCount + newMissedCount;
 
     if (totalShots >= targetShotCount) {
@@ -792,7 +792,7 @@ class TrainingSessionBloc
     HapticFeedback.mediumImpact();
 
     final totalShots = newShotCount + state.missedShotCount;
-    if (totalShots >= (state.program?.noOfShots?.toInt() ?? 5)) {
+    if (totalShots >= (state.program?.drill!.plannedRounds!.toInt() ?? 5)) {
       emit(state.copyWith(waitingForLastShotTrace: true));
     }
   }
@@ -1387,7 +1387,7 @@ class TrainingSessionBloc
   {
     if (!state.waitingForLastShotTrace) return;
 
-    final targetShotCount = state.program?.noOfShots ?? 5;
+    final targetShotCount = state.program?.drill!.plannedRounds!.toInt() ?? 5;
     final totalShots = state.shotCount + state.missedShotCount;
     bool hasCompletedSession = totalShots >= targetShotCount;
 
