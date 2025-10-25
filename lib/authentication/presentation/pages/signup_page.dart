@@ -97,7 +97,7 @@ class _SignupFormState extends State<SignupForm> {
           Text('Create Account', style: AppTheme.headingMedium(context)),
           const SizedBox(height: 4),
           Text(
-            'Join PulseAim today',
+            'Join PulseSkadi today',
             style: AppTheme.labelMedium(context),
           ),
         ],

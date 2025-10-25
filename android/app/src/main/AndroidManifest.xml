@@ -22,7 +22,7 @@
 
 
     <application
-        android:label="pa_sreens"
+        android:label="PulseSkadi"
         android:requestLegacyExternalStorage="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">

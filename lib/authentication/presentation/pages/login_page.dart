@@ -95,7 +95,7 @@ class _LoginFormState extends State<LoginForm> {
           Text('Welcome Back', style: AppTheme.headingMedium(context)),
           const SizedBox(height: 4),
           Text(
-            'Sign in to continue to PulseAim',
+            'Sign in to continue to PulseSkadi',
             style: AppTheme.labelMedium(context),
           ),
         ],
