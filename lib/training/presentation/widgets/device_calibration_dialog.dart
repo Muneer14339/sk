@@ -1,8 +1,8 @@
-// lib/features/training/presentation/widgets/device_calibration_dialog.dart
+// lib/training/presentation/widgets/device_calibration_dialog.dart
 import 'package:flutter/material.dart';
-
 import '../../../core/theme/app_theme.dart';
-
+import 'common/training_dialog.dart';
+import 'common/training_button.dart';
 
 class DeviceCalibrationDialog extends StatefulWidget {
   final VoidCallback onStartCalibration;
@@ -20,162 +20,92 @@ class DeviceCalibrationDialog extends StatefulWidget {
 
 class _DeviceCalibrationDialogState extends State<DeviceCalibrationDialog> {
   bool _isCalibrating = false;
-  bool _showHelp = false;
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Container(
-        width: double.infinity,
-        constraints: BoxConstraints(
-          maxWidth: 560,
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0E141B),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF283142)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
+    return TrainingDialog(
+      title: 'Sensor calibration required',
+      showCloseButton: false,
+      content: SingleChildScrollView(
+        padding: AppTheme.paddingLarge,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== Header =====
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0B1117),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-                border: Border(bottom: BorderSide(color: Color(0xFF283142))),
-              ),
-              child: const Text(
-                "Sensor calibration required",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
+            Text(
+              'Please mount the device in its actual shooting position — on your firearm, bipod, or tripod — exactly as you plan to use it.',
+              style: AppTheme.bodyMedium(context),
             ),
-
-            // ===== Scrollable Content =====
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Please mount the device in its actual shooting position — on your firearm, bipod, or tripod — exactly as you plan to use it.',
-                      style: TextStyle(color: Colors.white.withOpacity(0.95), fontSize: 14, height: 1.4),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Once mounted, ensure the setup is completely still on a stable surface.',
-                      style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildBullet('Do not touch or move the firearm or device during calibration.'),
-                    _buildBullet('Calibration captures mounting angle and sensor bias.'),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Calibration takes about 3–5 seconds.',
-                      style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
-                    ),
-                    const SizedBox(height: 18),
-
-                    // ===== Optional Help Panel =====
-                    if (_showHelp) _buildHelpPanel(),
-
-                    // ===== "More tips" section =====
-                    Theme(
-                      data: ThemeData().copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        tilePadding: EdgeInsets.zero,
-                        iconColor: AppTheme.primary(context),
-                        collapsedIconColor: Colors.white70,
-                        title: const Text(
-                          'More tips',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
-                        ),
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF121822),
-                              border: Border.all(color: const Color(0xFF283142)),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  'Quick guide',
-                                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                                ),
-                                SizedBox(height: 8),
-                                _TipText('• Calibrate once per connection. Recalibrate if the device disconnects, is power-cycled, or you remount/move it.'),
-                                _TipText('• Orientation doesn’t need to be upright — calibrate in the actual mounted orientation.'),
-                                _TipText('• Temperature or long idle can introduce drift; recalibrate if readings feel off.'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const SizedBox(height: AppTheme.spacingMedium),
+            Text(
+              'Once mounted, ensure the setup is completely still on a stable surface.',
+              style: AppTheme.bodyMedium(context).copyWith(fontWeight: FontWeight.w600),
             ),
-
-            // ===== Footer Buttons =====
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0B1117),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
-                border: Border(top: BorderSide(color: Color(0xFF283142))),
-              ),
-              child: Row(
+            const SizedBox(height: AppTheme.spacingLarge),
+            _buildBullet('Do not touch or move the firearm or device during calibration.'),
+            _buildBullet('Calibration captures mounting angle and sensor bias.'),
+            const SizedBox(height: AppTheme.spacingMedium),
+            Text(
+              'Calibration takes about 3–5 seconds.',
+              style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context)),
+            ),
+            const SizedBox(height: AppTheme.spacingLarge),
+            Theme(
+              data: ThemeData().copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                iconColor: AppTheme.primary(context),
+                collapsedIconColor: AppTheme.textSecondary(context),
+                title: Text('More tips', style: AppTheme.titleMedium(context)),
                 children: [
-                  TextButton(
-                    onPressed: _isCalibrating ? null : widget.onFactoryReset,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  Container(
+                    padding: AppTheme.paddingLarge,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariant(context),
+                      border: Border.all(color: AppTheme.border(context)),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     ),
-                    child: const Text('Factory Reset'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Quick guide', style: AppTheme.titleSmall(context)),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        _TipText('• Calibrate once per connection. Recalibrate if the device disconnects, is power-cycled, or you remount/move it.'),
+                        _TipText("• Orientation doesn't need to be upright — calibrate in the actual mounted orientation."),
+                            _TipText('• Temperature or long idle can introduce drift; recalibrate if readings feel off.'),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: _isCalibrating
-                        ? null
-                        : () {
-                      setState(() => _isCalibrating = true);
-                      widget.onStartCalibration();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary(context),
-                      foregroundColor: const Color(0xFF001524),
-                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingLarge),
+            Theme(
+              data: ThemeData().copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                iconColor: AppTheme.primary(context),
+                collapsedIconColor: AppTheme.textSecondary(context),
+                title: Text('If calibration fails', style: AppTheme.titleMedium(context)),
+                children: [
+                  Container(
+                    padding: AppTheme.paddingLarge,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceVariant(context),
+                      border: Border.all(color: AppTheme.border(context)),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                     ),
-                    child: _isCalibrating
-                        ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.white)),
-                    )
-                        : const Text('Start calibration', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        _TipText('1. Retry while keeping firearm perfectly still.'),
+                        _TipText('2. Use solid table/bench; avoid soft mats.'),
+                        _TipText('3. Tighten clamps; eliminate micro-movement.'),
+                        _TipText('4. Move away from metal, magnets, motors.'),
+                        _TipText('5. Power off device for 5s, reconnect, retry.'),
+                        SizedBox(height: AppTheme.spacingSmall),
+                        _TipText('Restarting the phone is rarely necessary — only do it if Bluetooth pairing is stuck.'),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -183,6 +113,26 @@ class _DeviceCalibrationDialogState extends State<DeviceCalibrationDialog> {
           ],
         ),
       ),
+      actions: [
+        Expanded(
+          child: TrainingButton(
+            label: 'Factory Reset',
+            type: ButtonType.outlined,
+            onPressed: _isCalibrating ? null : widget.onFactoryReset,
+          ),
+        ),
+        const SizedBox(width: AppTheme.spacingLarge),
+        Expanded(
+          child: TrainingButton(
+            label: 'Start calibration',
+            isLoading: _isCalibrating,
+            onPressed: () {
+              setState(() => _isCalibrating = true);
+              widget.onStartCalibration();
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -192,43 +142,12 @@ class _DeviceCalibrationDialogState extends State<DeviceCalibrationDialog> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(color: Colors.white)),
+          Text('• ', style: AppTheme.bodyMedium(context)),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.3),
+              style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context)),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHelpPanel() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF121822),
-        border: Border.all(color: const Color(0xFF283142)),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'If calibration fails:',
-            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-          SizedBox(height: 8),
-          _TipText('1. Retry while keeping firearm perfectly still.'),
-          _TipText('2. Use solid table/bench; avoid soft mats.'),
-          _TipText('3. Tighten clamps; eliminate micro-movement.'),
-          _TipText('4. Move away from metal, magnets, motors.'),
-          _TipText('5. Power off device for 5s, reconnect, retry.'),
-          SizedBox(height: 6),
-          Text(
-            'Restarting the phone is rarely necessary — only do it if Bluetooth pairing is stuck.',
-            style: TextStyle(color: Colors.white54, fontSize: 12, height: 1.3),
           ),
         ],
       ),
@@ -246,7 +165,7 @@ class _TipText extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+        style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context)),
       ),
     );
   }

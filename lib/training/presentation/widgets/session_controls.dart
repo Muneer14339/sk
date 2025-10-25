@@ -1,7 +1,7 @@
+// lib/training/presentation/widgets/session_controls.dart
 import 'package:flutter/material.dart';
-
 import '../../../core/theme/app_theme.dart';
-
+import 'common/training_button.dart';
 
 class SessionControls extends StatelessWidget {
   const SessionControls({
@@ -13,7 +13,7 @@ class SessionControls extends StatelessWidget {
     required this.stopTraining,
     required this.resetTrace,
     required this.finishSession,
-    this.onRecalibrate, // NEW
+    this.onRecalibrate,
   });
 
   final bool isTraining;
@@ -23,64 +23,45 @@ class SessionControls extends StatelessWidget {
   final VoidCallback stopTraining;
   final VoidCallback resetTrace;
   final VoidCallback finishSession;
-  final VoidCallback? onRecalibrate; // NEW
+  final VoidCallback? onRecalibrate;
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Main controls row
         Row(
           children: [
             Expanded(child: _buildMainButton(context)),
             const SizedBox(width: 8),
             isPaused
-                ? ElevatedButton.icon(
-              onPressed: finishSession,
-              icon: const Icon(Icons.check_circle_outline),
-              label: const Text('Finish Session'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.success(context),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                ? Expanded(
+              child: TrainingButton(
+                label: 'Finish Session',
+                icon: Icons.check_circle_outline,
+                type: ButtonType.success,
+                onPressed: finishSession,
               ),
             )
-                : ElevatedButton.icon(
-              onPressed: resetTrace,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Reset'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary(context).withValues(alpha: .12),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                : Expanded(
+              child: TrainingButton(
+                label: 'Reset',
+                icon: Icons.refresh,
+                type: ButtonType.secondary,
+                onPressed: resetTrace,
               ),
             ),
           ],
         ),
-
-        // NEW: Recalibrate button (only show when sensors enabled)
         if (onRecalibrate != null && isSensorEnabled) ...[
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: TrainingButton(
+              label: 'Recalibrate Sensor',
+              icon: Icons.tune,
+              type: ButtonType.outlined,
               onPressed: onRecalibrate,
-              icon: Icon(Icons.tune, size: 18),
-              label: const Text('Recalibrate Sensor'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.primary(context),
-                side: BorderSide(color: AppTheme.primary(context).withOpacity(0.5)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
             ),
           ),
         ],
@@ -90,43 +71,11 @@ class SessionControls extends StatelessWidget {
 
   Widget _buildMainButton(BuildContext context) {
     if (isPaused) {
-      return ElevatedButton.icon(
-        onPressed: startTraining,
-        icon: const Icon(Icons.play_arrow),
-        label: const Text('Resume'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.success(context),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      return TrainingButton(label: 'Resume', icon: Icons.play_arrow, type: ButtonType.success, onPressed: startTraining);
     }
-
     if (isTraining && isSensorEnabled) {
-      return ElevatedButton.icon(
-        onPressed: stopTraining,
-        icon: const Icon(Icons.pause),
-        label: const Text('Pause'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.error(context),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
+      return TrainingButton(label: 'Pause', icon: Icons.pause, type: ButtonType.error, onPressed: stopTraining);
     }
-
-    return ElevatedButton.icon(
-      onPressed: startTraining,
-      icon: const Icon(Icons.play_arrow),
-      label: const Text('Start Training'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.primary(context),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
+    return TrainingButton(label: 'Start Training', icon: Icons.play_arrow, onPressed: startTraining);
   }
 }
