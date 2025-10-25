@@ -5,8 +5,8 @@ class AppConfig {
 
   // App names for different builds
   static const String appName = navigationStyle == NavigationStyle.grid
-      ? 'Pulse Skadi'
-      : 'Pulse Skadi';
+      ? 'PulseSkadi'
+      : 'PulseSkadi';
 
   static const String appSubtitle = navigationStyle == NavigationStyle.grid
       ? 'Enhanced Grid Navigation'

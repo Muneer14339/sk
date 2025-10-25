@@ -24,11 +24,13 @@ class SessionSummaryPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.surface(context),
         elevation: 0,
+        toolbarHeight: 50,
         leading: IconButton(
-          icon: Icon(Icons.close, color: AppTheme.textPrimary(context)),
+          icon: Icon(Icons.close, color: AppTheme.textPrimary(context), size: 20),
+          padding: EdgeInsets.zero,
           onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
         ),
-        title: Text('Session Summary', style: AppTheme.headingSmall(context)),
+        title: Text('Session Summary', style: AppTheme.headingSmall(context).copyWith(fontSize: 16)),
         centerTitle: true,
       ),
       body: BlocConsumer<TrainingSessionBloc, TrainingSessionState>(
@@ -57,7 +59,8 @@ class SessionSummaryPage extends StatelessWidget {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: AppTheme.paddingLarge,
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   child: Column(
                     children: [
                       Container(
@@ -70,50 +73,53 @@ class SessionSummaryPage extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 22),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         child: Column(
                           children: [
-                            Icon(Icons.check_circle, size: 56, color: Colors.white),
-                            const SizedBox(height: 8),
-                            Text('Session Complete', style: AppTheme.headingLarge(context).copyWith(color: Colors.white)),
+                            Icon(Icons.check_circle, size: 36, color: Colors.white),
+                            const SizedBox(height: 4),
+                            Text('Session Complete', style: AppTheme.headingLarge(context).copyWith(color: Colors.white, fontSize: 18)),
                             const SizedBox(height: 2),
                             Text(
                               savedSession?.programName ?? state.program?.programName ?? 'Training',
-                              style: AppTheme.bodyLarge(context).copyWith(color: Colors.white70),
+                              style: AppTheme.bodyLarge(context).copyWith(color: Colors.white70, fontSize: 12),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppTheme.spacingLarge),
-                      TrainingCard(
+                      const SizedBox(height: 10),
+                      _buildCompactCard(
+                        context,
                         child: Column(
                           children: [
-                            TrainingInfoRow(label: 'Session Duration', value: duration),
-                            const TrainingDivider(),
-                            TrainingInfoRow(label: 'Total Shots', value: '$totalShots'),
-                            const TrainingDivider(),
-                            TrainingInfoRow(label: 'Detected Shots', value: '$detectedShots'),
-                            const TrainingDivider(),
-                            TrainingInfoRow(label: 'Average Score', value: metrics['avgScore'].toStringAsFixed(1)),
-                            const TrainingDivider(),
-                            TrainingInfoRow(
-                              label: 'Average Stability',
-                              value: '${metrics['avgStability'].toStringAsFixed(0)}%',
+                            _buildInfoRow(context, 'Session Duration', duration),
+                            _buildDivider(context),
+                            _buildInfoRow(context, 'Total Shots', '$totalShots'),
+                            _buildDivider(context),
+                            _buildInfoRow(context, 'Detected Shots', '$detectedShots'),
+                            _buildDivider(context),
+                            _buildInfoRow(context, 'Average Score', metrics['avgScore'].toStringAsFixed(1)),
+                            _buildDivider(context),
+                            _buildInfoRow(
+                              context,
+                              'Average Stability',
+                              '${metrics['avgStability'].toStringAsFixed(0)}%',
                               valueColor: _getStabColor(metrics['avgStability'], context),
                             ),
-                            const TrainingDivider(),
-                            TrainingInfoRow(label: 'Best Stability', value: '${metrics['bestStability'].toStringAsFixed(0)}%'),
-                            const TrainingDivider(),
-                            TrainingInfoRow(
-                              label: 'Split Time (avg)',
-                              value: '${metrics['avgSplitTime'].toStringAsFixed(2)}s',
+                            _buildDivider(context),
+                            _buildInfoRow(context, 'Best Stability', '${metrics['bestStability'].toStringAsFixed(0)}%'),
+                            _buildDivider(context),
+                            _buildInfoRow(
+                              context,
+                              'Split Time (avg)',
+                              '${metrics['avgSplitTime'].toStringAsFixed(2)}s',
                               showArrow: true,
                               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SplitTimesPage(savedSession: savedSession))),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppTheme.spacingLarge),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           Expanded(
@@ -124,7 +130,7 @@ class SessionSummaryPage extends StatelessWidget {
                               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SplitTimesPage(savedSession: savedSession))),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: TrainingButton(
                               label: 'Replay',
@@ -136,7 +142,7 @@ class SessionSummaryPage extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: TrainingButton(
                               label: 'Share',
@@ -147,13 +153,13 @@ class SessionSummaryPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppTheme.spacingLarge),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
               ),
               Container(
-                padding: AppTheme.paddingLarge,
+                padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
                 decoration: AppTheme.cardDecoration(context),
                 child: SafeArea(
                   child: Column(
@@ -168,7 +174,7 @@ class SessionSummaryPage extends StatelessWidget {
                           onPressed: () => context.read<TrainingSessionBloc>().add(SaveSession()),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       SizedBox(
                         width: double.infinity,
                         child: TrainingButton(
@@ -178,7 +184,7 @@ class SessionSummaryPage extends StatelessWidget {
                           onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       SizedBox(
                         width: double.infinity,
                         child: TrainingButton(
@@ -199,25 +205,94 @@ class SessionSummaryPage extends StatelessWidget {
     );
   }
 
+  Widget _buildCompactCard(BuildContext context, {required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        border: Border.all(
+          color: AppTheme.border(context).withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, String label, String value, {Color? valueColor, bool showArrow = false, VoidCallback? onTap}) {
+    final content = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: AppTheme.bodyMedium(context).copyWith(
+            color: AppTheme.textSecondary(context),
+            fontSize: 12,
+          ),
+        ),
+        Row(
+          children: [
+            Text(
+              value,
+              style: AppTheme.bodyMedium(context).copyWith(
+                fontWeight: FontWeight.w700,
+                color: valueColor ?? AppTheme.textPrimary(context),
+                fontSize: 12,
+              ),
+            ),
+            if (showArrow) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right, size: 16, color: AppTheme.textSecondary(context)),
+            ],
+          ],
+        ),
+      ],
+    );
+
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: content,
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: content,
+    );
+  }
+
+  Widget _buildDivider(BuildContext context) {
+    return Divider(
+      height: 1,
+      thickness: 1,
+      color: AppTheme.border(context).withOpacity(0.2),
+    );
+  }
+
   void _showDiscardDialog(BuildContext ctx) {
     showDialog(
       context: ctx,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppTheme.surface(ctx),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusXLarge)),
-        title: Text('Discard Session?', style: AppTheme.headingMedium(ctx)),
-        content: Text('Are you sure you want to discard this session? All data will be lost and cannot be recovered.', style: AppTheme.bodyMedium(ctx)),
+        title: Text('Discard Session?', style: AppTheme.headingMedium(ctx).copyWith(fontSize: 16)),
+        content: Text('Are you sure you want to discard this session? All data will be lost and cannot be recovered.', style: AppTheme.bodyMedium(ctx).copyWith(fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Cancel', style: AppTheme.button(ctx)),
+            child: Text('Cancel', style: AppTheme.button(ctx).copyWith(fontSize: 13)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
               Navigator.of(ctx).popUntil((route) => route.isFirst);
             },
-            child: Text('Yes, Discard', style: AppTheme.button(ctx).copyWith(color: AppTheme.error(ctx))),
+            child: Text('Yes, Discard', style: AppTheme.button(ctx).copyWith(color: AppTheme.error(ctx), fontSize: 13)),
           ),
         ],
       ),

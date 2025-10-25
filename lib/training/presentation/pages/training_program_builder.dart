@@ -13,7 +13,6 @@ import '../../../armory/presentation/bloc/armory_state.dart';
 import '../../../armory/domain/entities/armory_firearm.dart';
 import '../../../armory/domain/entities/armory_ammunition.dart';
 import '../widgets/common/training_button.dart';
-import '../widgets/common/training_card.dart';
 import '../widgets/common/training_text_field.dart';
 import 'steadiness_trainer_page.dart';
 
@@ -51,7 +50,6 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
     'Shooter\'s World — Indoor • Tampa, FL',
     'Knight Trail Park — Outdoor • Nokomis, FL',
   ];
-
 
   @override
   void initState() {
@@ -104,11 +102,12 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                padding: AppTheme.paddingLarge,
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TrainingCard(
+                    _buildCompactCard(
                       title: 'Session Information',
                       child: Column(
                         children: [
@@ -118,7 +117,7 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
                             hint: 'e.g., Morning Practice - Bill Drill',
                             isRequired: true,
                           ),
-                          const SizedBox(height: AppTheme.spacingLarge),
+                          const SizedBox(height: 12),
                           TrainingDropdown(
                             label: 'Range Name',
                             value: _rangeNameController.text.isNotEmpty
@@ -131,41 +130,45 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
                               });
                             },
                           ),
-                          const SizedBox(height: AppTheme.spacingLarge),
+                          const SizedBox(height: 12),
                           TrainingTextField(
                             controller: _notesController,
                             label: 'Session Notes (Optional)',
                             hint: 'Add any notes about this session...',
-                            maxLines: 3,
+                            maxLines: 2,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacingXXLarge),
-                    TrainingCard(
+                    const SizedBox(height: 14),
+                    _buildCompactCard(
                       title: 'Loadout Summary',
                       child: Row(
                         children: [
                           Expanded(child: _buildLoadoutInfo(isFirearm: true)),
-                          const SizedBox(width: AppTheme.spacingLarge),
+                          const SizedBox(width: 10),
                           Expanded(child: _buildLoadoutInfo(isFirearm: false)),
                         ],
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spacingXXLarge),
-                    TrainingCard(
+                    const SizedBox(height: 14),
+                    _buildCompactCard(
                       title: 'Drill Summary',
                       child: Text(
                         widget.drillInfo,
-                        style: AppTheme.bodyMedium(context).copyWith(fontWeight: FontWeight.w600),
+                        style: AppTheme.bodyMedium(context).copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
             ),
             Container(
-              padding: AppTheme.paddingLarge,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               decoration: AppTheme.cardDecoration(context),
               child: SafeArea(
                 child: Row(
@@ -177,7 +180,7 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
-                    const SizedBox(width: AppTheme.spacingLarge),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: TrainingButton(
                         label: 'Start Session',
@@ -194,48 +197,72 @@ class _SessionPreviewPageState extends State<SessionPreviewPage> {
     );
   }
 
+  Widget _buildCompactCard({required String title, required Widget child}) {
+    return Container(
+      width: double.maxFinite,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        border: Border.all(
+          color: AppTheme.border(context).withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: AppTheme.titleMedium(context).copyWith(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoadoutInfo({required bool isFirearm}) {
     return Container(
-      padding: AppTheme.paddingLarge,
+      padding: const EdgeInsets.all(10),
       decoration: AppTheme.inputDecoration(context),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  isFirearm ? 'FIREARM' : 'AMMUNITION',
-                  style: AppTheme.labelSmall(context).copyWith(
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  isFirearm
-                      ? (_firearm != null ? '${_firearm!.make} ${_firearm!.model}' : widget.program.loadout?.name ?? 'N/A')
-                      : (_ammunition != null ? '${_ammunition!.brand} ${_ammunition!.line ?? ''}'.trim() : 'N/A'),
-                  style: AppTheme.bodyMedium(context).copyWith(fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(height: 2),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  isFirearm
-                      ? (_firearm != null ? '${_firearm!.caliber} ${_firearm!.type}' : 'Loading...')
-                      : (_ammunition != null ? '${_ammunition!.bullet}' : 'Loading...'),
-                  style: AppTheme.labelMedium(context),
-                ),
-              ),
-            ],
-          );
-        },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isFirearm ? 'FIREARM' : 'AMMUNITION',
+            style: AppTheme.labelSmall(context).copyWith(
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              fontSize: 9,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isFirearm
+                ? (_firearm != null ? '${_firearm!.make} ${_firearm!.model}' : widget.program.loadout?.name ?? 'N/A')
+                : (_ammunition != null ? '${_ammunition!.brand} ${_ammunition!.line ?? ''}'.trim() : 'N/A'),
+            style: AppTheme.bodyMedium(context).copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            isFirearm
+                ? (_firearm != null ? '${_firearm!.caliber} ${_firearm!.type}' : 'Loading...')
+                : (_ammunition != null ? '${_ammunition!.bullet}' : 'Loading...'),
+            style: AppTheme.labelMedium(context).copyWith(fontSize: 10),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

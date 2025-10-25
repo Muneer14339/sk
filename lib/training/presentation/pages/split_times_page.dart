@@ -30,11 +30,12 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.surface(context),
         elevation: 0,
+        toolbarHeight: 50,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary(context)),
+          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Session Details', style: AppTheme.headingSmall(context)),
+        title: Text('Session Details', style: AppTheme.headingSmall(context).copyWith(fontSize: 16)),
         centerTitle: true,
       ),
       body: BlocBuilder<TrainingSessionBloc, TrainingSessionState>(
@@ -52,25 +53,28 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: AppTheme.paddingLarge,
+                  physics: const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   child: Column(
                     children: [
                       _buildInfoCard(splitData, context),
-                      const SizedBox(height: AppTheme.spacingLarge),
+                      const SizedBox(height: 10),
                       _buildTable(context, shots, splitData, stats),
-                      const SizedBox(height: AppTheme.spacingLarge),
-                      TrainingCard(
+                      const SizedBox(height: 10),
+                      _buildCompactCard(
+                        context,
                         title: 'Performance Analysis',
                         child: SplitTimeChart(splits: splits, selectedIndex: _selectedShotIndex),
                       ),
-                      const SizedBox(height: AppTheme.spacingLarge),
+                      const SizedBox(height: 10),
                       _buildStatsCompact(stats, splitData, context),
+                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
               ),
               Container(
-                padding: AppTheme.paddingLarge,
+                padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
                 decoration: AppTheme.cardDecoration(context),
                 child: SafeArea(
                   child: Column(
@@ -119,7 +123,8 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     final meta = '${data['totalElapsed']} • ${data['shotCount']} shots';
 
     return Container(
-      padding: AppTheme.paddingLarge,
+      width: double.maxFinite,
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppTheme.surface(context).withOpacity(0.6),
         borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
@@ -128,9 +133,37 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTheme.titleMedium(context).copyWith(color: AppTheme.primary(context))),
-          const SizedBox(height: 4),
-          Text(meta, style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context))),
+          Text(title, style: AppTheme.titleMedium(context).copyWith(color: AppTheme.primary(context), fontSize: 13)),
+          const SizedBox(height: 2),
+          Text(meta, style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactCard(BuildContext context, {required String title, required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        border: Border.all(
+          color: AppTheme.border(context).withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: AppTheme.titleMedium(context).copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          child,
         ],
       ),
     );
@@ -140,12 +173,19 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     final splits = data['splits'] as List<double>;
     final timestamps = data['timestamps'] as List<double>;
 
-    return TrainingCard(
-      padding: EdgeInsets.zero,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+        border: Border.all(
+          color: AppTheme.border(context).withOpacity(0.2),
+          width: 1,
+        ),
+      ),
       child: Column(
         children: [
           Container(
-            padding: AppTheme.paddingLarge,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: AppTheme.border(context))),
             ),
@@ -178,7 +218,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
               return InkWell(
                 onTap: () => setState(() => _selectedShotIndex = isSelected ? null : index),
                 child: Container(
-                  padding: AppTheme.paddingLarge,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected ? AppTheme.primary(context).withOpacity(0.08) : Colors.transparent,
                   ),
@@ -211,7 +251,11 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
       child: Text(
         text.toUpperCase(),
         textAlign: TextAlign.center,
-        style: AppTheme.labelSmall(context).copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.5),
+        style: AppTheme.labelSmall(context).copyWith(
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+          fontSize: 9,
+        ),
       ),
     );
   }
@@ -225,6 +269,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
         style: AppTheme.bodyMedium(context).copyWith(
           color: color ?? AppTheme.textPrimary(context),
           fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+          fontSize: 11,
         ),
       ),
     );
@@ -237,9 +282,9 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
         children: [
           Expanded(
             child: Container(
-              height: 6,
+              height: 5,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: BorderRadius.circular(2.5),
                 color: AppTheme.surfaceVariant(context),
               ),
               child: FractionallySizedBox(
@@ -247,15 +292,15 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
                 widthFactor: stability / 100.0,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(2.5),
                     color: color,
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 6),
-          Text('$stability%', style: AppTheme.bodySmall(context).copyWith(fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(width: 4),
+          Text('$stability%', style: AppTheme.bodySmall(context).copyWith(fontWeight: FontWeight.bold, color: color, fontSize: 9)),
         ],
       ),
     );
@@ -266,11 +311,13 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     final min = stats['min'] ?? 0.0;
     final max = stats['max'] ?? 0.0;
     return Container(
-      padding: AppTheme.paddingLarge,
+      width: double.maxFinite,
+
+      padding: const EdgeInsets.all(10),
       decoration: AppTheme.inputDecoration(context),
       child: Text(
         'Avg: ${avg.toStringAsFixed(2)}s • Fast: ⚡${min.toStringAsFixed(2)}s • Slow: 🐌${max.toStringAsFixed(2)}s • Shots: ${data['shotCount']}',
-        style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context)),
+        style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontSize: 11),
       ),
     );
   }
