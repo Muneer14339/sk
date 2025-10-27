@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_bloc.dart';
 import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
+import '../common/common_delete_dilogue.dart';
 import '../common/common_widgets.dart';
 import 'report_tab_widget.dart';
 import '../navigation/grid_navigation_widget.dart';
@@ -17,7 +18,7 @@ import 'gear_tab_widget.dart';
 import 'loadouts_tab_widget.dart';
 import 'tools_tab_widget.dart';
 
-enum ArmoryTabType { firearms, ammunition, gear, tools, loadouts, report }
+
 
 class EnhancedArmoryTabView extends StatefulWidget {
   const EnhancedArmoryTabView({super.key});
@@ -101,6 +102,8 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         break;
       case ArmoryTabType.report:
         _loadAllData();
+        break;
+      case ArmoryTabType.maintenence:
         break;
     }
   }
@@ -317,6 +320,8 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         return LoadoutsTabWidget(userId: userId!);
       case ArmoryTabType.report:
         return ReportTabWidget(userId: userId!);
+      case ArmoryTabType.maintenence:
+        return ToolsTabWidget(userId: userId!);
     }
   }
 }

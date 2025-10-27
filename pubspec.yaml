@@ -60,6 +60,7 @@ dependencies:
   another_flushbar: ^1.12.30
   scroll_date_picker: ^3.8.0
   share_plus: ^12.0.1
+  change_app_package_name: ^1.5.0
 
 dev_dependencies:
   flutter_test:
@@ -86,6 +87,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/icons/bottom_navigation/
+    - assets/icons/training/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -19,6 +19,7 @@ class CommonDialogs {
     required ArmoryTabType armoryType,
     required String itemName,
     dynamic item,
+    BuildContext? parentContext
   }) {
     showDialog(
       context: context,
@@ -62,7 +63,9 @@ class CommonDialogs {
               }
 
               Navigator.of(ctx).pop();
-              Navigator.of(context).pop();
+              if(parentContext != null){
+                Navigator.of(context).pop();
+              }
             },
             child: Text(
               'Delete',

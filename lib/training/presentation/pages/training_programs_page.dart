@@ -86,7 +86,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                     Text('REQUIRED SETUP', style: AppTheme.labelSmall(context).copyWith(fontSize: 10)),
                     const SizedBox(height: 10),
                     _buildSetupCard(
-                      icon: '📡',
+                      icon: 'assets/icons/training/bluetooth.png',
                       title: 'Connection',
                       description: 'Connect to your device via Bluetooth',
                       value: _connectedDeviceName ?? 'Not connected',
@@ -96,7 +96,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                     ),
                     const SizedBox(height: 10),
                     _buildSetupCard(
-                      icon: '🔫',
+                      icon: 'assets/icons/training/firearm.png',
                       title: 'Loadout',
                       description: 'Select your firearm and ammunition',
                       value: _selectedLoadout?.name ?? 'No loadout selected',
@@ -108,7 +108,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                     Text('OPTIONAL SETUP', style: AppTheme.labelSmall(context).copyWith(fontSize: 10)),
                     const SizedBox(height: 10),
                     _buildSetupCard(
-                      icon: '🔔',
+                      icon: 'assets/icons/training/alert.png',
                       title: 'Alerts',
                       description: 'Configure audio feedback',
                       value: _alertsSettings,
@@ -118,7 +118,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                     ),
                     const SizedBox(height: 10),
                     _buildSetupCard(
-                      icon: '🎯',
+                      icon: 'assets/icons/training/target.png',
                       title: 'Drill',
                       description: 'Choose a training drill or practice freely',
                       value: _drillInfo,
@@ -187,7 +187,11 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(icon, style: TextStyle(fontSize: 22, color: AppTheme.primary(context)),),
+                Image.asset(
+                  icon,
+                  width: 24,
+                  height: 24, // optional: agar color apply karna ho
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(

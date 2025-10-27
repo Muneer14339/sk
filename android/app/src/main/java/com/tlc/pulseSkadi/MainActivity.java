@@ -1,4 +1,4 @@
-package com.example.pa_sreens;
+package com.tlc.pulseSkadi;
 
 import io.flutter.embedding.android.FlutterActivity;
 

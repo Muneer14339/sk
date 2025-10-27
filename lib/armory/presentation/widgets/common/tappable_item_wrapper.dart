@@ -1,4 +1,5 @@
 // lib/armory/presentation/widgets/common/tappable_item_wrapper.dart
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'armory_constants.dart';
@@ -30,6 +31,7 @@ class TappableItemWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navContext = Navigator.of(context).context; // Root context save karo
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -37,12 +39,13 @@ class TappableItemWrapper extends StatelessWidget {
           if (onTap != null) {
             onTap!();
           } else {
-            final userId = (item as dynamic).id?.toString().split('-').first ?? '';
+            final userId = FirebaseAuth.instance.currentUser?.uid;
             ItemDetailsBottomSheet.show(
-              context,
+              navContext,
               item,
-              userId,
+              userId!,
               _getTabType(item),
+
             );
           }
         },

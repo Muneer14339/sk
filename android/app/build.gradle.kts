@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.pa_sreens"
+    namespace = "com.tlc.pulseSkadi"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.pa_sreens"
+        applicationId = "com.tlc.pulseSkadi"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
