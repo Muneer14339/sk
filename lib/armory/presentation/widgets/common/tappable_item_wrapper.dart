@@ -1,10 +1,9 @@
-// lib/user_dashboard/presentation/widgets/common/tappable_item_wrapper.dart
+// lib/armory/presentation/widgets/common/tappable_item_wrapper.dart
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'armory_constants.dart';
-import 'item_details_dialog.dart';
+import 'item_details_bottom_sheet.dart';
 
-// ===== tappable_item_wrapper.dart =====
 class TappableItemWrapper extends StatelessWidget {
   final Widget child;
   final dynamic item;
@@ -26,7 +25,7 @@ class TappableItemWrapper extends StatelessWidget {
           if (onTap != null) {
             onTap!();
           } else {
-            ItemDetailsDialog.show(context, item);
+            ItemDetailsBottomSheet.show(context, item);
           }
         },
         borderRadius: BorderRadius.circular(ArmoryConstants.itemCardBorderRadius),
