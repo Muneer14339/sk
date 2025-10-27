@@ -7,121 +7,122 @@ import '../../../core/theme/app_theme.dart';
 import '../../data/models/saved_session_model.dart';
 import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_state.dart';
-import '../widgets/common/training_card.dart';
 import '../widgets/common/training_button.dart';
-import '../widgets/common/training_constants.dart';
+import '../widgets/common/compact_card.dart';
 import '../widgets/split_time_chart.dart';
 
-class SplitTimesPage extends StatefulWidget {
+class SplitTimesPage extends StatelessWidget {
   final SavedSessionModel? savedSession;
+
   const SplitTimesPage({super.key, this.savedSession});
-
-  @override
-  State<SplitTimesPage> createState() => _SplitTimesPageState();
-}
-
-class _SplitTimesPageState extends State<SplitTimesPage> {
-  int? _selectedShotIndex;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background(context),
-      appBar: AppBar(
-        backgroundColor: AppTheme.surface(context),
-        elevation: 0,
-        toolbarHeight: 50,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary(context), size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('Session Details', style: AppTheme.headingSmall(context).copyWith(fontSize: 16)),
-        centerTitle: true,
-      ),
+      appBar: _buildAppBar(context),
       body: BlocBuilder<TrainingSessionBloc, TrainingSessionState>(
         builder: (context, state) {
-          final shots = widget.savedSession?.steadinessShots ?? state.steadinessShots;
+          final shots = savedSession?.steadinessShots ?? state.steadinessShots;
           if (shots.isEmpty) {
-            return Center(child: Text('No shot data available', style: AppTheme.bodyMedium(context).copyWith(color: AppTheme.textSecondary(context))));
+            return _buildEmptyState(context);
           }
 
-          final splitData = _calculateSplitTimes(shots);
-          final splits = splitData['splits'] as List<double>;
-          final stats = _calculateStats(splits);
-
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Column(
-                    children: [
-                      _buildInfoCard(splitData, context),
-                      const SizedBox(height: 10),
-                      _buildTable(context, shots, splitData, stats),
-                      const SizedBox(height: 10),
-                      _buildCompactCard(
-                        context,
-                        title: 'Performance Analysis',
-                        child: SplitTimeChart(splits: splits, selectedIndex: _selectedShotIndex),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildStatsCompact(stats, splitData, context),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
-                decoration: AppTheme.cardDecoration(context),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Export CSV',
-                              type: ButtonType.secondary,
-                              onPressed: () => _exportCsv(splitData, splits),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Share',
-                              type: ButtonType.secondary,
-                              onPressed: () => _shareSummary(splitData, splits),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: TrainingButton(
-                          label: 'Back to Summary',
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
+          return _SplitTimesContent(shots: shots);
         },
       ),
     );
   }
 
-  Widget _buildInfoCard(Map<String, dynamic> data, BuildContext context) {
-    final title = 'Precision Fundamentals';
-    final meta = '${data['totalElapsed']} • ${data['shotCount']} shots';
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppTheme.surface(context),
+      elevation: 0,
+      toolbarHeight: 50,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back, color: AppTheme.textPrimary(context), size: 20),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Text(
+        'Session Details',
+        style: AppTheme.headingSmall(context).copyWith(fontSize: 16),
+      ),
+      centerTitle: true,
+    );
+  }
 
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Text(
+        'No shot data available',
+        style: AppTheme.bodyMedium(context).copyWith(
+          color: AppTheme.textSecondary(context),
+        ),
+      ),
+    );
+  }
+}
+
+class _SplitTimesContent extends StatelessWidget {
+  final List<dynamic> shots;
+
+  const _SplitTimesContent({required this.shots});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SplitTimesView(shots: shots);
+  }
+}
+
+class _SplitTimesView extends StatefulWidget {
+  final List<dynamic> shots;
+
+  const _SplitTimesView({required this.shots});
+
+  @override
+  State<_SplitTimesView> createState() => _SplitTimesViewState();
+}
+
+class _SplitTimesViewState extends State<_SplitTimesView> {
+  int? _selectedShotIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final splitData = _SplitData.calculate(widget.shots);
+    final stats = _SplitStats.calculate(splitData.splits);
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Column(
+              children: [
+                _buildInfoCard(context, splitData),
+                const SizedBox(height: 10),
+                _buildTable(context, widget.shots, splitData, stats),
+                const SizedBox(height: 10),
+                CompactCard(
+                  title: 'Performance Analysis',
+                  child: SplitTimeChart(
+                    splits: splitData.splits,
+                    selectedIndex: _selectedShotIndex,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildStatsCard(context, stats, splitData),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
+        _buildBottomActions(context, splitData),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context, _SplitData data) {
     return Container(
       width: double.maxFinite,
       padding: const EdgeInsets.all(10),
@@ -133,46 +134,27 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTheme.titleMedium(context).copyWith(color: AppTheme.primary(context), fontSize: 13)),
-          const SizedBox(height: 2),
-          Text(meta, style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontSize: 11)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactCard(BuildContext context, {required String title, required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        border: Border.all(
-          color: AppTheme.border(context).withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
           Text(
-            title,
+            'Precision Fundamentals',
             style: AppTheme.titleMedium(context).copyWith(
+              color: AppTheme.primary(context),
               fontSize: 13,
-              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
-          child,
+          const SizedBox(height: 2),
+          Text(
+            '${data.totalElapsed} • ${data.shotCount} shots',
+            style: AppTheme.bodySmall(context).copyWith(
+              color: AppTheme.textSecondary(context),
+              fontSize: 11,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTable(BuildContext context, List<dynamic> shots, Map<String, dynamic> data, Map<String, double> stats) {
-    final splits = data['splits'] as List<double>;
-    final timestamps = data['timestamps'] as List<double>;
-
+  Widget _buildTable(BuildContext context, List<dynamic> shots, _SplitData data, _SplitStats stats) {
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
@@ -184,62 +166,41 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
       ),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppTheme.border(context))),
-            ),
-            child: Row(
-              children: [
-                _buildHeaderCell(context, "Shot", flex: 1),
-                _buildHeaderCell(context, "Score", flex: 1),
-                _buildHeaderCell(context, "Split", flex: 1),
-                _buildHeaderCell(context, "Elapsed", flex: 1),
-                _buildHeaderCell(context, "Stability", flex: 2),
-              ],
-            ),
-          ),
+          _buildTableHeader(context),
           ListView.separated(
             itemCount: shots.length,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (_, __) => Divider(height: 1, color: AppTheme.border(context).withOpacity(0.3)),
-            itemBuilder: (context, index) {
-              final shot = shots[index];
-              final split = index == 0 ? 0.0 : splits[index - 1];
-              final elapsed = timestamps[index];
-              final score = shot.score ?? 0;
-              final stability = shot.metrics["stability"] ?? 0;
-              final isFastest = split > 0 && split == stats['min'];
-              final isSlowest = split > 0 && split == stats['max'];
-              final isSelected = _selectedShotIndex == index;
-              final stabilityColor = stability >= 80 ? AppTheme.success(context) : stability >= 50 ? AppTheme.warning(context) : AppTheme.error(context);
-
-              return InkWell(
-                onTap: () => setState(() => _selectedShotIndex = isSelected ? null : index),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary(context).withOpacity(0.08) : Colors.transparent,
-                  ),
-                  child: Row(
-                    children: [
-                      _buildDataCell(context, '${shot.shotNumber}', flex: 1, color: AppTheme.primary(context), isBold: true),
-                      _buildDataCell(context, '$score', flex: 1),
-                      _buildDataCell(
-                        context,
-                        index == 0 ? '0.00s' : '${split.toStringAsFixed(2)}s',
-                        flex: 1,
-                        color: isFastest ? AppTheme.success(context) : isSlowest ? AppTheme.error(context) : null,
-                      ),
-                      _buildDataCell(context, '${elapsed.toStringAsFixed(2)}s', flex: 1, color: AppTheme.textSecondary(context)),
-                      _buildStabilityCell(context, stability, stabilityColor),
-                    ],
-                  ),
-                ),
-              );
-            },
+            separatorBuilder: (_, __) => Divider(
+              height: 1,
+              color: AppTheme.border(context).withOpacity(0.3),
+            ),
+            itemBuilder: (context, index) => _buildTableRow(
+              context,
+              shots[index],
+              index,
+              data,
+              stats,
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableHeader(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+      ),
+      child: Row(
+        children: [
+          _buildHeaderCell(context, "Shot", flex: 1),
+          _buildHeaderCell(context, "Score", flex: 1),
+          _buildHeaderCell(context, "Split", flex: 1),
+          _buildHeaderCell(context, "Elapsed", flex: 1),
+          _buildHeaderCell(context, "Stability", flex: 2),
         ],
       ),
     );
@@ -255,6 +216,56 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
           fontWeight: FontWeight.w600,
           letterSpacing: 0.5,
           fontSize: 9,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableRow(BuildContext context, dynamic shot, int index, _SplitData data, _SplitStats stats) {
+    final split = index == 0 ? 0.0 : data.splits[index - 1];
+    final elapsed = data.timestamps[index];
+    final score = shot.score ?? 0;
+    final stability = shot.metrics["stability"] ?? 0;
+    final isFastest = split > 0 && split == stats.min;
+    final isSlowest = split > 0 && split == stats.max;
+    final isSelected = _selectedShotIndex == index;
+    final stabilityColor = _getStabilityColor(context, stability);
+
+    return InkWell(
+      onTap: () => setState(() => _selectedShotIndex = isSelected ? null : index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary(context).withOpacity(0.08) : Colors.transparent,
+        ),
+        child: Row(
+          children: [
+            _buildDataCell(
+              context,
+              '${shot.shotNumber}',
+              flex: 1,
+              color: AppTheme.primary(context),
+              isBold: true,
+            ),
+            _buildDataCell(context, '$score', flex: 1),
+            _buildDataCell(
+              context,
+              index == 0 ? '0.00s' : '${split.toStringAsFixed(2)}s',
+              flex: 1,
+              color: isFastest
+                  ? AppTheme.success(context)
+                  : isSlowest
+                  ? AppTheme.error(context)
+                  : null,
+            ),
+            _buildDataCell(
+              context,
+              '${elapsed.toStringAsFixed(2)}s',
+              flex: 1,
+              color: AppTheme.textSecondary(context),
+            ),
+            _buildStabilityCell(context, stability, stabilityColor),
+          ],
         ),
       ),
     );
@@ -300,30 +311,136 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
             ),
           ),
           const SizedBox(width: 4),
-          Text('$stability%', style: AppTheme.bodySmall(context).copyWith(fontWeight: FontWeight.bold, color: color, fontSize: 9)),
+          Text(
+            '$stability%',
+            style: AppTheme.bodySmall(context).copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+              fontSize: 9,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsCompact(Map<String, double> stats, Map<String, dynamic> data, BuildContext context) {
-    final avg = stats['avg'] ?? 0.0;
-    final min = stats['min'] ?? 0.0;
-    final max = stats['max'] ?? 0.0;
+  Widget _buildStatsCard(BuildContext context, _SplitStats stats, _SplitData data) {
     return Container(
       width: double.maxFinite,
-
       padding: const EdgeInsets.all(10),
       decoration: AppTheme.inputDecoration(context),
       child: Text(
-        'Avg: ${avg.toStringAsFixed(2)}s • Fast: ⚡${min.toStringAsFixed(2)}s • Slow: 🐌${max.toStringAsFixed(2)}s • Shots: ${data['shotCount']}',
-        style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontSize: 11),
+        'Avg: ${stats.avg.toStringAsFixed(2)}s • Fast: ⚡${stats.min.toStringAsFixed(2)}s • Slow: 🐌${stats.max.toStringAsFixed(2)}s • Shots: ${data.shotCount}',
+        style: AppTheme.bodySmall(context).copyWith(
+          color: AppTheme.textSecondary(context),
+          fontSize: 11,
+        ),
       ),
     );
   }
 
-  Map<String, dynamic> _calculateSplitTimes(List<dynamic> shots) {
-    if (shots.isEmpty) return {'shotCount': 0, 'splits': [], 'timestamps': [], 'totalElapsed': '00:00.00'};
+  Widget _buildBottomActions(BuildContext context, _SplitData data) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+      decoration: AppTheme.cardDecoration(context),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TrainingButton(
+                    label: 'Export CSV',
+                    type: ButtonType.secondary,
+                    onPressed: () => _exportCsv(context, data),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TrainingButton(
+                    label: 'Share',
+                    type: ButtonType.secondary,
+                    onPressed: () => _shareSummary(context, data),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: TrainingButton(
+                label: 'Back to Summary',
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getStabilityColor(BuildContext context, int stability) {
+    if (stability >= 80) return AppTheme.success(context);
+    if (stability >= 50) return AppTheme.warning(context);
+    return AppTheme.error(context);
+  }
+
+  Future<void> _exportCsv(BuildContext context, _SplitData data) async {
+    final buffer = StringBuffer('Shot,Split (s),Elapsed (s)\n');
+    for (int i = 0; i < data.timestamps.length; i++) {
+      final split = i == 0 ? 0.0 : data.splits[i - 1];
+      buffer.writeln('${i + 1},${split.toStringAsFixed(2)},${data.timestamps[i].toStringAsFixed(2)}');
+    }
+    await Clipboard.setData(ClipboardData(text: buffer.toString()));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('CSV copied to clipboard', style: AppTheme.bodyMedium(context)),
+        ),
+      );
+    }
+  }
+
+  Future<void> _shareSummary(BuildContext context, _SplitData data) async {
+    final stats = _SplitStats.calculate(data.splits);
+    final summary = StringBuffer()
+      ..writeln('Session Details')
+      ..writeln('Total: ${data.totalElapsed} • Shots: ${data.shotCount}')
+      ..writeln('Avg: ${stats.avg.toStringAsFixed(2)}s | Fast: ${stats.min.toStringAsFixed(2)}s | Slow: ${stats.max.toStringAsFixed(2)}s');
+    await Clipboard.setData(ClipboardData(text: summary.toString()));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Summary copied to clipboard', style: AppTheme.bodyMedium(context)),
+        ),
+      );
+    }
+  }
+}
+
+class _SplitData {
+  final int shotCount;
+  final List<double> splits;
+  final List<double> timestamps;
+  final String totalElapsed;
+
+  _SplitData({
+    required this.shotCount,
+    required this.splits,
+    required this.timestamps,
+    required this.totalElapsed,
+  });
+
+  static _SplitData calculate(List<dynamic> shots) {
+    if (shots.isEmpty) {
+      return _SplitData(
+        shotCount: 0,
+        splits: [],
+        timestamps: [],
+        totalElapsed: '00:00.00',
+      );
+    }
 
     final firstTime = shots.first.timestamp as DateTime;
     final splits = <double>[];
@@ -333,6 +450,7 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
       final currentTime = shots[i].timestamp as DateTime;
       final elapsed = currentTime.difference(firstTime).inMilliseconds / 1000.0;
       timestamps.add(elapsed);
+
       if (i > 0) {
         final prevTime = shots[i - 1].timestamp as DateTime;
         final split = currentTime.difference(prevTime).inMilliseconds / 1000.0;
@@ -345,37 +463,39 @@ class _SplitTimesPageState extends State<SplitTimesPage> {
     final seconds = totalSeconds % 60;
     final totalElapsed = '${minutes.toString().padLeft(2, '0')}:${seconds.toStringAsFixed(2).padLeft(5, '0')}';
 
-    return {'shotCount': shots.length, 'splits': splits, 'timestamps': timestamps, 'totalElapsed': totalElapsed};
+    return _SplitData(
+      shotCount: shots.length,
+      splits: splits,
+      timestamps: timestamps,
+      totalElapsed: totalElapsed,
+    );
   }
+}
 
-  Map<String, double> _calculateStats(List<double> splits) {
-    if (splits.isEmpty) return {'avg': 0.0, 'min': 0.0, 'max': 0.0, 'stdDev': 0.0};
+class _SplitStats {
+  final double avg;
+  final double min;
+  final double max;
+  final double stdDev;
+
+  _SplitStats({
+    required this.avg,
+    required this.min,
+    required this.max,
+    required this.stdDev,
+  });
+
+  static _SplitStats calculate(List<double> splits) {
+    if (splits.isEmpty) {
+      return _SplitStats(avg: 0.0, min: 0.0, max: 0.0, stdDev: 0.0);
+    }
+
     final avg = splits.reduce((a, b) => a + b) / splits.length;
     final min = splits.reduce(math.min);
     final max = splits.reduce(math.max);
     final variance = splits.map((x) => math.pow(x - avg, 2)).reduce((a, b) => a + b) / splits.length;
     final stdDev = math.sqrt(variance);
-    return {'avg': avg, 'min': min, 'max': max, 'stdDev': stdDev};
-  }
 
-  Future<void> _exportCsv(Map<String, dynamic> data, List<double> splits) async {
-    final timestamps = (data['timestamps'] as List<double>);
-    final buffer = StringBuffer('Shot,Split (s),Elapsed (s)\n');
-    for (int i = 0; i < timestamps.length; i++) {
-      final split = i == 0 ? 0.0 : splits[i - 1];
-      buffer.writeln('${i + 1},${split.toStringAsFixed(2)},${timestamps[i].toStringAsFixed(2)}');
-    }
-    await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('CSV copied to clipboard', style: AppTheme.bodyMedium(context))));
-  }
-
-  Future<void> _shareSummary(Map<String, dynamic> data, List<double> splits) async {
-    final stats = _calculateStats(splits);
-    final summary = StringBuffer()
-      ..writeln('Session Details')
-      ..writeln('Total: ${data['totalElapsed']} • Shots: ${data['shotCount']}')
-      ..writeln('Avg: ${stats['avg']?.toStringAsFixed(2)}s | Fast: ${stats['min']?.toStringAsFixed(2)}s | Slow: ${stats['max']?.toStringAsFixed(2)}s');
-    await Clipboard.setData(ClipboardData(text: summary.toString()));
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Summary copied to clipboard', style: AppTheme.bodyMedium(context))));
+    return _SplitStats(avg: avg, min: min, max: max, stdDev: stdDev);
   }
 }

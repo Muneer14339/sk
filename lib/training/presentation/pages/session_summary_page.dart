@@ -2,333 +2,355 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
+import 'dart:math' as math;
 import '../../../core/theme/app_theme.dart';
 import '../../data/models/saved_session_model.dart';
 import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_event.dart';
 import '../bloc/training_session/training_session_state.dart';
-import '../widgets/common/training_card.dart';
 import '../widgets/common/training_button.dart';
+import '../widgets/common/compact_card.dart';
+import '../widgets/common/info_row.dart';
+import '../widgets/common/info_divider.dart';
+import '../widgets/common/gradient_header.dart';
 import 'split_times_page.dart';
 import 'manticx_analysis_page.dart';
-import 'dart:math' as math;
 
 class SessionSummaryPage extends StatelessWidget {
   final SavedSessionModel? savedSession;
+
   const SessionSummaryPage({super.key, this.savedSession});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background(context),
-      appBar: AppBar(
-        backgroundColor: AppTheme.surface(context),
-        elevation: 0,
-        toolbarHeight: 50,
-        leading: IconButton(
-          icon: Icon(Icons.close, color: AppTheme.textPrimary(context), size: 20),
-          padding: EdgeInsets.zero,
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-        ),
-        title: Text('Session Summary', style: AppTheme.headingSmall(context).copyWith(fontSize: 16)),
-        centerTitle: true,
-      ),
+      appBar: _buildAppBar(context),
       body: BlocConsumer<TrainingSessionBloc, TrainingSessionState>(
-        listener: (ctx, state) {
-          if (state.isSessionSaved == true) {
-            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-              content: Text('Session saved', style: AppTheme.bodyMedium(ctx)),
-              backgroundColor: AppTheme.success(ctx),
-            ));
-            Navigator.of(ctx).popUntil((route) => route.isFirst);
-          }
-        },
+        listener: _handleStateChanges,
         builder: (context, state) {
           final steadinessShots = savedSession?.steadinessShots ?? state.steadinessShots;
-          final missedCount = savedSession?.missedShotNumbers.length ?? state.missedShotCount;
-          final totalShots = steadinessShots.length;
-          final detectedShots = totalShots + missedCount;
-          final metrics = _calculateMetrics(steadinessShots);
-          final duration = _calculateDuration(steadinessShots);
-
           if (steadinessShots.isEmpty) {
-            return Center(child: Text('No session data available', style: AppTheme.bodyLarge(context)));
+            return _buildEmptyState(context);
           }
 
-          return Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [AppTheme.primary(context), AppTheme.secondary(context)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: Column(
-                          children: [
-                            Icon(Icons.check_circle, size: 36, color: Colors.white),
-                            const SizedBox(height: 4),
-                            Text('Session Complete', style: AppTheme.headingLarge(context).copyWith(color: Colors.white, fontSize: 18)),
-                            const SizedBox(height: 2),
-                            Text(
-                              savedSession?.programName ?? state.program?.programName ?? 'Training',
-                              style: AppTheme.bodyLarge(context).copyWith(color: Colors.white70, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _buildCompactCard(
-                        context,
-                        child: Column(
-                          children: [
-                            _buildInfoRow(context, 'Session Duration', duration),
-                            _buildDivider(context),
-                            _buildInfoRow(context, 'Total Shots', '$totalShots'),
-                            _buildDivider(context),
-                            _buildInfoRow(context, 'Detected Shots', '$detectedShots'),
-                            _buildDivider(context),
-                            _buildInfoRow(context, 'Average Score', metrics['avgScore'].toStringAsFixed(1)),
-                            _buildDivider(context),
-                            _buildInfoRow(
-                              context,
-                              'Average Stability',
-                              '${metrics['avgStability'].toStringAsFixed(0)}%',
-                              valueColor: _getStabColor(metrics['avgStability'], context),
-                            ),
-                            _buildDivider(context),
-                            _buildInfoRow(context, 'Best Stability', '${metrics['bestStability'].toStringAsFixed(0)}%'),
-                            _buildDivider(context),
-                            _buildInfoRow(
-                              context,
-                              'Split Time (avg)',
-                              '${metrics['avgSplitTime'].toStringAsFixed(2)}s',
-                              showArrow: true,
-                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SplitTimesPage(savedSession: savedSession))),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Details',
-                              icon: Icons.info_outline,
-                              type: ButtonType.secondary,
-                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SplitTimesPage(savedSession: savedSession))),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Replay',
-                              icon: Icons.play_circle_outline,
-                              type: ButtonType.secondary,
-                              onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => ManticXAnalysisPage(), settings: RouteSettings(arguments: savedSession)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Share',
-                              icon: Icons.share,
-                              type: ButtonType.secondary,
-                              onPressed: () => Share.share('See my session summary in PulseAim app!'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
-                decoration: AppTheme.cardDecoration(context),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: TrainingButton(
-                          label: 'Save Session',
-                          icon: Icons.save,
-                          isLoading: state.isSavingSession ?? false,
-                          onPressed: () => context.read<TrainingSessionBloc>().add(SaveSession()),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: TrainingButton(
-                          label: 'Start New Session',
-                          icon: Icons.add,
-                          type: ButtonType.outlined,
-                          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        width: double.infinity,
-                        child: TrainingButton(
-                          label: 'Discard',
-                          icon: Icons.delete_outline,
-                          type: ButtonType.outlined,
-                          onPressed: () => _showDiscardDialog(context),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
+          return _buildContent(context, state, steadinessShots);
         },
       ),
     );
   }
 
-  Widget _buildCompactCard(BuildContext context, {required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        border: Border.all(
-          color: AppTheme.border(context).withOpacity(0.2),
-          width: 1,
-        ),
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppTheme.surface(context),
+      elevation: 0,
+      toolbarHeight: 50,
+      leading: IconButton(
+        icon: Icon(Icons.close, color: AppTheme.textPrimary(context), size: 20),
+        padding: EdgeInsets.zero,
+        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
       ),
-      child: child,
+      title: Text(
+        'Session Summary',
+        style: AppTheme.headingSmall(context).copyWith(fontSize: 16),
+      ),
+      centerTitle: true,
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, String label, String value, {Color? valueColor, bool showArrow = false, VoidCallback? onTap}) {
-    final content = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: AppTheme.bodyMedium(context).copyWith(
-            color: AppTheme.textSecondary(context),
-            fontSize: 12,
-          ),
-        ),
-        Row(
-          children: [
-            Text(
-              value,
-              style: AppTheme.bodyMedium(context).copyWith(
-                fontWeight: FontWeight.w700,
-                color: valueColor ?? AppTheme.textPrimary(context),
-                fontSize: 12,
-              ),
-            ),
-            if (showArrow) ...[
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right, size: 16, color: AppTheme.textSecondary(context)),
-            ],
-          ],
-        ),
-      ],
-    );
-
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: content,
+  void _handleStateChanges(BuildContext context, TrainingSessionState state) {
+    if (state.isSessionSaved == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Session saved', style: AppTheme.bodyMedium(context)),
+          backgroundColor: AppTheme.success(context),
         ),
       );
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
+  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: content,
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Text(
+        'No session data available',
+        style: AppTheme.bodyLarge(context),
+      ),
     );
   }
 
-  Widget _buildDivider(BuildContext context) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: AppTheme.border(context).withOpacity(0.2),
-    );
-  }
+  Widget _buildContent(BuildContext context, TrainingSessionState state, List<dynamic> steadinessShots) {
+    final metrics = _SessionMetrics.calculate(steadinessShots);
+    final missedCount = savedSession?.missedShotNumbers.length ?? state.missedShotCount;
+    final totalShots = steadinessShots.length;
+    final detectedShots = totalShots + missedCount;
 
-  void _showDiscardDialog(BuildContext ctx) {
-    showDialog(
-      context: ctx,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppTheme.surface(ctx),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusXLarge)),
-        title: Text('Discard Session?', style: AppTheme.headingMedium(ctx).copyWith(fontSize: 16)),
-        content: Text('Are you sure you want to discard this session? All data will be lost and cannot be recovered.', style: AppTheme.bodyMedium(ctx).copyWith(fontSize: 13)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text('Cancel', style: AppTheme.button(ctx).copyWith(fontSize: 13)),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Column(
+              children: [
+                GradientHeader(
+                  icon: Icons.check_circle,
+                  title: 'Session Complete',
+                  subtitle: savedSession?.programName ?? state.program?.programName ?? 'Training',
+                ),
+                const SizedBox(height: 10),
+                _buildMetricsCard(context, metrics, totalShots, detectedShots),
+                const SizedBox(height: 10),
+                _buildActionButtons(context),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.of(ctx).popUntil((route) => route.isFirst);
-            },
-            child: Text('Yes, Discard', style: AppTheme.button(ctx).copyWith(color: AppTheme.error(ctx), fontSize: 13)),
+        ),
+        _buildBottomActions(context, state),
+      ],
+    );
+  }
+
+  Widget _buildMetricsCard(BuildContext context, _SessionMetrics metrics, int totalShots, int detectedShots) {
+    return CompactCard(
+      child: Column(
+        children: [
+          InfoRow(label: 'Session Duration', value: metrics.duration),
+          const InfoDivider(),
+          InfoRow(label: 'Total Shots', value: '$totalShots'),
+          const InfoDivider(),
+          InfoRow(label: 'Detected Shots', value: '$detectedShots'),
+          const InfoDivider(),
+          InfoRow(label: 'Average Score', value: metrics.avgScore.toStringAsFixed(1)),
+          const InfoDivider(),
+          InfoRow(
+            label: 'Average Stability',
+            value: '${metrics.avgStability.toStringAsFixed(0)}%',
+            valueColor: _getStabilityColor(context, metrics.avgStability),
+          ),
+          const InfoDivider(),
+          InfoRow(label: 'Best Stability', value: '${metrics.bestStability.toStringAsFixed(0)}%'),
+          const InfoDivider(),
+          InfoRow(
+            label: 'Split Time (avg)',
+            value: '${metrics.avgSplitTime.toStringAsFixed(2)}s',
+            showArrow: true,
+            onTap: () => _navigateToSplitTimes(context),
           ),
         ],
       ),
     );
   }
 
-  static Map<String, dynamic> _calculateMetrics(List<dynamic> shots) {
-    double totalStability = 0, bestStability = 0, totalScore = 0;
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: TrainingButton(
+            label: 'Details',
+            icon: Icons.info_outline,
+            type: ButtonType.secondary,
+            onPressed: () => _navigateToSplitTimes(context),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: TrainingButton(
+            label: 'Replay',
+            icon: Icons.play_circle_outline,
+            type: ButtonType.secondary,
+            onPressed: () => _navigateToReplay(context),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: TrainingButton(
+            label: 'Share',
+            icon: Icons.share,
+            type: ButtonType.secondary,
+            onPressed: () => Share.share('See my session summary in PulseAim app!'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomActions(BuildContext context, TrainingSessionState state) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+      decoration: AppTheme.cardDecoration(context),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: TrainingButton(
+                label: 'Save Session',
+                icon: Icons.save,
+                isLoading: state.isSavingSession ?? false,
+                onPressed: () => context.read<TrainingSessionBloc>().add(const SaveSession()),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: TrainingButton(
+                label: 'Start New Session',
+                icon: Icons.add,
+                type: ButtonType.outlined,
+                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: TrainingButton(
+                label: 'Discard',
+                icon: Icons.delete_outline,
+                type: ButtonType.outlined,
+                onPressed: () => _showDiscardDialog(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSplitTimes(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SplitTimesPage(savedSession: savedSession),
+      ),
+    );
+  }
+
+  void _navigateToReplay(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ManticXAnalysisPage(),
+        settings: RouteSettings(arguments: savedSession),
+      ),
+    );
+  }
+
+  void _showDiscardDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
+        ),
+        title: Text(
+          'Discard Session?',
+          style: AppTheme.headingMedium(context).copyWith(fontSize: 16),
+        ),
+        content: Text(
+          'Are you sure you want to discard this session? All data will be lost and cannot be recovered.',
+          style: AppTheme.bodyMedium(context).copyWith(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: AppTheme.button(context).copyWith(fontSize: 13),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: Text(
+              'Yes, Discard',
+              style: AppTheme.button(context).copyWith(
+                color: AppTheme.error(context),
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStabilityColor(BuildContext context, double stability) {
+    if (stability >= 85) return AppTheme.success(context);
+    if (stability >= 70) return AppTheme.warning(context);
+    return AppTheme.error(context);
+  }
+}
+
+class _SessionMetrics {
+  final double avgStability;
+  final double bestStability;
+  final double avgScore;
+  final double avgSplitTime;
+  final String duration;
+
+  _SessionMetrics({
+    required this.avgStability,
+    required this.bestStability,
+    required this.avgScore,
+    required this.avgSplitTime,
+    required this.duration,
+  });
+
+  static _SessionMetrics calculate(List<dynamic> shots) {
+    if (shots.isEmpty) {
+      return _SessionMetrics(
+        avgStability: 0,
+        bestStability: 0,
+        avgScore: 0,
+        avgSplitTime: 0,
+        duration: '00:00',
+      );
+    }
+
+    double totalStability = 0;
+    double bestStability = 0;
+    double totalScore = 0;
     List<double> splitTimes = [];
+
     for (int i = 0; i < shots.length; i++) {
       final shot = shots[i];
-      final stability = shot.metrics?['linearWobble'] != null ? (1.0 - ((shot.metrics['linearWobble'] as double) / 10).clamp(0.0, 1.0)) * 100 : 85.0;
+      final stability = shot.metrics?['linearWobble'] != null
+          ? (1.0 - ((shot.metrics['linearWobble'] as double) / 10).clamp(0.0, 1.0)) * 100
+          : 85.0;
+
       totalStability += stability;
       bestStability = math.max(bestStability, stability);
       totalScore += shot.score ?? 0;
-      if (i > 0) splitTimes.add(shot.timestamp.difference(shots[i - 1].timestamp).inMilliseconds / 1000.0);
+
+      if (i > 0) {
+        splitTimes.add(
+          shot.timestamp.difference(shots[i - 1].timestamp).inMilliseconds / 1000.0,
+        );
+      }
     }
-    return {
-      'avgStability': totalStability / shots.length,
-      'bestStability': bestStability,
-      'avgScore': totalScore / shots.length,
-      'avgSplitTime': splitTimes.isEmpty ? 0.0 : splitTimes.reduce((a, b) => a + b) / splitTimes.length,
-    };
+
+    final duration = shots.length < 2
+        ? '00:00'
+        : _formatDuration(
+      (shots.last.timestamp as DateTime).difference(shots.first.timestamp as DateTime),
+    );
+
+    return _SessionMetrics(
+      avgStability: totalStability / shots.length,
+      bestStability: bestStability,
+      avgScore: totalScore / shots.length,
+      avgSplitTime: splitTimes.isEmpty ? 0.0 : splitTimes.reduce((a, b) => a + b) / splitTimes.length,
+      duration: duration,
+    );
   }
 
-  static Color _getStabColor(double stability, BuildContext ctx) {
-    if (stability >= 85) return AppTheme.success(ctx);
-    if (stability >= 70) return AppTheme.warning(ctx);
-    return AppTheme.error(ctx);
-  }
-
-  static String _calculateDuration(List<dynamic> shots) {
-    if (shots.length < 2) return '00:00';
-    final first = shots.first.timestamp as DateTime;
-    final last = shots.last.timestamp as DateTime;
-    final duration = last.difference(first);
+  static String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
