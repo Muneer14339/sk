@@ -231,6 +231,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
           selectedTabIndex: _selectedTabIndex,
           onTabChanged: _onTabChanged,
           state: state,
+          counts: _counts,
         ),
         Expanded(
           child: Container(

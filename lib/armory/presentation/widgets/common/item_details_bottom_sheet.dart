@@ -1,22 +1,36 @@
 // lib/armory/presentation/widgets/common/item_details_bottom_sheet.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'armory_constants.dart';
 import 'entity_field_helper.dart';
+import 'common_delete_dilogue.dart';
+import '../../bloc/armory_bloc.dart';
 
 class ItemDetailsBottomSheet extends StatefulWidget {
   final dynamic item;
+  final String userId;
+  final ArmoryTabType tabType;
 
-  const ItemDetailsBottomSheet({super.key, required this.item});
+  const ItemDetailsBottomSheet({
+    super.key,
+    required this.item,
+    required this.userId,
+    required this.tabType,
+  });
 
-  static void show(BuildContext context, dynamic item) {
+  static void show(BuildContext context, dynamic item, String userId, ArmoryTabType tabType) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       isDismissible: true,
       enableDrag: true,
-      builder: (context) => ItemDetailsBottomSheet(item: item),
+      builder: (context) => ItemDetailsBottomSheet(
+        item: item,
+        userId: userId,
+        tabType: tabType,
+      ),
     );
   }
 
@@ -86,7 +100,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             Expanded(
               child: _buildContent(details),
             ),
-            _buildFooter(),
+            _buildFooter(details),
           ],
         ),
       ),
@@ -166,7 +180,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             _buildPrimarySection(requiredFields),
           if (additionalFields.isNotEmpty)
             _buildSecondarySection(additionalFields),
-          const SizedBox(height: 80), // Space for footer
+          const SizedBox(height: 80),
         ],
       ),
     );
@@ -255,7 +269,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       }
     }
 
-    // Remove empty categories
     grouped.removeWhere((key, value) => value.isEmpty);
     return grouped;
   }
@@ -471,7 +484,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
     }
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(EntityDetailsData details) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -494,7 +507,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  // TODO: Implement edit functionality
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary(context),
@@ -517,12 +529,17 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
-                  // TODO: Implement delete functionality
+                  CommonDialogs.showDeleteDialog(
+                    context: context,
+                    userId: widget.userId,
+                    armoryType: widget.tabType,
+                    itemName: details.title,
+                    item: widget.item,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.surfaceVariant(context),
-                  foregroundColor: AppTheme.textPrimary(context),
+                  backgroundColor: AppTheme.error(context).withOpacity(0.1),
+                  foregroundColor: AppTheme.error(context),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -533,6 +550,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
                   style: AppTheme.button(context).copyWith(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
+                    color: AppTheme.error(context),
                   ),
                 ),
               ),
@@ -544,28 +562,3 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
   }
 }
 
-// // Extension for status colors (if not already present)
-// extension StatusColors on String {
-//   Color statusColor(BuildContext context) {
-//     switch (toLowerCase()) {
-//       case 'available':
-//         return const Color(0xFF4CAF50);
-//       case 'in-use':
-//       case 'low-stock':
-//         return const Color(0xFFFFA726);
-//       case 'maintenance':
-//       case 'out-of-stock':
-//         return const Color(0xFFFF5252);
-//       default:
-//         return const Color(0xFFB0B0B0);
-//     }
-//   }
-//
-//   TextStyle statusTextStyle(BuildContext context) {
-//     return TextStyle(
-//       fontSize: 11,
-//       fontWeight: FontWeight.w600,
-//       color: statusColor(context),
-//     );
-//   }
-// }

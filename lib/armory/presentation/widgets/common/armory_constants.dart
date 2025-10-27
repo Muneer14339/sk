@@ -12,7 +12,7 @@ class ArmoryConstants {
   static const double cardBorderRadius = 16;
   static const double itemCardBorderRadius = 12;
   static const double badgeBorderRadius = 6;
-  static const EdgeInsets cardPadding = EdgeInsets.all(14);
+  static const EdgeInsets cardPadding = EdgeInsets.all(8);
   static const EdgeInsets itemPadding = EdgeInsets.all(10);
   static const EdgeInsets fieldPadding = EdgeInsets.all(12);
   static const EdgeInsets pageMargin = EdgeInsets.all(16);

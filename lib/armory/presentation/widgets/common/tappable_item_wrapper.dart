@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'armory_constants.dart';
 import 'item_details_bottom_sheet.dart';
+import 'common_delete_dilogue.dart';
 
 class TappableItemWrapper extends StatelessWidget {
   final Widget child;
@@ -16,6 +17,17 @@ class TappableItemWrapper extends StatelessWidget {
     this.onTap,
   });
 
+  ArmoryTabType _getTabType(dynamic item) {
+    final typeName = item.runtimeType.toString();
+    if (typeName.contains('Firearm')) return ArmoryTabType.firearms;
+    if (typeName.contains('Ammunition')) return ArmoryTabType.ammunition;
+    if (typeName.contains('Gear')) return ArmoryTabType.gear;
+    if (typeName.contains('Tool')) return ArmoryTabType.tools;
+    if (typeName.contains('Loadout')) return ArmoryTabType.loadouts;
+    if (typeName.contains('Maintenance')) return ArmoryTabType.maintenence;
+    return ArmoryTabType.firearms;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -25,10 +37,16 @@ class TappableItemWrapper extends StatelessWidget {
           if (onTap != null) {
             onTap!();
           } else {
-            ItemDetailsBottomSheet.show(context, item);
+            final userId = (item as dynamic).id?.toString().split('-').first ?? '';
+            ItemDetailsBottomSheet.show(
+              context,
+              item,
+              userId,
+              _getTabType(item),
+            );
           }
         },
-        borderRadius: BorderRadius.circular(ArmoryConstants.itemCardBorderRadius),
+        borderRadius: BorderRadius.circular(8),
         splashColor: AppTheme.primary(context).withOpacity(0.1),
         highlightColor: AppTheme.primary(context).withOpacity(0.05),
         child: child,

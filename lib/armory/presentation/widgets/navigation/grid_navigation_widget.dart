@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_state.dart';
 import '../common/armory_constants.dart';
+import '../tab_widgets/enhanced_armory_tab_view.dart';
 
 class GridNavigationWidget extends StatelessWidget {
   final int selectedTabIndex;
   final Function(int) onTabChanged;
   final ArmoryState state;
+  final Map<ArmoryTabType, int> counts; // ADD THIS
 
   const GridNavigationWidget({
     super.key,
     required this.selectedTabIndex,
     required this.onTabChanged,
     required this.state,
+    required this.counts, // ADD THIS
   });
 
   @override
@@ -99,18 +102,12 @@ class GridNavigationWidget extends StatelessWidget {
                       top: -3,
                       right: -3,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 1,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
                           color: AppTheme.error(context),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        constraints: const BoxConstraints(
-                          minWidth: 14,
-                          minHeight: 14,
-                        ),
+                        constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
                         child: Text(
                           tabItem.count.toString(),
                           style: const TextStyle(
@@ -145,38 +142,15 @@ class GridNavigationWidget extends StatelessWidget {
     );
   }
 
+  // Replace _getTabItems with:
   List<TabItemInfo> _getTabItems() {
     return [
-      TabItemInfo(
-        title: 'Firearms',
-        icon: Icons.radio_button_unchecked,
-        count: _getFirearmsCount(),
-      ),
-      TabItemInfo(
-        title: 'Ammo',
-        icon: Icons.inventory_2_outlined,
-        count: _getAmmunitionCount(),
-      ),
-      TabItemInfo(
-        title: 'Gear',
-        icon: Icons.backpack_outlined,
-        count: _getGearCount(),
-      ),
-      TabItemInfo(
-        title: 'Tools',
-        icon: Icons.build_outlined,
-        count: _getToolsCount(),
-      ),
-      TabItemInfo(
-        title: 'Loadouts',
-        icon: Icons.flash_on_outlined,
-        count: _getLoadoutsCount(),
-      ),
-      TabItemInfo(
-        title: 'Report',
-        icon: Icons.analytics_outlined,
-        count: _getAllItemsCount(),
-      ),
+      TabItemInfo(title: 'Firearms', icon: Icons.radio_button_unchecked, count: counts[ArmoryTabType.firearms] ?? 0),
+      TabItemInfo(title: 'Ammo', icon: Icons.inventory_2_outlined, count: counts[ArmoryTabType.ammunition] ?? 0),
+      TabItemInfo(title: 'Gear', icon: Icons.backpack_outlined, count: counts[ArmoryTabType.gear] ?? 0),
+      TabItemInfo(title: 'Tools', icon: Icons.build_outlined, count: counts[ArmoryTabType.tools] ?? 0),
+      TabItemInfo(title: 'Loadouts', icon: Icons.flash_on_outlined, count: counts[ArmoryTabType.loadouts] ?? 0),
+      TabItemInfo(title: 'Report', icon: Icons.analytics_outlined, count: counts[ArmoryTabType.report] ?? 0),
     ];
   }
 

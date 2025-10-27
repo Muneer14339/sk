@@ -62,6 +62,7 @@ class CommonDialogs {
               }
 
               Navigator.of(ctx).pop();
+              Navigator.of(context).pop();
             },
             child: Text(
               'Delete',

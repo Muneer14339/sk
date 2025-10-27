@@ -1,17 +1,8 @@
-// ===== COMPLETE IMPLEMENTATION GUIDE =====
-// All files use AppTheme from core/theme/app_theme.dart
-// Import pattern: import '../../../../core/theme/app_theme.dart';
-// Import pattern: import 'common/armory_constants.dart';
-
-// ===== ammunition_item_card.dart =====
+// lib/armory/presentation/widgets/item_cards/ammunition_item_card.dart
 import 'package:flutter/material.dart';
 import '../../../domain/entities/armory_ammunition.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../common/common_delete_dilogue.dart';
-import '../common/common_widgets.dart';
-import '../common/item_details_dialog.dart';
-import '../common/tappable_item_wrapper.dart';
-import '../common/armory_constants.dart';
+import '../common/common_item_card.dart';
 
 class AmmunitionItemCard extends StatelessWidget {
   final ArmoryAmmunition ammunition;
@@ -21,69 +12,26 @@ class AmmunitionItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TappableItemWrapper(
+    return CommonItemCard(
       item: ammunition,
-      child: Container(
-        margin: ArmoryConstants.itemMargin,
-        padding: ArmoryConstants.itemPadding,
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceVariant(context),
-          border: Border.all(color: AppTheme.border(context)),
-          borderRadius: BorderRadius.circular(ArmoryConstants.itemCardBorderRadius),
+      title: '${ammunition.brand} ${ammunition.line ?? ''}',
+      details: [
+        CardDetailRow(
+          icon: '🔫',
+          text: ammunition.caliber,
+          badge: '${ammunition.quantity} rds',
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${ammunition.brand} ${ammunition.line ?? ''}',
-                    style: AppTheme.titleMedium(context),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                CommonWidgets.buildTag(context, ammunition.caliber),
-                GestureDetector(
-                  onTap: () {
-                    CommonDialogs.showDeleteDialog(
-                      context: context,
-                      userId: userId,
-                      armoryType: ArmoryTabType.ammunition,
-                      itemName: '${ammunition.brand} ${ammunition.line ?? ''}',
-                      item: ammunition,
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.delete_outline,
-                      color: AppTheme.error(context),
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: ArmoryConstants.smallSpacing),
-            Wrap(
-              spacing: 10,
-              runSpacing: ArmoryConstants.smallSpacing,
-              children: [
-                if (ammunition.lot?.isNotEmpty == true)
-                  Text(
-                    'Lot: ${ammunition.lot}',
-                    style: AppTheme.labelMedium(context),
-                  ),
-                Text(
-                  'Qty: ${ammunition.quantity} rds',
-                  style: AppTheme.labelMedium(context),
-                ),
-                CommonWidgets.buildStatusChip(context, ammunition.status),
-              ],
-            ),
-          ],
+        CardDetailRow(
+          icon: '💣',
+          text: ammunition.bullet,
         ),
+      ],
+      onDelete: () => CommonDialogs.showDeleteDialog(
+        context: context,
+        userId: userId,
+        armoryType: ArmoryTabType.ammunition,
+        itemName: '${ammunition.brand} ${ammunition.line ?? ''}',
+        item: ammunition,
       ),
     );
   }
