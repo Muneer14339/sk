@@ -20,6 +20,7 @@ import '../bloc/training_session/training_session_bloc.dart';
 import '../bloc/training_session/training_session_event.dart';
 import '../widgets/common/training_button.dart';
 import '../widgets/device_calibration_dialog.dart';
+import 'sensitity_settings_page.dart';
 import 'training_program_builder.dart';
 
 class TrainingSessionSetupPage extends StatefulWidget {
@@ -189,8 +190,9 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
               children: [
                 Image.asset(
                   icon,
-                  width: 24,
-                  height: 24, // optional: agar color apply karna ho
+                  width: 28,
+                  height: 28,
+                  color: AppTheme.primary(context),// optional: agar color apply karna ho
                 ),
                 const SizedBox(width: 10),
                 Expanded(

@@ -17,12 +17,12 @@ class AmmunitionItemCard extends StatelessWidget {
       title: '${ammunition.brand} ${ammunition.line ?? ''}',
       details: [
         CardDetailRow(
-          icon: '🔫',
+          icon: 'assets/icons/armory_icons/caliber.png',
           text: ammunition.caliber,
           badge: '${ammunition.quantity} rds',
         ),
         CardDetailRow(
-          icon: '💣',
+          icon: 'assets/icons/armory_icons/ammo.png',
           text: ammunition.bullet,
         ),
       ],

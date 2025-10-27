@@ -1,5 +1,6 @@
-// lib/armory/presentation/widgets/common/common_item_card.dart
 import 'package:flutter/material.dart';
+import '../../../domain/entities/armory_firearm.dart';
+import '../../../domain/entities/armory_ammunition.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'tappable_item_wrapper.dart';
 
@@ -10,6 +11,8 @@ class CommonItemCard extends StatelessWidget {
   final List<CardDetailRow> details;
   final VoidCallback onDelete;
   final VoidCallback? onTap;
+  final ArmoryFirearm? firearm;
+  final ArmoryAmmunition? ammunition;
 
   const CommonItemCard({
     super.key,
@@ -19,6 +22,8 @@ class CommonItemCard extends StatelessWidget {
     required this.details,
     required this.onDelete,
     this.onTap,
+    this.firearm,
+    this.ammunition,
   });
 
   @override
@@ -26,6 +31,8 @@ class CommonItemCard extends StatelessWidget {
     return TappableItemWrapper(
       item: item,
       onTap: onTap,
+      firearm: firearm,
+      ammunition: ammunition,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -93,15 +100,12 @@ class CardDetailRow extends StatelessWidget {
       padding: const EdgeInsets.only(top: 6),
       child: Row(
         children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: AppTheme.primary(context),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            alignment: Alignment.center,
-            child: Text(icon, style: const TextStyle(fontSize: 10)),
+          Image.asset(
+            icon,
+            color: AppTheme.primary(context),
+            width: 28,
+            height: 28,
+            // optional: agar color apply karna ho
           ),
           const SizedBox(width: 4),
           Flexible(

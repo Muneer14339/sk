@@ -17,7 +17,7 @@ class GearItemCard extends StatelessWidget {
       title: gear.model,
       details: [
         CardDetailRow(
-          icon: '🎒',
+          icon: 'assets/icons/armory_icons/gear_category.png',
           text: gear.category,
           badge: 'Qty: ${gear.quantity}',
         ),

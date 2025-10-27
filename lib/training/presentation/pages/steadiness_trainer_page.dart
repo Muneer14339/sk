@@ -49,7 +49,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     context.read<TrainingSessionBloc>().add(
       UpdateAngleRange(widget.program.drill!.sensitivity),
     );
-
   }
 
   @override
@@ -62,26 +61,30 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
         actions: [
           Spacer(),
           IconButton(
-            icon: Icon(Icons.settings, color: AppTheme.textPrimary(context)),
+            icon: Icon(Icons.settings, color: AppTheme.textPrimary(context), size: 20),
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
             onPressed: () {
               String? sensPerms = prefs?.getString(sensitivityKey);
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => SettingViewPage(
-                    sensPerms:
-                    sensPerms?.split('/') ?? ['5', '3', '3', '3', '3', '3'],
+                    sensPerms: sensPerms?.split('/') ?? ['2', '1', '1', '1', '1', '1'],
                   ),
                 ),
               );
             },
           ),
-          // // NEW: Calibration wizard button
+          SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.tune, color: AppTheme.textPrimary(context)),
+            icon: Icon(Icons.tune, color: AppTheme.textPrimary(context), size: 20),
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
             tooltip: 'Calibration Wizard',
             onPressed: () => _showCalibrationWizard(context),
           ),
+          SizedBox(width: 8),
         ],
       ),
       body: BlocConsumer<BleScanBloc, BleScanState>(
@@ -102,32 +105,30 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
             listener: (_, sessionState) {
               _shotCount = sessionState.shotCount;
 
-              // ✅ Show sensor errors to user
               if (sessionState.sensorError != null) {
                 _handleSensorError(context, sessionState.sensorError!);
               }
 
-              if (sessionState.hasNavigatedToSessionDetail &&
-                  sessionState.sessionCompleted) {
+              if (sessionState.hasNavigatedToSessionDetail && sessionState.sessionCompleted) {
                 _navigateToAnalysisPage(context);
               }
             },
             builder: (_, sessionState) {
-              // ✅ Read mode from bloc state (loaded at app start)
               final traceModeInt = prefs?.getInt(traceDisplayModeKey) ?? 0;
               final traceMode = TraceDisplayMode.values[traceModeInt.clamp(0, 2)];
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                physics: ClampingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   children: [
                     _buildProgramHeader(
                       widget.program.programName ?? '',
                       widget.program.programDescription ?? '',
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     _buildStatusCard(sessionState, widget.program),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     TargetDisplay(
                       selectedDistance: sessionState.selectedDistance,
                       tracePoints: sessionState.tracePoints,
@@ -140,9 +141,9 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       lastDrawX: sessionState.lastDrawX,
                       lastDrawY: sessionState.lastDrawY,
                       isResetting: false,
-                      traceDisplayMode: traceMode, // ✅ NEW parameter
+                      traceDisplayMode: traceMode,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     SessionControls(
                       isSensorEnabled: sessionState.isSensorsEnabled,
                       isTraining: sessionState.isTraining,
@@ -151,58 +152,13 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                       stopTraining: () => _pauseTraining(sessionState),
                       resetTrace: _resetTrace,
                       finishSession: _finishSession,
-                      onRecalibrate: sessionState.isSensorsEnabled ? _showRecalibrationDialog : null, // NEW
+                      onRecalibrate: sessionState.isSensorsEnabled ? _showRecalibrationDialog : null,
                     ),
-                    const SizedBox(height: 16),
-
+                    const SizedBox(height: 10),
                     buildRealtimeStability(sessionState, context),
-
-                    // const SizedBox(height: 16),
-                    // _buildDropdownSection(
-                    //   title: 'Training Distance',
-                    //   value: sessionState.selectedDistance,
-                    //   items: sessionState.distancePresets.entries
-                    //       .map(
-                    //         (entry) => DropdownMenuItem(
-                    //           value: entry.key,
-                    //           child: Text(
-                    //             '${entry.value['name']}${entry.value['description']}',
-                    //           ),
-                    //         ),
-                    //       )
-                    //       .toList(),
-                    //   onChanged: (val) {
-                    //     if (val != null) {
-                    //       context.read<TrainingSessionBloc>().add(
-                    //             UpdateDistancePreset(val),
-                    //           );
-                    //     }
-                    //   },
-                    // ),
-                    // const SizedBox(height: 16),
-                    // _buildDropdownSection(
-                    //   title: 'Angle Range to Outer Ring',
-                    //   value: sessionState.selectedAngleRange,
-                    //   items: sessionState.angleRangePresets.entries
-                    //       .map(
-                    //         (entry) => DropdownMenuItem(
-                    //           value: entry.key,
-                    //           child: Text(
-                    //             '${entry.value['name']} - ${entry.value['description']}',
-                    //           ),
-                    //         ),
-                    //       )
-                    //       .toList(),
-                    //   onChanged: (val) {
-                    //     if (val != null) {
-                    //       context.read<TrainingSessionBloc>().add(
-                    //             UpdateAngleRange(val),
-                    //           );
-                    //     }
-                    //   },
-                    // ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _buildShotLog(sessionState),
+                    const SizedBox(height: 8),
                   ],
                 ),
               );
@@ -222,21 +178,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
 
     showDialog(
       context: context,
-      barrierDismissible: true, // Can dismiss (not forceful)
+      barrierDismissible: true,
       builder: (_) => DeviceCalibrationDialog(
         onStartCalibration: () async {
           final device = bleState.connectedDevice!;
-
-          // 1. Disable sensors
           context.read<TrainingSessionBloc>().add(DisableSensors(device: device));
           await Future.delayed(Duration(seconds: 1));
-
-          // 2. Enable sensors (triggers calibration)
-          context.read<TrainingSessionBloc>().add(
-            EnableSensors( device: device),
-          );
+          context.read<TrainingSessionBloc>().add(EnableSensors(device: device));
           await Future.delayed(Duration(seconds: 6));
-
           Navigator.of(context).pop();
           ToastUtils.showSuccess(context, message: 'Recalibration complete');
         },
@@ -250,7 +199,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-  // Add this new method:
   void _handleSensorError(BuildContext context, String error) {
     showDialog(
       context: context,
@@ -259,32 +207,26 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
         backgroundColor: AppTheme.surface(context),
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: AppTheme.error(context)),
-            const SizedBox(width: 8),
-            Text(
-              'Sensor Error',
-              style: TextStyle(color: AppTheme.textPrimary(context)),
-            ),
+            Icon(Icons.error_outline, color: AppTheme.error(context), size: 20),
+            const SizedBox(width: 6),
+            Text('Sensor Error', style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 15)),
           ],
         ),
-        content: Text(error, style: TextStyle(color: AppTheme.textSecondary(context))),
+        content: Text(error, style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 13)),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(dialogContext); // Close dialog
-              Navigator.pop(context); // Navigate back to previous page
+              Navigator.pop(dialogContext);
+              Navigator.pop(context);
             },
-            style: TextButton.styleFrom(
-              foregroundColor: AppTheme.primary(context),
-            ),
-            child: const Text('OK'),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.primary(context)),
+            child: const Text('OK', style: TextStyle(fontSize: 13)),
           ),
         ],
       ),
     );
   }
 
-  // NEW: Show calibration wizard dialog
   void _showCalibrationWizard(BuildContext context) {
     final bleState = context.read<BleScanBloc>().state;
     if (!bleState.isConnected) {
@@ -303,10 +245,8 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     final traceModeInt = prefs?.getInt(traceDisplayModeKey) ?? 0;
     final traceMode = TraceDisplayMode.values[traceModeInt.clamp(0, 2)];
 
-    // ✅ CHANGED: Allow training if haptic OR any visible mode
     if (!hapticEnabled && traceMode == TraceDisplayMode.hidden) {
-      ToastUtils.showError(context,
-          message: 'Enable Haptic or Display Mode from settings to start training');
+      ToastUtils.showError(context, message: 'Enable Haptic or Display Mode from settings to start training');
       return;
     }
 
@@ -317,45 +257,17 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     } else {
       context.read<TrainingSessionBloc>().add(StartTrainingSession(program: widget.program));
     }
-
-    // final bleState = context.read<BleScanBloc>().state;
-    // if (bleState.connectedDevice != null) {
-    //   context.read<TrainingSessionBloc>().add(
-    //     EnableSensors(
-    //       program: widget.program,
-    //       device: bleState.connectedDevice!,
-    //     ),
-    //   );
-    // }
   }
 
-  // MODIFY: _stopTraining -> rename to _pauseTraining
   void _pauseTraining(TrainingSessionState sessionState) {
-    // final bleState = context.read<BleScanBloc>().state;
-    // if (bleState.connectedDevice != null) {
-    //   context.read<TrainingSessionBloc>().add(
-    //         DisableSensors(device: bleState.connectedDevice!),
-    //       );
-    // }
     if (sessionState.shotCount > 0) {
-      context.read<TrainingSessionBloc>().add(
-        const PauseTrainingSession(),
-      ); // NEW
+      context.read<TrainingSessionBloc>().add(const PauseTrainingSession());
     } else {
-      context.read<TrainingSessionBloc>().add(
-        const StopTrainingSession(),
-      ); // NEW
+      context.read<TrainingSessionBloc>().add(const StopTrainingSession());
     }
   }
 
-  // NEW: Finish session method
   void _finishSession() {
-    // final bleState = context.read<BleScanBloc>().state;
-    // if (bleState.connectedDevice != null) {
-    //   context.read<TrainingSessionBloc>().add(
-    //         DisableSensors(device: bleState.connectedDevice!),
-    //       );
-    // }
     context.read<TrainingSessionBloc>().add(const StopTrainingSession());
     _navigateToAnalysisPage(context);
   }
@@ -363,9 +275,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
   void _stopTraining() {
     final bleState = context.read<BleScanBloc>().state;
     if (bleState.connectedDevice != null) {
-      context.read<TrainingSessionBloc>().add(
-        DisableSensors(device: bleState.connectedDevice!),
-      );
+      context.read<TrainingSessionBloc>().add(DisableSensors(device: bleState.connectedDevice!));
     }
     context.read<TrainingSessionBloc>().add(const StopTrainingSession());
   }
@@ -377,17 +287,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
   void _navigateToAnalysisPage(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) =>
-        const SessionSummaryPage(), // Changed from ManticXAnalysisPage
-      ),
+      MaterialPageRoute(builder: (_) => const SessionSummaryPage()),
     );
   }
 
   Widget _buildProgramHeader(String title, String desc) {
     return Container(
       width: double.maxFinite,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -397,12 +304,12 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.25),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -412,14 +319,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
             title,
             style: TextStyle(
               color: AppTheme.textPrimary(context),
-              fontSize: 18,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             desc,
-            style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 14),
+            style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
@@ -427,38 +334,27 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-  // Update _buildStatusCard method in steadiness_trainer_page.dart
-
   Widget _buildStatusCard(TrainingSessionState s, ProgramsModel p) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppTheme.background(context).withOpacity(0.8)),
       ),
       child: Column(
         children: [
-          // First row - existing metrics
           Row(
             children: [
-              _buildMetric(
-                "Shots",
-                "${s.shotCount}/${p.drill!.plannedRounds}",
-                Icons.gps_fixed,
-              ),
-              const SizedBox(width: 8),
+              _buildMetric("Shots", "${s.shotCount}/${p.drill!.plannedRounds}", Icons.gps_fixed),
+              const SizedBox(width: 6),
               _buildMetric(
                 "Time",
-                _formatDuration(
-                  DateTime.now().difference(
-                    s.sessionStartTime ?? DateTime.now(),
-                  ),
-                ),
+                _formatDuration(DateTime.now().difference(s.sessionStartTime ?? DateTime.now())),
                 Icons.timer,
                 color: s.isTraining ? AppTheme.primary(context) : null,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               _buildMetric(
                 "Distance",
                 "${s.selectedDistance} m",
@@ -467,11 +363,8 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
-
-          if(s.isTraining && s.sensorStream!=null)
-          // ✅ NEW: Pitch, Yaw, Tilt live metrics
+          const SizedBox(height: 6),
+          if (s.isTraining && s.sensorStream != null)
             Row(
               children: [
                 _buildMetric(
@@ -480,14 +373,14 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                   Icons.height,
                   color: AppTheme.textPrimary(context),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildMetric(
                   "Yaw",
                   "${s.sensorStream!.yaw.toStringAsFixed(1)}°",
                   Icons.explore,
                   color: AppTheme.textPrimary(context),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 _buildMetric(
                   "Roll",
                   "${s.sensorStream!.roll.toStringAsFixed(1)}°",
@@ -496,43 +389,32 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                 ),
               ],
             ),
-
-          // NEW: Missed shots section
           if (s.missedShotCount > 0) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: AppTheme.warning(context).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppTheme.warning(context).withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: AppTheme.warning(context),
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
+                  Icon(Icons.warning_amber_rounded, color: AppTheme.warning(context), size: 14),
+                  const SizedBox(width: 6),
                   Text(
                     "Missed Shots: ${s.missedShotCount}",
                     style: TextStyle(
                       color: AppTheme.warning(context),
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 11,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Tooltip(
-                    message:
-                    "Shots detected by sensor but not counted (out of range or visibility issues)",
-                    child: Icon(
-                      Icons.info_outline,
-                      color: AppTheme.warning(context),
-                      size: 14,
-                    ),
+                    message: "Shots detected by sensor but not counted (out of range or visibility issues)",
+                    child: Icon(Icons.info_outline, color: AppTheme.warning(context), size: 12),
                   ),
                 ],
               ),
@@ -543,35 +425,27 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-
-  Widget _buildMetric(
-      String label,
-      String value,
-      IconData icon, {
-        Color? color,
-      }) {
+  Widget _buildMetric(String label, String value, IconData icon, {Color? color}) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         decoration: BoxDecoration(
           color: AppTheme.primary(context).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [
-            // Icon(icon, color: AppTheme.primary(context), size: 16),
-            // const SizedBox(height: 6),
             Text(
               label,
-              style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 12),
+              style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 10),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               value,
               style: TextStyle(
                 color: color ?? AppTheme.textPrimary(context),
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: 11,
               ),
             ),
           ],
@@ -580,109 +454,94 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-  // ✅ UPDATED: buildRealtimeStability - Professional Distance-Based Calculation
   Widget buildRealtimeStability(TrainingSessionState sessionState, BuildContext context) {
-    // Calculate distance from center (200, 200)
     final double centerX = 200.0;
     final double centerY = 200.0;
     final double currentX = sessionState.lastDrawX;
     final double currentY = sessionState.lastDrawY;
 
     final double distanceFromCenter = math.sqrt(
-        math.pow(currentX - centerX, 2) + math.pow(currentY - centerY, 2)
+      math.pow(currentX - centerX, 2) + math.pow(currentY - centerY, 2),
     );
 
-    // Get ring 10 (innermost/center) radius
     final double ring10Radius = sessionState.ringRadii[10] ?? 0.0;
-
-    // Get ring 5 (outermost visible) radius
     final double ring5Radius = sessionState.ringRadii[5] ?? 190.0;
 
-    // ✅ PROFESSIONAL CALCULATION: Stability based on distance from center
     int stabilityPercent;
     Color stabColor;
 
     if (distanceFromCenter <= ring10Radius) {
-      // ✅ Inside ring 10 (center) = 100% stability
       stabilityPercent = 100;
       stabColor = AppTheme.success(context);
     } else if (distanceFromCenter > ring5Radius) {
-      // ✅ Outside ring 5 (outer boundary) = 0% stability
       stabilityPercent = 0;
       stabColor = AppTheme.error(context);
     } else {
-      // ✅ Between ring 10 and ring 5: Linear interpolation
-      // Formula: stability = 100 - (distance_ratio * 100)
-      // where distance_ratio = (current_distance - ring10_radius) / (ring5_radius - ring10_radius)
-
       final double distanceRatio = (distanceFromCenter - ring10Radius) / (ring5Radius - ring10Radius);
       stabilityPercent = (100 - (distanceRatio * 100)).round().clamp(0, 100);
 
-      // Dynamic color based on stability
       if (stabilityPercent >= 80) {
         stabColor = AppTheme.success(context);
       } else if (stabilityPercent >= 50) {
-        stabColor = const Color(0xFFFF9800); // Orange
+        stabColor = const Color(0xFFFF9800);
       } else {
         stabColor = AppTheme.error(context);
       }
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppTheme.surface(context).withOpacity(0.22),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: stabColor.withOpacity(0.4), width: 2),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: stabColor.withOpacity(0.4), width: 1.5),
       ),
       child: Row(
         children: [
           Text(
-              "Stability",
-              style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.primary(context),
-                  fontSize: 16
-              )
+            "Stability",
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primary(context),
+              fontSize: 13,
+            ),
           ),
-          const SizedBox(width: 18),
+          const SizedBox(width: 12),
           Expanded(
             child: Container(
-              height: 13,
+              height: 10,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.09),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(3),
               ),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
                   widthFactor: stabilityPercent / 100.0,
                   child: Container(
-                    height: 13,
+                    height: 10,
                     decoration: BoxDecoration(
                       color: stabColor,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Text(
-              "$stabilityPercent%",
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: stabColor,
-                  fontSize: 17
-              )
+            "$stabilityPercent%",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: stabColor,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
     );
   }
-
 
   double calculateCurrentLinearWobble(TrainingSessionState state) {
     final preset = state.currentDistancePreset;
@@ -692,14 +551,12 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
 
   Widget _buildShotLog(TrainingSessionState s) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppTheme.background(context).withOpacity(0.8),
-        ),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppTheme.background(context).withOpacity(0.8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -708,23 +565,22 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
             "Shot Log",
             style: TextStyle(
               color: AppTheme.textPrimary(context),
-              fontSize: 16,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           if (s.shotLog.isEmpty)
             Text(
               "No shots recorded yet",
-              style: TextStyle(color: AppTheme.textSecondary(context)),
+              style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 11),
             )
           else
             Column(
               children: [
-                // ===== Table Header =====
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final headerFontSize = constraints.maxWidth * 0.035;
+                    final headerFontSize = 10.0;
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -736,10 +592,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                     );
                   },
                 ),
-
-                const SizedBox(height: 8),
-
-                // ===== Table Data Rows =====
+                const SizedBox(height: 6),
                 ...s.shotLog.take(10).map((shot) {
                   final time = shot['time'] as DateTime;
                   final theta = shot['theta'] as double;
@@ -747,17 +600,15 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                   final stability = shot['stability'] as int? ?? 0;
 
                   return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(
-                          color: AppTheme.background(context).withOpacity(0.8),
-                        ),
+                        bottom: BorderSide(color: AppTheme.background(context).withOpacity(0.8)),
                       ),
                     ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final fontSize = constraints.maxWidth * 0.035;
+                        final fontSize = 10.0;
 
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -776,12 +627,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                               fontSize: fontSize,
                               textColor: AppTheme.textPrimary(context),
                             ),
-                            _buildBadgeCell(
-                              context,
-                              score.toString(),
-                              _getScoreColor(score),
-                              fontSize,
-                            ),
+                            _buildBadgeCell(context, score.toString(), _getScoreColor(score), fontSize),
                             _buildBadgeCell(
                               context,
                               "$stability%",
@@ -805,8 +651,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-  Widget _buildHeaderCell(BuildContext context, String text,
-      {int flex = 1, double fontSize = 14}) {
+  Widget _buildHeaderCell(BuildContext context, String text, {int flex = 1, double fontSize = 10}) {
     return Expanded(
       flex: flex,
       child: Center(
@@ -826,8 +671,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     );
   }
 
-  Widget _buildDataCell(BuildContext context, String text,
-      {int flex = 1, required double fontSize, required Color textColor}) {
+  Widget _buildDataCell(BuildContext context, String text, {int flex = 1, required double fontSize, required Color textColor}) {
     return Expanded(
       flex: flex,
       child: Center(
@@ -836,10 +680,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: textColor,
-              fontSize: fontSize,
-            ),
+            style: TextStyle(color: textColor, fontSize: fontSize),
           ),
         ),
       ),
@@ -851,10 +692,10 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       flex: 1,
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
             color: color.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -872,7 +713,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
       ),
     );
   }
-
 
   String _formatDuration(Duration d) =>
       "${d.inMinutes.remainder(60).toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}";

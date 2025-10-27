@@ -17,7 +17,7 @@ class ToolItemCard extends StatelessWidget {
       title: tool.name,
       details: [
         CardDetailRow(
-          icon: '🔧',
+          icon: 'assets/icons/armory_icons/tools_category.png',
           text: tool.category ?? '',
           badge: 'Qty: ${tool.quantity}',
         ),

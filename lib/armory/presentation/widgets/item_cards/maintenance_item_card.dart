@@ -19,13 +19,13 @@ class MaintenanceItemCard extends StatelessWidget {
       title: maintenance.maintenanceType,
       details: [
         CardDetailRow(
-          icon: '🔧',
+          icon: 'assets/icons/armory_icons/maintenence_asset_type.png',
           text: maintenance.assetType,
           date: dateStr,
         ),
         if (maintenance.roundsFired != null && maintenance.roundsFired! > 0)
           CardDetailRow(
-            icon: '💣',
+            icon: 'assets/icons/armory_icons/ammo.png',
             text: 'Rounds: ${maintenance.roundsFired}',
           ),
       ],

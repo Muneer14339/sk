@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/services/prefs.dart';
 import '../../injection_container.dart';
 import '../../core/config/app_config.dart';
 import '../../authentication/presentation/bloc/login_bloc/auth_bloc.dart';
@@ -11,6 +12,7 @@ import '../../authentication/presentation/pages/login_page.dart';
 import '../../armory/presentation/bloc/armory_bloc.dart';
 import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
 import '../../core/theme/app_theme.dart';
+import '../../training/presentation/pages/sensitity_settings_page.dart';
 import '../../training/presentation/pages/training_programs_page.dart';
 import 'placeholder_tabs.dart';
 
@@ -77,16 +79,35 @@ class _MainAppViewState extends State<MainAppView> {
         style: AppTheme.headingMedium(context),
       ),
       actions: [
-        IconButton(
-          icon: Icon(
-            Icons.logout,
-            color: AppTheme.textPrimary(context),
-            size: AppTheme.iconMedium,
+        if(_currentIndex ==2 )
+          IconButton(
+            icon: Icon(Icons.settings, color: AppTheme.textPrimary(context), size: 20),
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(),
+            onPressed: () {
+              String? sensPerms = prefs?.getString(sensitivityKey);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SettingViewPage(
+                    sensPerms: sensPerms?.split('/') ?? ['2', '1', '1', '1', '1', '1'],
+                  ),
+                ),
+              );
+            },
           ),
-          onPressed: () {
-            context.read<AuthBloc>().add(const LogoutRequested());
-          },
-        ),
+        if(_currentIndex!=2)
+          IconButton(
+            icon: Icon(
+              Icons.logout,
+              color: AppTheme.textPrimary(context),
+              size: AppTheme.iconMedium,
+            ),
+            onPressed: () {
+              context.read<AuthBloc>().add(const LogoutRequested());
+            },
+          ),
+
       ],
     );
   }

@@ -17,12 +17,12 @@ class FirearmItemCard extends StatelessWidget {
       title: '${firearm.make} ${firearm.model}',
       details: [
         CardDetailRow(
-          icon: '🔫',
+          icon: 'assets/icons/armory_icons/firearm.png',
           text: firearm.caliber,
         ),
         if (firearm.nickname.isNotEmpty)
           CardDetailRow(
-            icon: '📝',
+            icon: 'assets/icons/armory_icons/nickName.png',
             text: firearm.nickname,
           ),
       ],

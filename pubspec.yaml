@@ -88,6 +88,7 @@ flutter:
   assets:
     - assets/icons/bottom_navigation/
     - assets/icons/training/
+    - assets/icons/armory_icons/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

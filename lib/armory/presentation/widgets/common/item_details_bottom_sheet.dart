@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:pa_sreens/armory/presentation/widgets/common/armory_constants.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../domain/entities/armory_ammunition.dart';
+import '../../../domain/entities/armory_firearm.dart';
+import '../../../domain/entities/armory_loadout.dart';
 import 'entity_field_helper.dart';
 import 'common_delete_dilogue.dart';
 
@@ -9,15 +12,26 @@ class ItemDetailsBottomSheet extends StatefulWidget {
   final dynamic item;
   final String userId;
   final ArmoryTabType tabType;
+  final ArmoryFirearm? firearm;
+  final ArmoryAmmunition? ammunition;
 
   const ItemDetailsBottomSheet({
     super.key,
     required this.item,
     required this.userId,
     required this.tabType,
+    this.firearm,
+    this.ammunition,
   });
 
-  static void show(BuildContext context, dynamic item, String userId, ArmoryTabType tabType) {
+  static void show(
+      BuildContext context,
+      dynamic item,
+      String userId,
+      ArmoryTabType tabType, {
+        ArmoryFirearm? firearm,
+        ArmoryAmmunition? ammunition,
+      }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -28,6 +42,8 @@ class ItemDetailsBottomSheet extends StatefulWidget {
         item: item,
         userId: userId,
         tabType: tabType,
+        firearm: firearm,
+        ammunition: ammunition,
       ),
     );
   }
@@ -61,7 +77,9 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    final details = EntityFieldHelper.extractDetails(widget.item);
+    final details = widget.tabType == ArmoryTabType.loadouts
+        ? _buildLoadoutDetails()
+        : EntityFieldHelper.extractDetails(widget.item);
     final screenHeight = MediaQuery.of(context).size.height;
 
     return AnimatedBuilder(
@@ -96,6 +114,32 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
     );
   }
 
+  EntityDetailsData _buildLoadoutDetails() {
+    final loadout = widget.item as ArmoryLoadout;
+    final List<EntityField> fields = [];
+
+    // Additional info section
+    if (loadout.notes != null && loadout.notes!.isNotEmpty) {
+      fields.add(EntityField(
+        label: 'Notes',
+        value: loadout.notes,
+        type: EntityFieldType.multiline,
+      ));
+    }
+
+    fields.add(EntityField(
+      label: 'Date Created',
+      value: '${loadout.dateAdded.day}/${loadout.dateAdded.month}/${loadout.dateAdded.year}',
+      type: EntityFieldType.date,
+    ));
+
+    return EntityDetailsData(
+      title: loadout.name,
+      subtitle: 'Training Loadout',
+      type: 'Loadout',
+      sections: fields,
+    );
+  }
   Widget _buildHeader(EntityDetailsData details) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -139,6 +183,21 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
   }
 
   Widget _buildContent(EntityDetailsData details) {
+    // For loadouts, show enhanced details with firearm/ammo info
+    if (widget.tabType == ArmoryTabType.loadouts) {
+      return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          children: [
+            _buildLoadoutPrimarySection(),
+            if (details.sections.isNotEmpty) ..._buildSecondarySection(details.sections),
+            const SizedBox(height: 80),
+          ],
+        ),
+      );
+    }
+
+    // Original logic for other types
     final required = details.sections.where((f) => f.isImportant).toList();
     final additional = details.sections.where((f) => !f.isImportant).toList();
 
@@ -149,6 +208,97 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
           if (required.isNotEmpty) _buildPrimarySection(required),
           if (additional.isNotEmpty) ..._buildSecondarySection(additional),
           const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadoutPrimarySection() {
+    final loadout = widget.item as ArmoryLoadout;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.primary(context).withOpacity(0.08),
+        border: Border(bottom: BorderSide(color: AppTheme.primary(context).withOpacity(0.15))),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'LOADOUT CONFIGURATION',
+            style: AppTheme.labelMedium(context).copyWith(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primary(context),
+              letterSpacing: 0.4,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (widget.firearm != null) ...[
+            _buildLoadoutInfoCard(
+              'FIREARM',
+              '${widget.firearm!.make} ${widget.firearm!.model}',
+              widget.firearm!.caliber,
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (widget.ammunition != null) ...[
+            _buildLoadoutInfoCard(
+              'AMMUNITION',
+              '${widget.ammunition!.brand} ${widget.ammunition!.line ?? ''}',
+              '${widget.ammunition!.caliber} • ${widget.ammunition!.bullet} • ${widget.ammunition!.quantity} rds',
+            ),
+            const SizedBox(height: 10),
+          ],
+          _buildLoadoutInfoCard(
+            'GEAR',
+            '${loadout.gearIds.length} items attached',
+            'Optics, supports, attachments',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadoutInfoCard(String title, String primary, String secondary) {
+    return Container(
+      width: double.maxFinite,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface(context),
+        border: Border.all(color: AppTheme.primary(context).withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: AppTheme.labelSmall(context).copyWith(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primary(context),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            primary,
+            style: AppTheme.bodySmall(context).copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            secondary,
+            style: AppTheme.labelMedium(context).copyWith(
+              fontSize: 12,
+              color: AppTheme.textSecondary(context),
+            ),
+          ),
         ],
       ),
     );
