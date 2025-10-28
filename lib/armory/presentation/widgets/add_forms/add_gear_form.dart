@@ -1,7 +1,7 @@
 // lib/armory/presentation/widgets/add_forms/add_gear_form.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_gear.dart';
 import '../../../domain/entities/dropdown_option.dart';
@@ -36,6 +36,7 @@ class _AddGearFormState extends State<AddGearForm> {
     for (final field in fields) {
       _controllers[field] = TextEditingController();
     }
+
     _controllers['quantity']?.text = '1';
   }
 
@@ -121,7 +122,6 @@ class _AddGearFormState extends State<AddGearForm> {
               isRequired: true,
             ),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildTextField(
               context: context,
               label: 'Model/Name *',
@@ -131,7 +131,6 @@ class _AddGearFormState extends State<AddGearForm> {
               hintText: 'e.g., Vortex Razor HD',
             ),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildResponsiveRow(context, [
               DialogWidgets.buildTextField(
                 context: context,
@@ -140,7 +139,6 @@ class _AddGearFormState extends State<AddGearForm> {
                 maxLength: 20,
                 hintText: 'Optional',
               ),
-
               DialogWidgets.buildTextField(
                 context: context,
                 label: 'Quantity',
@@ -149,7 +147,6 @@ class _AddGearFormState extends State<AddGearForm> {
               ),
             ]),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildTextField(
               context: context,
               label: 'Notes',

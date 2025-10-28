@@ -359,138 +359,125 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
     );
   }
 
-  void _showAlertsDialog() {
+  void _showAlertsDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    int savedHaptic = prefs.getInt(hapticCustomSettingsKey) ?? 0;
+    String tempHaptic = savedHaptic == 0 ? 'Off' : (savedHaptic == 1 ? 'Low' : 'High');
+    String tempAudio = _audioType;
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        String tempAudioType = _audioType;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              backgroundColor: Colors.transparent,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 400),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Text('Audio Alerts', style: AppTheme.titleLarge(context).copyWith(fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          IconButton(
-                            icon: Icon(Icons.close, color: AppTheme.textSecondary(context)),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(height: 1, color: AppTheme.border(context)),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          _buildRadioOption(
-                            'Off',
-                            tempAudioType,
-                                (val) => setDialogState(() => tempAudioType = val!),
-                            'No audio feedback',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildRadioOption(
-                            'Beep',
-                            tempAudioType,
-                                (val) => setDialogState(() => tempAudioType = val!),
-                            'Simple beep sound',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildRadioOption(
-                            'Voice',
-                            tempAudioType,
-                                (val) => setDialogState(() => tempAudioType = val!),
-                            'Spoken instructions',
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(height: 1, color: AppTheme.border(context)),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Cancel',
-                              type: ButtonType.outlined,
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TrainingButton(
-                              label: 'Save',
-                              onPressed: () {
-                                setState(() {
-                                  _audioType = tempAudioType;
-                                  _alertsCompleted = true;
-                                  _alertsSettings = tempAudioType == 'Off' ? 'Alerts off' : '$tempAudioType alerts';
-                                });
-                                Navigator.pop(context);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildRadioOption(String value, String groupValue, ValueChanged<String?> onChanged, String description) {
-    final isSelected = value == groupValue;
-    return GestureDetector(
-      onTap: () => onChanged(value),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary(context).withOpacity(0.1) : AppTheme.surfaceVariant(context),
-          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-          border: Border.all(
-            color: isSelected ? AppTheme.primary(context) : AppTheme.border(context).withOpacity(0.1),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Radio<String>(
-              value: value,
-              groupValue: groupValue,
-              onChanged: onChanged,
-              activeColor: AppTheme.primary(context),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: AppTheme.surface(context),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
+              side: BorderSide(color: AppTheme.border(context), width: 1.5),
             ),
-            Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(value, style: AppTheme.titleMedium(context).copyWith(fontWeight: FontWeight.w700, fontSize: 13)),
-                  const SizedBox(height: 2),
-                  Text(description, style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontSize: 11)),
+                  Row(
+                    children: [
+                      Expanded(child: Text('Alert Settings', style: AppTheme.headingMedium(context).copyWith(fontSize: 18))),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => Navigator.pop(context),
+                        icon: Icon(Icons.close, color: AppTheme.textPrimary(context), size: 20),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Haptic Feedback', style: AppTheme.titleMedium(context).copyWith(fontSize: 13)),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildAlertButtons(['Off', 'Low', 'High'], tempHaptic, (val) => setDialogState(() => tempHaptic = val)),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Audio Alerts', style: AppTheme.titleMedium(context).copyWith(fontSize: 13)),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildAlertButtons(['Off', 'Beep', 'Voice'], tempAudio, (val) => setDialogState(() => tempAudio = val)),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TrainingButton(
+                          label: 'Cancel',
+                          type: ButtonType.outlined,
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TrainingButton(
+                          label: 'Save Settings',
+                          onPressed: () async {
+                            int hapticValue = tempHaptic == 'Off' ? 0 : (tempHaptic == 'Low' ? 1 : 3);
+                            await prefs.setInt(hapticCustomSettingsKey, hapticValue);
+                            setState(() {
+                              _audioType = tempAudio;
+                              _alertsCompleted = true;
+                              _alertsSettings = 'Haptic: $tempHaptic • Audio: $tempAudio';
+                            });
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildAlertButtons(List<String> options, String selected, Function(String) onTap) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: AppTheme.border(context)),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+      ),
+      child: Row(
+        children: options.map((opt) {
+          final isSelected = opt == selected;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onTap(opt),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.primary(context).withOpacity(0.15) : AppTheme.surfaceVariant(context),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.primary(context) : AppTheme.border(context).withOpacity(0.1),
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    opt,
+                    style: AppTheme.bodyMedium(context).copyWith(
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      color: isSelected ? AppTheme.primary(context) : AppTheme.textPrimary(context),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -498,179 +485,178 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
   void _showDrillDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-            decoration: BoxDecoration(
-              color: AppTheme.surface(context),
-              borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Text('Select Drill', style: AppTheme.titleLarge(context).copyWith(fontWeight: FontWeight.bold)),
-                      const Spacer(),
-                      IconButton(
-                        icon: Icon(Icons.close, color: AppTheme.textSecondary(context)),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
+      builder: (context) => Dialog(
+        backgroundColor: AppTheme.surface(context),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTheme.radiusXLarge),
+          side: BorderSide(color: AppTheme.border(context), width: 1.5),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: Text('Select Drill', style: AppTheme.headingMedium(context).copyWith(fontSize: 18))),
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: AppTheme.textPrimary(context), size: 20),
                   ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildDrillPresetItem(
+                drill: DrillModel.openPractice(),
+                details: 'Default • No structure • Untimed',
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TrainingButton(
+                  label: 'Create Custom Drill',
+                  icon: Icons.add,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showCustomDrillDialog();
+                  },
                 ),
-                Divider(height: 1, color: AppTheme.border(context)),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildDrillPresetItem(
-                        drill: DrillModel.openPractice(),
-                        details: 'Default • No structure • Untimed',
-                      ),
-                      // const SizedBox(height: 10),
-                      // _buildDrillPresetItem(
-                      //   drill: DrillModel.billDrill(),
-                      //   details: 'Rapid Fire • 7 yards • 6 rounds • Par time: 2.0s',
-                      // ),
-                      // const SizedBox(height: 10),
-                      // _buildDrillPresetItem(
-                      //   drill: DrillModel.elPresidente(),
-                      //   details: 'Multiple Targets • 10 yards • 12 rounds',
-                      // ),
-                      // const SizedBox(height: 10),
-                      // _buildDrillPresetItem(
-                      //   drill: DrillModel.failureToDrill(),
-                      //   details: 'Mozambique • 7 yards • 2 body + 1 head',
-                      // ),
-                      const SizedBox(height: 10),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showCustomDrillDialog();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary(context).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                            border: Border.all(color: AppTheme.primary(context), width: 1.5),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.add_circle_outline, color: AppTheme.primary(context), size: 20),
-                              const SizedBox(width: 12),
-                              Text('Create Custom Drill', style: AppTheme.titleMedium(context).copyWith(color: AppTheme.primary(context), fontWeight: FontWeight.w700, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   void _showCustomDrillDialog() {
     final nameController = TextEditingController();
-    final shotCountController = TextEditingController();
-    final customTimeController = TextEditingController();
+    final shotCountController = TextEditingController(text: "10");
     final notesController = TextEditingController();
+    final customTimeController = TextEditingController();
 
-    String selectedFireType = 'Single Shot';
-    String selectedSensitivity = 'Medium';
-    String selectedDistance = '7';
-    String selectedTimer = 'Free';
-    String selectedStartSignal = 'Manual';
-    String selectedScoring = 'None';
-    String selectedEnvironment = 'Indoor';
+    final fireTypes = ["Dry Fire", "Live Fire"];
+    final sensitivityLevels = ["Beginner", "Intermediate", "Advanced"];
+    final distances = ["7", "10", "15", "20", "25"];
+    final timers = ["Free", "Par", "Cadence"];
+    final startSignals = ["Beep", "Voice Standby", "None"];
+    final scorings = ["Time-only", "Score-only", "Time+Score"];
+    final environments = ["Indoor", "Outdoor"];
+
+    String selectedFireType = fireTypes[0];
+    String selectedSensitivity = sensitivityLevels[2];
+    String selectedDistance = distances[0];
+    String selectedTimer = timers[0];
+    String selectedStartSignal = startSignals[0];
+    String selectedScoring = scorings[2];
+    String selectedEnvironment = environments[0];
     bool showCustomTime = false;
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {
+          builder: (context, setState) {
             return Dialog(
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppTheme.surface(context),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusXLarge)),
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 450),
-                decoration: BoxDecoration(
-                  color: AppTheme.surface(context),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-                ),
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+                      ),
                       child: Row(
                         children: [
-                          Text('Custom Drill', style: AppTheme.titleLarge(context).copyWith(fontWeight: FontWeight.bold)),
-                          const Spacer(),
+                          Expanded(child: Text("Create Custom Drill", style: AppTheme.headingMedium(context).copyWith(fontSize: 16))),
                           IconButton(
-                            icon: Icon(Icons.close, color: AppTheme.textSecondary(context)),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                             onPressed: () => Navigator.pop(context),
+                            icon: Icon(Icons.close, color: AppTheme.textPrimary(context), size: 20),
                           ),
                         ],
                       ),
                     ),
-                    Divider(height: 1, color: AppTheme.border(context)),
-                    Expanded(
+                    Flexible(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(14),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildTextField('Drill Name (Optional)', nameController, 'e.g., My Custom Drill'),
+                            TextField(
+                              controller: nameController,
+                              style: AppTheme.bodyMedium(context).copyWith(fontSize: 13),
+                              decoration: InputDecoration(
+                                labelText: "Drill Name",
+                                hintText: "Name your drill",
+                                labelStyle: AppTheme.labelLarge(context).copyWith(fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              ),
+                            ),
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Fire Type', selectedFireType, ['Single Shot', 'Double Tap', 'Controlled Pair', 'Rapid Fire'], (val) {
-                              setDialogState(() => selectedFireType = val!);
-                            }),
+                            TextField(
+                              controller: shotCountController,
+                              style: AppTheme.bodyMedium(context).copyWith(fontSize: 13),
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: "Rounds Planned",
+                                hintText: "Enter shot count",
+                                labelStyle: AppTheme.labelLarge(context).copyWith(fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              ),
+                            ),
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Sensitivity', selectedSensitivity, ['Low', 'Medium', 'High'], (val) {
-                              setDialogState(() => selectedSensitivity = val!);
-                            }),
+                            _buildDropdown(context, "Fire Type", selectedFireType, fireTypes, (v) => setState(() => selectedFireType = v!)),
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Distance (Yards)', selectedDistance, ['3', '5', '7', '10', '15', '25'], (val) {
-                              setDialogState(() => selectedDistance = val!);
-                            }),
+                            _buildDropdown(context, "Sensitivity Level", selectedSensitivity, sensitivityLevels, (v) => setState(() => selectedSensitivity = v!)),
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Timer', selectedTimer, ['Free', 'Par Time', 'Split Time'], (val) {
-                              setDialogState(() {
+                            _buildDropdown(context, "Distance Yard", selectedDistance, distances, (v) => setState(() => selectedDistance = v!)),
+                            const SizedBox(height: 12),
+                            _buildDropdown(context, "Timer", selectedTimer, timers, (val) {
+                              setState(() {
                                 selectedTimer = val!;
-                                showCustomTime = (val == 'Par Time' || val == 'Split Time');
+                                showCustomTime = selectedTimer != "Free";
                               });
                             }),
                             if (showCustomTime) ...[
                               const SizedBox(height: 12),
-                              _buildTextField('Time (Seconds)', customTimeController, 'e.g., 2.5', keyboardType: TextInputType.number),
+                              TextField(
+                                controller: customTimeController,
+                                style: AppTheme.bodyMedium(context).copyWith(fontSize: 13),
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: "Custom Time (seconds)",
+                                  hintText: "Enter seconds",
+                                  labelStyle: AppTheme.labelLarge(context).copyWith(fontSize: 12),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                ),
+                              ),
                             ],
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Start Signal', selectedStartSignal, ['Manual', 'Beep', 'Random Delay'], (val) {
-                              setDialogState(() => selectedStartSignal = val!);
-                            }),
+                            _buildDropdown(context, "Start Signal", selectedStartSignal, startSignals, (v) => setState(() => selectedStartSignal = v!)),
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Scoring', selectedScoring, ['None', 'Points', 'Time', 'Points + Time'], (val) {
-                              setDialogState(() => selectedScoring = val!);
-                            }),
+                            _buildDropdown(context, "Scoring", selectedScoring, scorings, (v) => setState(() => selectedScoring = v!)),
                             const SizedBox(height: 12),
-                            _buildTextField('Planned Rounds (Optional)', shotCountController, 'e.g., 50', keyboardType: TextInputType.number),
+                            _buildDropdown(context, "Environment", selectedEnvironment, environments, (v) => setState(() => selectedEnvironment = v!)),
                             const SizedBox(height: 12),
-                            _buildDropdown(context, 'Environment', selectedEnvironment, ['Indoor', 'Outdoor'], (val) {
-                              setDialogState(() => selectedEnvironment = val!);
-                            }),
-                            const SizedBox(height: 12),
-                            _buildTextField('Notes (Optional)', notesController, 'Add any additional details...', maxLines: 2),
+                            TextField(
+                              controller: notesController,
+                              style: AppTheme.bodyMedium(context).copyWith(fontSize: 13),
+                              maxLines: 2,
+                              decoration: InputDecoration(
+                                labelText: "Notes",
+                                hintText: "Add any additional notes...",
+                                labelStyle: AppTheme.labelLarge(context).copyWith(fontSize: 12),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -745,33 +731,6 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
             underline: const SizedBox(),
             items: items.map((opt) => DropdownMenuItem(value: opt, child: Text(opt, style: AppTheme.bodyMedium(context).copyWith(fontSize: 13)))).toList(),
             onChanged: onChanged,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller, String hint, {int maxLines = 1, TextInputType? keyboardType}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTheme.labelLarge(context).copyWith(fontWeight: FontWeight.w600, fontSize: 12)),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          keyboardType: keyboardType,
-          style: AppTheme.bodyMedium(context).copyWith(fontSize: 13),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: AppTheme.bodyMedium(context).copyWith(color: AppTheme.textSecondary(context), fontSize: 13),
-            filled: true,
-            fillColor: AppTheme.surfaceVariant(context),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
         ),
       ],

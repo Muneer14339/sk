@@ -1,4 +1,4 @@
-// lib/injection_container.dart - FINAL VERSION
+// lib/injection_container.dart - UPDATED VERSION WITH DROPDOWN BLOC
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -30,6 +30,7 @@ import 'armory/domain/usecases/get_loadouts_usecase.dart';
 import 'armory/domain/usecases/get_maintenance_usecase.dart';
 import 'armory/domain/usecases/get_tools_usecase.dart';
 import 'armory/presentation/bloc/armory_bloc.dart';
+import 'armory/presentation/bloc/dropdown/dropdown_bloc.dart';
 import 'authentication/data/datasources/auth_remote_datasource.dart';
 import 'authentication/data/repositories/auth_repository_impl.dart';
 import 'authentication/domain/repositories/auth_repository.dart';
@@ -40,7 +41,6 @@ import 'authentication/domain/usecases/logout_usecase.dart';
 import 'authentication/domain/usecases/signup_usecase.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/signup_bloc/signup_bloc.dart';
-
 
 import 'core/network/network_info.dart';
 import 'core/usecases/usecase.dart';
@@ -86,7 +86,7 @@ Future<void> init() async {
     ),
   );
 
-  // Clean Architecture ArmoryBloc - Original Interface Preserved
+  // Clean Architecture ArmoryBloc - Updated without GetDropdownOptionsUseCase
   sl.registerFactory(
         () => ArmoryBloc(
       getFirearmsUseCase: sl<user_firearms.GetFirearmsUseCase>(),
@@ -99,7 +99,6 @@ Future<void> init() async {
       addToolUseCase: sl(),
       getLoadoutsUseCase: sl(),
       addLoadoutUseCase: sl(),
-      getDropdownOptionsUseCase: sl(),
       getMaintenanceUseCase: sl(),
       addMaintenanceUseCase: sl(),
       deleteFirearmUseCase: sl(),
@@ -111,13 +110,19 @@ Future<void> init() async {
     ),
   );
 
+  // NEW: DropdownBloc Registration - Separate from ArmoryBloc
+  sl.registerFactory(
+        () => DropdownBloc(
+      getDropdownOptionsUseCase: sl<GetDropdownOptionsUseCase>(),
+    ),
+  );
+
   // =============== Use Cases - Authentication ===============
   sl.registerLazySingleton(() => LoginUseCase(sl()));
   sl.registerLazySingleton(() => SignupUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => GoogleSignInUseCase(sl()));
-
 
   // =============== Clean Architecture Use Cases - User Dashboard ===============
   // Basic CRUD Use Cases (Pure Repository Operations)
@@ -143,6 +148,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => DeleteMaintenanceUseCase(sl<ArmoryRepository>()));
 
   // Business Logic Use Cases (Contains Complex Logic)
+  // Used by DropdownBloc now, not ArmoryBloc
   sl.registerLazySingleton(() => GetDropdownOptionsUseCase(sl<ArmoryRepository>(), sl<FirebaseAuth>()));
 
   // =============== Domain Services ===============
@@ -167,7 +173,6 @@ Future<void> init() async {
     ),
   );
 
-
   sl.registerLazySingleton<ArmoryRemoteDataSource>(
         () => ArmoryRemoteDataSourceImpl(firestore: sl()),
   );
@@ -177,16 +182,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => GoogleSignIn());
 
-
-
   // BLoCs
   sl.registerFactory(
           () => BleScanBloc(bleRepository: sl(), trainingSessionBloc: sl()));
   sl.registerFactory(() => TrainingSessionBloc(bleRepository: sl()));
 
   // Services
-
-
   sl.registerLazySingleton<ProgramsModel>(() => ProgramsModel());
 
   // Network Dependencies
@@ -194,10 +195,7 @@ Future<void> init() async {
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
   // sl.registerLazySingleton<http.Client>(() => http.Client());
 
-
   // Repositories
-
-
   sl.registerLazySingleton<BleRepository>(
         () => BleRepositoryImpl(),
   );

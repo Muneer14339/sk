@@ -5,14 +5,13 @@ import '../../domain/entities/armory_gear.dart';
 import '../../domain/entities/armory_maintenance.dart';
 import '../../domain/entities/armory_tool.dart';
 import '../../domain/entities/armory_loadout.dart';
-import '../../domain/entities/dropdown_option.dart';
 import '../widgets/common/common_delete_dilogue.dart';
 
 abstract class ArmoryState extends Equatable {
   const ArmoryState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class ArmoryInitial extends ArmoryState {
@@ -63,33 +62,53 @@ class ArmoryDataLoaded extends ArmoryState {
   }
 
   @override
-  List<Object> get props => [firearms, ammunition, gear, tools, loadouts, maintenance];
-}
-
-class DropdownOptionsLoaded extends ArmoryState {
-  final List<DropdownOption> options;
-  const DropdownOptionsLoaded({required this.options});
-  @override
-  List<Object> get props => [options];
+  List<Object?> get props => [firearms, ammunition, gear, tools, loadouts, maintenance];
 }
 
 class ArmoryActionSuccess extends ArmoryState {
   final String message;
   const ArmoryActionSuccess({required this.message});
+
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
 
 class ArmoryError extends ArmoryState {
   final String message;
   const ArmoryError({required this.message});
+
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
 
 class ShowingAddForm extends ArmoryState {
   final ArmoryTabType tabType;
-  const ShowingAddForm({required this.tabType});
+  final List firearms;
+  final List ammunition;
+  final List gear;
+  final List tools;
+  final List loadouts;
+  final List maintenance;
+
+  const ShowingAddForm({
+    required this.tabType,
+    required this.firearms,
+    required this.ammunition,
+    required this.gear,
+    required this.tools,
+    required this.loadouts,
+    required this.maintenance,
+  });
+
   @override
-  List<Object> get props => [tabType];
+  List<Object?> get props => [
+    tabType,
+    firearms,
+    ammunition,
+    gear,
+    tools,
+    loadouts,
+    maintenance,
+  ];
 }
+

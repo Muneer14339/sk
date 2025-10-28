@@ -1,7 +1,7 @@
 // lib/armory/presentation/widgets/add_forms/add_tool_form.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_tool.dart';
 import '../../../domain/entities/dropdown_option.dart';
@@ -36,6 +36,7 @@ class _AddToolFormState extends State<AddToolForm> {
     for (final field in fields) {
       _controllers[field] = TextEditingController();
     }
+
     _controllers['quantity']?.text = '1';
   }
 
@@ -115,7 +116,6 @@ class _AddToolFormState extends State<AddToolForm> {
               hintText: 'e.g., Wheeler FAT Wrench',
             ),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildResponsiveRow(context, [
               DialogWidgets.buildDropdownField(
                 context: context,
@@ -138,7 +138,6 @@ class _AddToolFormState extends State<AddToolForm> {
               ),
             ]),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildTextField(
               context: context,
               label: 'Notes',

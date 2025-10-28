@@ -24,7 +24,6 @@ import '../../domain/usecases/get_tools_usecase.dart';
 import '../../domain/usecases/add_tool_usecase.dart';
 import '../../domain/usecases/get_loadouts_usecase.dart';
 import '../../domain/usecases/add_loadout_usecase.dart';
-import '../../domain/usecases/get_dropdown_options_usecase.dart';
 import 'armory_event.dart';
 import 'armory_state.dart';
 
@@ -47,7 +46,6 @@ class ArmoryBloc extends Bloc<ArmoryEvent, ArmoryState> {
   final DeleteToolUseCase deleteToolUseCase;
   final DeleteMaintenanceUseCase deleteMaintenanceUseCase;
   final DeleteLoadoutUseCase deleteLoadoutUseCase;
-  final GetDropdownOptionsUseCase getDropdownOptionsUseCase;
 
   ArmoryBloc({
     required this.getFirearmsUseCase,
@@ -65,7 +63,6 @@ class ArmoryBloc extends Bloc<ArmoryEvent, ArmoryState> {
     required this.getLoadoutsUseCase,
     required this.addLoadoutUseCase,
     required this.deleteLoadoutUseCase,
-    required this.getDropdownOptionsUseCase,
     required this.getMaintenanceUseCase,
     required this.addMaintenanceUseCase,
     required this.deleteMaintenanceUseCase,
@@ -83,7 +80,6 @@ class ArmoryBloc extends Bloc<ArmoryEvent, ArmoryState> {
     on<DeleteToolEvent>(_onDeleteTool);
     on<DeleteMaintenanceEvent>(_onDeleteMaintenance);
     on<DeleteLoadoutEvent>(_onDeleteLoadout);
-    on<LoadDropdownOptionsEvent>(_onLoadDropdownOptions);
     on<ShowAddFormEvent>(_onShowAddForm);
     on<HideFormEvent>(_onHideForm);
   }
@@ -100,12 +96,12 @@ class ArmoryBloc extends Bloc<ArmoryEvent, ArmoryState> {
       getMaintenanceUseCase(UserIdParams(userId: event.userId)),
     ]);
 
-    final firearms = results[0].fold((l) => [], (r) => r);
-    final ammunition = results[1].fold((l) => [], (r) => r);
-    final gear = results[2].fold((l) => [], (r) => r);
-    final tools = results[3].fold((l) => [], (r) => r);
-    final loadouts = results[4].fold((l) => [], (r) => r);
-    final maintenance = results[5].fold((l) => [], (r) => r);
+    final firearms = results[0].fold((l) => <ArmoryFirearm>[], (r) => r);
+    final ammunition = results[1].fold((l) => <ArmoryAmmunition>[], (r) => r);
+    final gear = results[2].fold((l) => <ArmoryGear>[], (r) => r);
+    final tools = results[3].fold((l) => <ArmoryTool>[], (r) => r);
+    final loadouts = results[4].fold((l) => <ArmoryLoadout>[], (r) => r);
+    final maintenance = results[5].fold((l) => <ArmoryMaintenance>[], (r) => r);
 
     emit(ArmoryDataLoaded(
       firearms: firearms.cast<ArmoryFirearm>(),
@@ -115,7 +111,6 @@ class ArmoryBloc extends Bloc<ArmoryEvent, ArmoryState> {
       loadouts: loadouts.cast<ArmoryLoadout>(),
       maintenance: maintenance.cast<ArmoryMaintenance>(),
     ));
-
   }
 
   void _onAddFirearm(AddFirearmEvent event, Emitter<ArmoryState> emit) async {
@@ -310,25 +305,73 @@ class ArmoryBloc extends Bloc<ArmoryEvent, ArmoryState> {
     );
   }
 
-  void _onLoadDropdownOptions(LoadDropdownOptionsEvent event, Emitter<ArmoryState> emit) async {
-    final result = await getDropdownOptionsUseCase(
-      DropdownParams(
-        type: event.type,
-        filterValue: event.filterValue,
-      ),
-    );
 
-    result.fold(
-          (failure) => emit(ArmoryError(message: failure.toString())),
-          (options) => emit(DropdownOptionsLoaded(options: options)),
-    );
-  }
 
   void _onShowAddForm(ShowAddFormEvent event, Emitter<ArmoryState> emit) {
-    emit(ShowingAddForm(tabType: event.tabType));
+    // Get current loaded data from state
+    final currentState = state;
+    if (currentState is ArmoryDataLoaded) {
+      emit(ShowingAddForm(
+        tabType: event.tabType,
+        firearms: currentState.firearms,
+        ammunition: currentState.ammunition,
+        gear: currentState.gear,
+        tools: currentState.tools,
+        loadouts: currentState.loadouts,
+        maintenance: currentState.maintenance,
+      ));
+    }
+    // If previously ShowingAddForm, preserve data
+    else if (currentState is ShowingAddForm) {
+      emit(ShowingAddForm(
+        tabType: event.tabType,
+        firearms: currentState.firearms,
+        ammunition: currentState.ammunition,
+        gear: currentState.gear,
+        tools: currentState.tools,
+        loadouts: currentState.loadouts,
+        maintenance: currentState.maintenance,
+      ));
+    }
+    // Otherwise, fallback to empty
+    else {
+      emit(ShowingAddForm(
+        tabType: event.tabType,
+        firearms: [],
+        ammunition: [],
+        gear: [],
+        tools: [],
+        loadouts: [],
+        maintenance: [],
+      ));
+    }
   }
 
   void _onHideForm(HideFormEvent event, Emitter<ArmoryState> emit) {
-    emit(const ArmoryInitial());
+    final currentState = state;
+    // Preserve previously loaded data if possible
+    if (currentState is ArmoryDataLoaded) {
+      emit(ArmoryDataLoaded(
+        firearms: currentState.firearms,
+        ammunition: currentState.ammunition,
+        gear: currentState.gear,
+        tools: currentState.tools,
+        loadouts: currentState.loadouts,
+        maintenance: currentState.maintenance,
+      ));
+    } else if (currentState is ShowingAddForm) {
+      emit(ArmoryDataLoaded(
+        firearms: currentState.firearms.cast<ArmoryFirearm>(),
+        ammunition: currentState.ammunition.cast<ArmoryAmmunition>(),
+        gear: currentState.gear.cast<ArmoryGear>(),
+        tools: currentState.tools.cast<ArmoryTool>(),
+        loadouts: currentState.loadouts.cast<ArmoryLoadout>(),
+        maintenance: currentState.maintenance.cast<ArmoryMaintenance>(),
+      ));
+    } else {
+      emit(const ArmoryInitial());
+    }
   }
+
+
 }

@@ -237,7 +237,9 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppTheme.primary(context).withOpacity(0.08),
-        border: Border(bottom: BorderSide(color: AppTheme.primary(context).withOpacity(0.15))),
+        border: Border(
+          bottom: BorderSide(color: AppTheme.primary(context).withOpacity(0.15)),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,14 +262,28 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             AmmunitionItemCard(ammunition: widget.ammunition!, userId: widget.userId, showDelete: false),
             const SizedBox(height: 10),
           ],
-          _buildExpandableSection('GEAR', gearItems.length, gearItems.map((gear) => GearItemCard(gear: gear, userId: widget.userId, showDelete: false)).toList()),
+          // List<Widget>.from fix lagana
+          _buildExpandableSection(
+            'GEAR',
+            gearItems.length,
+            List<Widget>.from(gearItems.map((gear) => GearItemCard(gear: gear, userId: widget.userId, showDelete: false))),
+          ),
           const SizedBox(height: 10),
-          _buildExpandableSection('TOOLS', toolItems.length, toolItems.map((tool) => ToolItemCard(tool: tool, userId: widget.userId, showDelete: false)).toList()),
+          _buildExpandableSection(
+            'TOOLS',
+            toolItems.length,
+            List<Widget>.from(toolItems.map((tool) => ToolItemCard(tool: tool, userId: widget.userId, showDelete: false))),
+          ),
           const SizedBox(height: 10),
-          _buildExpandableSection('MAINTENANCE', maintenanceItems.length, maintenanceItems.map((m) => MaintenanceItemCard(maintenance: m, userId: widget.userId, showDelete: false)).toList()),
+          _buildExpandableSection(
+            'MAINTENANCE',
+            maintenanceItems.length,
+            List<Widget>.from(maintenanceItems.map((m) => MaintenanceItemCard(maintenance: m, userId: widget.userId, showDelete: false))),
+          ),
         ],
       ),
     );
+
   }
 
   Widget _buildExpandableSection(String title, int count, List<Widget> itemCards) {
