@@ -100,8 +100,8 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
     if (widget.program.loadout != null) {
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
-        context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: userId));
-        context.read<ArmoryBloc>().add(LoadAmmunitionEvent(userId: userId));
+        // CHANGE: Single event instead of two separate events
+        context.read<ArmoryBloc>().add(LoadAllDataEvent(userId: userId));
       }
     }
   }
@@ -143,27 +143,29 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
     );
   }
 
+  // CHANGE: Updated to handle new ArmoryDataLoaded state
   void _handleArmoryState(BuildContext context, ArmoryState state) {
-    if (state is FirearmsLoaded) {
+    if (state is ArmoryDataLoaded) {
       final firearmId = widget.program.loadout?.firearmId;
-      if (firearmId != null) {
-        setState(() {
+      final ammoId = widget.program.loadout?.ammunitionId;
+
+      setState(() {
+        // Extract firearm from loaded data
+        if (firearmId != null && state.firearms.isNotEmpty) {
           _firearm = state.firearms.firstWhere(
                 (f) => f.id == firearmId,
             orElse: () => state.firearms.first,
           );
-        });
-      }
-    } else if (state is AmmunitionLoaded) {
-      final ammoId = widget.program.loadout?.ammunitionId;
-      if (ammoId != null) {
-        setState(() {
+        }
+
+        // Extract ammunition from loaded data
+        if (ammoId != null && state.ammunition.isNotEmpty) {
           _ammunition = state.ammunition.firstWhere(
                 (a) => a.id == ammoId,
             orElse: () => state.ammunition.first,
           );
-        });
-      }
+        }
+      });
     }
   }
 

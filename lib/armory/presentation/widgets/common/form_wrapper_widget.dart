@@ -1,4 +1,3 @@
-// lib/user_dashboard/presentation/widgets/common/form_wrapper_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -10,9 +9,7 @@ import 'common_delete_dilogue.dart';
 import 'inline_form_wrapper.dart';
 import 'common_widgets.dart';
 
-/// Centralized widget to handle form display logic
-/// Prevents form from closing when dropdown options are loaded
-class FormWrapperWidget extends StatefulWidget {
+class FormWrapperWidget extends StatelessWidget {
   final String userId;
   final ArmoryTabType tabType;
   final Widget Function(ArmoryState state) listBuilder;
@@ -39,18 +36,10 @@ class FormWrapperWidget extends StatefulWidget {
   });
 
   @override
-  State<FormWrapperWidget> createState() => _FormWrapperWidgetState();
-}
-
-class _FormWrapperWidgetState extends State<FormWrapperWidget> {
-  bool _showingForm = false;
-
-  @override
   Widget build(BuildContext context) {
     return BlocConsumer<ArmoryBloc, ArmoryState>(
       listener: (context, state) {
         if (state is ArmoryActionSuccess) {
-          setState(() => _showingForm = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -64,21 +53,17 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
               backgroundColor: AppTheme.error(context),
             ),
           );
-        } else if (state is ShowingAddForm && state.tabType == widget.tabType) {
-          setState(() => _showingForm = true);
-        } else if (state is ArmoryInitial) {
-          setState(() => _showingForm = false);
         }
       },
       builder: (context, state) {
-        if (_showingForm) {
+        if (state is ShowingAddForm && state.tabType == tabType) {
           return InlineFormWrapper(
-            title: widget.formTitle,
-            badge: widget.formBadge,
+            title: formTitle,
+            badge: formBadge,
             onCancel: () {
               context.read<ArmoryBloc>().add(const HideFormEvent());
             },
-            child: widget.formBuilder(widget.userId),
+            child: formBuilder(userId),
           );
         }
 
@@ -92,13 +77,13 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeader(context, state),
-        widget.listBuilder(state),
+        listBuilder(state),
       ],
     );
   }
 
   Widget _buildHeader(BuildContext context, ArmoryState state) {
-    final itemCount = widget.getItemCount?.call(state);
+    final itemCount = getItemCount?.call(state);
 
     return Container(
       padding: ArmoryConstants.cardPadding,
@@ -115,7 +100,7 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
                   children: [
                     Flexible(
                       child: Text(
-                        widget.cardTitle,
+                        cardTitle,
                         style: AppTheme.titleLarge(context),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -128,7 +113,7 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  widget.cardDescription,
+                  cardDescription,
                   style: AppTheme.labelMedium(context),
                 ),
               ],
@@ -139,11 +124,11 @@ class _FormWrapperWidgetState extends State<FormWrapperWidget> {
             onPressed: state is ArmoryLoadingAction
                 ? null
                 : () {
-              if (widget.onAddPressed != null) {
-                widget.onAddPressed!(context);
+              if (onAddPressed != null) {
+                onAddPressed!(context);
               } else {
                 context.read<ArmoryBloc>().add(
-                  ShowAddFormEvent(tabType: widget.tabType),
+                  ShowAddFormEvent(tabType: tabType),
                 );
               }
             },

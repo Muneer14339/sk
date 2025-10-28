@@ -1,4 +1,3 @@
-// lib/user_dashboard/presentation/widgets/tab_widgets/firearms_tab_widget.dart
 import 'package:flutter/material.dart';
 import '../../bloc/armory_state.dart';
 import '../add_forms/add_firearm_form.dart';
@@ -9,13 +8,10 @@ import '../common/responsive_grid_widget.dart';
 import '../common/empty_state_widget.dart';
 import '../item_cards/firearm_item_card.dart';
 
-
 class FirearmsTabWidget extends StatelessWidget {
   final String userId;
 
-  FirearmsTabWidget({super.key, required this.userId});
-
-  static List<Widget> lastFirearmCards = [];
+  const FirearmsTabWidget({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -28,46 +24,35 @@ class FirearmsTabWidget extends StatelessWidget {
       cardDescription: 'Track each gun as an asset or keep a simple quantity.',
       formBuilder: (userId) => AddFirearmForm(userId: userId),
       listBuilder: _buildFirearmsList,
-      getItemCount: (state) =>
-      state is FirearmsLoaded ? state.firearms.length : lastFirearmCards.length,
+      getItemCount: (state) => state is ArmoryDataLoaded ? state.firearms.length : 0,
     );
   }
 
   Widget _buildFirearmsList(ArmoryState state) {
     if (state is ArmoryLoading) {
-      // Loading dikhate hue bhi last data preserve karein
-      return lastFirearmCards.isNotEmpty
-          ? ResponsiveGridWidget(children: lastFirearmCards)
-          : CommonWidgets.buildLoading(message: 'Loading firearms...');
+      return CommonWidgets.buildLoading(message: 'Loading firearms...');
     }
 
-    if (state is FirearmsLoaded) {
+    if (state is ArmoryDataLoaded) {
       if (state.firearms.isEmpty) {
-        lastFirearmCards = []; // clear cache jab actual empty aajaye
         return const EmptyStateWidget(
           message: 'No firearms added yet.',
           icon: Icons.add_circle_outline,
         );
       }
 
-      lastFirearmCards = state.firearms
-          .map((firearm) => FirearmItemCard(
-        firearm: firearm,
-        userId: userId,
-      ))
+      final cards = state.firearms
+          .map((firearm) => FirearmItemCard(firearm: firearm, userId: userId))
           .toList();
 
-      return ResponsiveGridWidget(children: lastFirearmCards);
+      return ResponsiveGridWidget(children: cards);
     }
 
     if (state is ArmoryError) {
       return CommonWidgets.buildError(state.message);
     }
 
-    // Agar koi aur state ho to last non-empty list preserve karein
-    return lastFirearmCards.isNotEmpty
-        ? ResponsiveGridWidget(children: lastFirearmCards)
-        : const EmptyStateWidget(
+    return const EmptyStateWidget(
       message: 'No firearms added yet.',
       icon: Icons.add_circle_outline,
     );

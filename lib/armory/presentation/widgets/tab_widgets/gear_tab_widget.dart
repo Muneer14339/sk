@@ -1,4 +1,3 @@
-// lib/armory/presentation/widgets/tab_widgets/gear_tab_widget.dart
 import 'package:flutter/material.dart';
 import '../../../domain/entities/armory_gear.dart';
 import '../../bloc/armory_state.dart';
@@ -13,9 +12,7 @@ import '../item_cards/gear_item_card.dart';
 class GearTabWidget extends StatelessWidget {
   final String userId;
 
-  GearTabWidget({super.key, required this.userId});
-
-  Map<String, List<ArmoryGear>> _lastGearByCategory = {};
+  const GearTabWidget({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -24,23 +21,19 @@ class GearTabWidget extends StatelessWidget {
       tabType: ArmoryTabType.gear,
       formTitle: 'Add Gear',
       cardTitle: 'Gear',
-      cardDescription:
-      'Optics, supports, sensors, attachments, and more — organized as collapsible sections.',
+      cardDescription: 'Optics, supports, sensors, attachments, and more — organized as collapsible sections.',
       formBuilder: (userId) => AddGearForm(userId: userId),
       listBuilder: _buildGearAccordion,
-      getItemCount: (state) =>
-      state is GearLoaded ? state.gear.length : _countCachedItems(),
+      getItemCount: (state) => state is ArmoryDataLoaded ? state.gear.length : 0,
     );
   }
 
   Widget _buildGearAccordion(ArmoryState state) {
     if (state is ArmoryLoading) {
-      return _lastGearByCategory.isNotEmpty
-          ? _buildAccordionFromCache()
-          : CommonWidgets.buildLoading(message: 'Loading gear...');
+      return CommonWidgets.buildLoading(message: 'Loading gear...');
     }
 
-    if (state is GearLoaded) {
+    if (state is ArmoryDataLoaded) {
       final gearByCategory = <String, List<ArmoryGear>>{};
       for (final gear in state.gear) {
         final category = gear.category.toLowerCase();
@@ -48,64 +41,42 @@ class GearTabWidget extends StatelessWidget {
       }
 
       if (gearByCategory.isEmpty) {
-        _lastGearByCategory = {};
         return const EmptyStateWidget(
           message: 'No gear items yet.',
           icon: Icons.add_circle_outline,
         );
       }
 
-      _lastGearByCategory = gearByCategory;
-      return _buildAccordionFromMap(gearByCategory);
+      return Column(
+        children: [
+          _buildGearSection('optics', 'Optics & Sights', 'scopes, RDS, irons', gearByCategory['optics'] ?? []),
+          _buildGearSection('supports', 'Supports', 'bipods, tripods, rests', gearByCategory['supports'] ?? []),
+          _buildGearSection('attachments', 'Attachments', 'suppressors, brakes, lights', gearByCategory['attachments'] ?? []),
+          _buildGearSection('sensors', 'Sensors & Electronics', 'ShotPulse, RifleAxis, PulseSkadi', gearByCategory['sensors'] ?? []),
+          _buildGearSection('misc', 'Misc. Gear', 'slings, cases, ear/eye pro', gearByCategory['misc'] ?? []),
+        ],
+      );
     }
 
     if (state is ArmoryError) {
       return CommonWidgets.buildError(state.message);
     }
 
-    return _lastGearByCategory.isNotEmpty
-        ? _buildAccordionFromCache()
-        : const EmptyStateWidget(
+    return const EmptyStateWidget(
       message: 'No gear items yet.',
       icon: Icons.add_circle_outline,
     );
   }
 
-  Widget _buildAccordionFromCache() => _buildAccordionFromMap(_lastGearByCategory);
-
-  Widget _buildAccordionFromMap(Map<String, List<ArmoryGear>> gearByCategory) {
-    return Column(
-      children: [
-        _buildGearSection(
-            'optics', 'Optics & Sights', 'scopes, RDS, irons', gearByCategory['optics'] ?? []),
-        _buildGearSection(
-            'supports', 'Supports', 'bipods, tripods, rests', gearByCategory['supports'] ?? []),
-        _buildGearSection('attachments', 'Attachments', 'suppressors, brakes, lights',
-            gearByCategory['attachments'] ?? []),
-        _buildGearSection('sensors', 'Sensors & Electronics',
-            'ShotPulse, RifleAxis, PulseSkadi', gearByCategory['sensors'] ?? []),
-        _buildGearSection('misc', 'Misc. Gear', 'slings, cases, ear/eye pro',
-            gearByCategory['misc'] ?? []),
-      ],
-    );
-  }
-
-  int _countCachedItems() =>
-      _lastGearByCategory.values.fold(0, (sum, list) => sum + list.length);
-
-  Widget _buildGearSection(
-      String categoryKey, String title, String subtitle, List<ArmoryGear> items) {
-    final gearCards =
-    items.map((gear) => GearItemCard(gear: gear, userId: userId)).toList();
+  Widget _buildGearSection(String categoryKey, String title, String subtitle, List<ArmoryGear> items) {
+    final gearCards = items.map((gear) => GearItemCard(gear: gear, userId: userId)).toList();
 
     return Builder(
       builder: (context) => CommonWidgets.buildExpandableSection(
         context: context,
         title: title,
         subtitle: subtitle,
-        children: [
-          ResponsiveGridWidget(children: gearCards),
-        ],
+        children: [ResponsiveGridWidget(children: gearCards)],
       ),
     );
   }

@@ -1,13 +1,6 @@
-// lib/armory/presentation/widgets/add_forms/add_loadout_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../../core/theme/app_theme.dart';
-import '../../../domain/entities/armory_ammunition.dart';
-import '../../../domain/entities/armory_firearm.dart';
-import '../../../domain/entities/armory_gear.dart';
-import '../../../domain/entities/armory_tool.dart';
-import '../../../domain/entities/armory_maintenance.dart';
 import '../../../domain/entities/armory_loadout.dart';
 import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
@@ -30,141 +23,15 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
   final _controllers = <String, TextEditingController>{};
   String? _selectedFirearmId;
   String? _selectedAmmunitionId;
-
-  List<DropdownOption> _firearmOptions = [];
-  List<DropdownOption> _ammunitionOptions = [];
-  List<DropdownOption> _gearOptions = [];
-  List<DropdownOption> _toolOptions = [];
-  List<DropdownOption> _maintenanceOptions = [];
-
-  bool _loadingFirearms = true;
-  bool _loadingAmmunition = true;
-  bool _loadingGear = true;
-  bool _loadingTools = true;
-  bool _loadingMaintenance = true;
-
   List<String> _selectedGearIds = [];
   List<String> _selectedToolIds = [];
   List<String> _selectedMaintenanceIds = [];
 
-  List<ArmoryFirearm> _firearms = [];
-  List<ArmoryAmmunition> _allAmmunition = [];
-  bool _hasMatchingAmmunition = false;
-
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
-    _loadData();
-  }
-
-  void _initializeControllers() {
-    final fields = ['name', 'notes'];
-    for (final field in fields) {
-      _controllers[field] = TextEditingController();
-    }
-  }
-
-  void _loadData() {
-    context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: widget.userId));
-    context.read<ArmoryBloc>().add(LoadAmmunitionEvent(userId: widget.userId));
-    context.read<ArmoryBloc>().add(LoadGearEvent(userId: widget.userId));
-    context.read<ArmoryBloc>().add(LoadToolsEvent(userId: widget.userId));
-    context.read<ArmoryBloc>().add(LoadMaintenanceEvent(userId: widget.userId));
-  }
-
-  void _handleFirearmsLoaded(List<ArmoryFirearm> firearms) {
-    setState(() {
-      _firearms = firearms;
-      _firearmOptions = firearms
-          .map((firearm) => DropdownOption(
-        value: firearm.id!,
-        label: '${firearm.nickname} (${firearm.make} ${firearm.model})',
-      ))
-          .toList();
-      _loadingFirearms = false;
-    });
-  }
-
-  void _handleAmmunitionLoaded(List<ArmoryAmmunition> ammunition) {
-    setState(() {
-      _allAmmunition = ammunition;
-      _loadingAmmunition = false;
-    });
-  }
-
-  void _filterAmmunitionForSelectedFirearm() {
-    if (_selectedFirearmId == null || _allAmmunition.isEmpty || _firearms.isEmpty) {
-      _ammunitionOptions = [];
-      _hasMatchingAmmunition = false;
-      _showNoAmmoSnackBar();
-      return;
-    }
-
-    final selectedFirearm = _firearms.firstWhere(
-          (firearm) => firearm.id == _selectedFirearmId,
-      orElse: () => throw StateError('Selected firearm not found'),
-    );
-
-    final matchingAmmunition = _allAmmunition
-        .where((ammo) => ammo.caliber.toLowerCase() == selectedFirearm.caliber.toLowerCase())
-        .toList();
-
-    if (matchingAmmunition.isEmpty) {
-      _ammunitionOptions = [];
-      _hasMatchingAmmunition = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showNoAmmoSnackBar();
-      });
-    } else {
-      _ammunitionOptions = matchingAmmunition
-          .map((ammo) => DropdownOption(
-        value: ammo.id!,
-        label: '${ammo.brand} ${ammo.caliber} ${ammo.bullet} (${ammo.quantity} rds)',
-      ))
-          .toList();
-      _hasMatchingAmmunition = true;
-    }
-  }
-
-  void _showNoAmmoSnackBar() {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Please add ammunition for this firearm first'),
-        backgroundColor: AppTheme.error(context),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
-  void _onFirearmChanged(String? value) {
-    setState(() {
-      _selectedFirearmId = value;
-      _selectedAmmunitionId = null;
-      _filterAmmunitionForSelectedFirearm();
-    });
-  }
-
-  void _handleGearLoaded(List<ArmoryGear> gear) {
-    setState(() {
-      _gearOptions = gear.map((g) => DropdownOption(value: g.id!, label: g.model)).toList();
-      _loadingGear = false;
-    });
-  }
-
-  void _handleToolsLoaded(List<ArmoryTool> tools) {
-    setState(() {
-      _toolOptions = tools.map((t) => DropdownOption(value: t.id!, label: t.name)).toList();
-      _loadingTools = false;
-    });
-  }
-
-  void _handleMaintenanceLoaded(List<ArmoryMaintenance> maintenance) {
-    setState(() {
-      _maintenanceOptions = maintenance.map((m) => DropdownOption(value: m.id!, label: m.maintenanceType)).toList();
-      _loadingMaintenance = false;
-    });
+    _controllers['name'] = TextEditingController();
+    _controllers['notes'] = TextEditingController();
   }
 
   @override
@@ -175,33 +42,25 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ArmoryBloc, ArmoryState>(
+    return BlocConsumer<ArmoryBloc, ArmoryState>(
       listener: (context, state) {
-        if (state is FirearmsLoaded) {
-          _handleFirearmsLoaded(state.firearms);
-        } else if (state is AmmunitionLoaded) {
-          _handleAmmunitionLoaded(state.ammunition);
-        } else if (state is GearLoaded) {
-          _handleGearLoaded(state.gear);
-        } else if (state is ToolsLoaded) {
-          _handleToolsLoaded(state.tools);
-        } else if (state is MaintenanceLoaded) {
-          _handleMaintenanceLoaded(state.maintenance);
-        } else if (state is ArmoryActionSuccess) {
+        if (state is ArmoryActionSuccess) {
           context.read<ArmoryBloc>().add(const HideFormEvent());
         }
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(child: _buildForm()),
-          BlocBuilder<ArmoryBloc, ArmoryState>(
-            builder: (context, state) {
-              return _buildActions(state);
-            },
-          ),
-        ],
-      ),
+      builder: (context, state) {
+        if (state is! ArmoryDataLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: _buildForm(state)),
+            _buildActions(state),
+          ],
+        );
+      },
     );
   }
 
@@ -220,16 +79,9 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
           ),
           const SizedBox(width: 8),
           ElevatedButton(
-            onPressed: state is ArmoryLoadingAction ? null : _saveLoadout,
+            onPressed: state is ArmoryLoadingAction ? null : () => _saveLoadout(state as ArmoryDataLoaded),
             child: state is ArmoryLoadingAction
-                ? SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppTheme.textPrimary(context),
-              ),
-            )
+                ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.textPrimary(context)))
                 : const Text('Save Loadout'),
           ),
         ],
@@ -237,124 +89,113 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(ArmoryDataLoaded state) {
+    final firearmOptions = state.firearms.map((f) => DropdownOption(value: f.id!, label: '${f.nickname} (${f.make} ${f.model})')).toList();
+
+    final ammunitionOptions = _selectedFirearmId != null
+        ? state.ammunition.where((a) {
+      final firearm = state.firearms.firstWhere((f) => f.id == _selectedFirearmId);
+      return a.caliber.toLowerCase() == firearm.caliber.toLowerCase();
+    }).map((a) => DropdownOption(value: a.id!, label: '${a.brand} ${a.caliber} ${a.bullet} (${a.quantity} rds)')).toList()
+        : <DropdownOption>[];
+
+    final gearOptions = state.gear.map((g) => DropdownOption(value: g.id!, label: g.model)).toList();
+    final toolOptions = state.tools.map((t) => DropdownOption(value: t.id!, label: t.name)).toList();
+    final maintenanceOptions = state.maintenance.map((m) => DropdownOption(value: m.id!, label: m.maintenanceType)).toList();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            DialogWidgets.buildTextField(
-              context: context,
-              label: 'Loadout Name *',
-              controller: _controllers['name']!,
-              isRequired: true,
-              maxLength: 25,
-              hintText: 'e.g., Precision .308, Competition Setup',
-            ),
+            DialogWidgets.buildTextField(context: context, label: 'Loadout Name *', controller: _controllers['name']!, isRequired: true, maxLength: 25, hintText: 'e.g., Precision .308'),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildDropdownField(
               context: context,
               label: 'Firearm *',
               value: _selectedFirearmId,
-              options: _firearmOptions,
-              onChanged: _onFirearmChanged,
-              isLoading: _loadingFirearms,
-              enabled: !_loadingFirearms,
+              options: firearmOptions,
+              onChanged: (value) {
+                if (mounted) {
+                  setState(() {
+                    _selectedFirearmId = value;
+                    _selectedAmmunitionId = null;
+                  });
+                }
+              },
               isRequired: true,
             ),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildDropdownField(
               context: context,
               label: 'Ammunition *',
               value: _selectedAmmunitionId,
-              options: _ammunitionOptions,
+              options: ammunitionOptions,
               onChanged: (value) {
-                if (_hasMatchingAmmunition) {
+                if (mounted) {
                   setState(() => _selectedAmmunitionId = value);
-                } else {
-                  _showNoAmmoSnackBar();
                 }
               },
-              isLoading: _loadingAmmunition,
-              enabled: _hasMatchingAmmunition && !_loadingAmmunition,
+              enabled: ammunitionOptions.isNotEmpty,
               isRequired: true,
             ),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildDropdownField(
               context: context,
               label: 'Gear',
               value: null,
-              options: _gearOptions,
-              isLoading: _loadingGear,
-              enabled: !_loadingGear,
+              options: gearOptions,
               onChanged: (value) {
-                if (value != null && !_selectedGearIds.contains(value)) {
+                if (value != null && !_selectedGearIds.contains(value) && mounted) {
                   setState(() => _selectedGearIds.add(value));
                 }
               },
             ),
-
             if (_selectedGearIds.isNotEmpty) ...[
               const SizedBox(height: 8),
-              _buildChips(_selectedGearIds, _gearOptions, (id) => setState(() => _selectedGearIds.remove(id))),
+              _buildChips(_selectedGearIds, gearOptions, (id) {
+                if (mounted) setState(() => _selectedGearIds.remove(id));
+              }),
             ],
-
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildDropdownField(
               context: context,
               label: 'Tools',
               value: null,
-              options: _toolOptions,
-              isLoading: _loadingTools,
-              enabled: !_loadingTools,
+              options: toolOptions,
               onChanged: (value) {
-                if (value != null && !_selectedToolIds.contains(value)) {
+                if (value != null && !_selectedToolIds.contains(value) && mounted) {
                   setState(() => _selectedToolIds.add(value));
                 }
               },
             ),
-
             if (_selectedToolIds.isNotEmpty) ...[
               const SizedBox(height: 8),
-              _buildChips(_selectedToolIds, _toolOptions, (id) => setState(() => _selectedToolIds.remove(id))),
+              _buildChips(_selectedToolIds, toolOptions, (id) {
+                if (mounted) setState(() => _selectedToolIds.remove(id));
+              }),
             ],
-
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
             DialogWidgets.buildDropdownField(
               context: context,
               label: 'Maintenance',
               value: null,
-              options: _maintenanceOptions,
-              isLoading: _loadingMaintenance,
-              enabled: !_loadingMaintenance,
+              options: maintenanceOptions,
               onChanged: (value) {
-                if (value != null && !_selectedMaintenanceIds.contains(value)) {
+                if (value != null && !_selectedMaintenanceIds.contains(value) && mounted) {
                   setState(() => _selectedMaintenanceIds.add(value));
                 }
               },
             ),
-
             if (_selectedMaintenanceIds.isNotEmpty) ...[
               const SizedBox(height: 8),
-              _buildChips(_selectedMaintenanceIds, _maintenanceOptions, (id) => setState(() => _selectedMaintenanceIds.remove(id))),
+              _buildChips(_selectedMaintenanceIds, maintenanceOptions, (id) {
+                if (mounted) setState(() => _selectedMaintenanceIds.remove(id));
+              }),
             ],
-
             const SizedBox(height: ArmoryConstants.fieldSpacing),
-
-            DialogWidgets.buildTextField(
-              context: context,
-              label: 'Notes',
-              controller: _controllers['notes']!,
-              maxLines: 3,
-              maxLength: 200,
-              hintText: 'Purpose, conditions, special setup notes, etc.',
-            ),
+            DialogWidgets.buildTextField(context: context, label: 'Notes', controller: _controllers['notes']!, maxLines: 3, maxLength: 200, hintText: 'Purpose, conditions, special setup notes, etc.'),
           ],
         ),
       ),
@@ -370,20 +211,10 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
         children: ids.map((id) {
           final label = options.firstWhere((o) => o.value == id).label;
           return Chip(
-            label: Text(
-              label,
-              style: AppTheme.labelMedium(context).copyWith(fontSize: 13),
-            ),
+            label: Text(label, style: AppTheme.labelMedium(context).copyWith(fontSize: 13)),
             backgroundColor: AppTheme.surfaceVariant(context),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(ArmoryConstants.cardBorderRadius),
-              side: BorderSide(color: AppTheme.border(context)),
-            ),
-            deleteIcon: Icon(
-              Icons.close,
-              size: 18,
-              color: AppTheme.textSecondary(context),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ArmoryConstants.cardBorderRadius), side: BorderSide(color: AppTheme.border(context))),
+            deleteIcon: Icon(Icons.close, size: 18, color: AppTheme.textSecondary(context)),
             onDeleted: () => onDelete(id),
           );
         }).toList(),
@@ -391,17 +222,12 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
     );
   }
 
-  void _saveLoadout() {
+  void _saveLoadout(ArmoryDataLoaded state) {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _controllers['name']?.text.trim() ?? '';
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Loadout name is required'),
-          backgroundColor: AppTheme.error(context),
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Loadout name is required'), backgroundColor: AppTheme.error(context)));
       return;
     }
 
@@ -416,8 +242,6 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
       dateAdded: DateTime.now(),
     );
 
-    context.read<ArmoryBloc>().add(
-      AddLoadoutEvent(userId: widget.userId, loadout: loadout),
-    );
+    context.read<ArmoryBloc>().add(AddLoadoutEvent(userId: widget.userId, loadout: loadout));
   }
 }

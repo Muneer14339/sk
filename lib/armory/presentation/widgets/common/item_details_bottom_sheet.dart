@@ -1,16 +1,10 @@
-// lib/armory/presentation/widgets/common/item_details_bottom_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pa_sreens/armory/presentation/widgets/common/armory_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_ammunition.dart';
 import '../../../domain/entities/armory_firearm.dart';
-import '../../../domain/entities/armory_gear.dart';
-import '../../../domain/entities/armory_tool.dart';
-import '../../../domain/entities/armory_maintenance.dart';
-import '../../../domain/entities/armory_loadout.dart';
 import '../../bloc/armory_bloc.dart';
-import '../../bloc/armory_event.dart';
 import '../../bloc/armory_state.dart';
 import '../item_cards/ammunition_item_card.dart';
 import '../item_cards/firearm_item_card.dart';
@@ -70,11 +64,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  Map<String, ArmoryGear> _gearMap = {};
-  Map<String, ArmoryTool> _toolMap = {};
-  Map<String, ArmoryMaintenance> _maintenanceMap = {};
-  bool _loadingData = true;
-
   @override
   void initState() {
     super.initState();
@@ -84,17 +73,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     _controller.forward();
-
-    if (widget.tabType == ArmoryTabType.loadouts) {
-      _loadLoadoutData();
-    }
-  }
-
-  void _loadLoadoutData() {
-    final bloc = context.read<ArmoryBloc>();
-    bloc.add(LoadGearEvent(userId: widget.userId));
-    bloc.add(LoadToolsEvent(userId: widget.userId));
-    bloc.add(LoadMaintenanceEvent(userId: widget.userId));
   }
 
   @override
@@ -110,60 +88,40 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
         : EntityFieldHelper.extractDetails(widget.item);
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return BlocListener<ArmoryBloc, ArmoryState>(
-      listener: (context, state) {
-        if (state is GearLoaded) {
-          setState(() {
-            _gearMap = {for (var g in state.gear) if (g.id != null) g.id!: g};
-          });
-        }
-        if (state is ToolsLoaded) {
-          setState(() {
-            _toolMap = {for (var t in state.tools) if (t.id != null) t.id!: t};
-          });
-        }
-        if (state is MaintenanceLoaded) {
-          setState(() {
-            _maintenanceMap = {for (var m in state.maintenance) if (m.id != null) m.id!: m};
-            _loadingData = false;
-          });
-        }
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, (1 - _animation.value) * screenHeight * 0.85),
+          child: child,
+        );
       },
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, (1 - _animation.value) * screenHeight * 0.85),
-            child: child,
-          );
-        },
-        child: Container(
-          height: screenHeight * 0.85,
-          decoration: BoxDecoration(
-            color: AppTheme.surface(context),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              _buildHeader(details),
-              Expanded(child: _buildContent(details)),
-              _buildFooter(details),
-            ],
-          ),
+      child: Container(
+        height: screenHeight * 0.85,
+        decoration: BoxDecoration(
+          color: AppTheme.surface(context),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            _buildHeader(details),
+            Expanded(child: _buildContent(details)),
+            _buildFooter(details),
+          ],
         ),
       ),
     );
   }
 
   EntityDetailsData _buildLoadoutDetails() {
-    final loadout = widget.item as ArmoryLoadout;
+    final loadout = widget.item;
     final List<EntityField> fields = [];
 
     if (loadout.notes != null && loadout.notes!.isNotEmpty) {
@@ -231,48 +189,48 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
   }
 
   Widget _buildContent(EntityDetailsData details) {
-    if (widget.tabType == ArmoryTabType.loadouts) {
-      return SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            _buildLoadoutPrimarySection(),
-            if (details.sections.isNotEmpty) ..._buildSecondarySection(details.sections),
-            const SizedBox(height: 80),
-          ],
-        ),
-      );
-    }
+    return BlocBuilder<ArmoryBloc, ArmoryState>(
+      builder: (context, state) {
+        if (widget.tabType == ArmoryTabType.loadouts && state is ArmoryDataLoaded) {
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                _buildLoadoutPrimarySection(state),
+                if (details.sections.isNotEmpty) ..._buildSecondarySection(details.sections),
+                const SizedBox(height: 80),
+              ],
+            ),
+          );
+        }
 
-    final required = details.sections.where((f) => f.isImportant).toList();
-    final additional = details.sections.where((f) => !f.isImportant).toList();
+        final required = details.sections.where((f) => f.isImportant).toList();
+        final additional = details.sections.where((f) => !f.isImportant).toList();
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          if (required.isNotEmpty) _buildPrimarySection(required),
-          if (additional.isNotEmpty) ..._buildSecondarySection(additional),
-          const SizedBox(height: 80),
-        ],
-      ),
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              if (required.isNotEmpty) _buildPrimarySection(required),
+              if (additional.isNotEmpty) ..._buildSecondarySection(additional),
+              const SizedBox(height: 80),
+            ],
+          ),
+        );
+      },
     );
   }
 
+  Widget _buildLoadoutPrimarySection(ArmoryDataLoaded state) {
+    final loadout = widget.item;
 
-  Widget _buildLoadoutPrimarySection() {
-    final loadout = widget.item as ArmoryLoadout;
+    final gearMap = {for (var g in state.gear) if (g.id != null) g.id!: g};
+    final toolMap = {for (var t in state.tools) if (t.id != null) t.id!: t};
+    final maintenanceMap = {for (var m in state.maintenance) if (m.id != null) m.id!: m};
 
-    if (_loadingData) {
-      return Padding(
-        padding: const EdgeInsets.all(20),
-        child: CircularProgressIndicator(color: AppTheme.primary(context)),
-      );
-    }
-
-    final gearItems = loadout.gearIds.map((id) => _gearMap[id]).whereType<ArmoryGear>().toList();
-    final toolItems = loadout.toolIds.map((id) => _toolMap[id]).whereType<ArmoryTool>().toList();
-    final maintenanceItems = loadout.maintenanceIds.map((id) => _maintenanceMap[id]).whereType<ArmoryMaintenance>().toList();
+    final gearItems = loadout.gearIds.map((id) => gearMap[id]).whereType().toList();
+    final toolItems = loadout.toolIds.map((id) => toolMap[id]).whereType().toList();
+    final maintenanceItems = loadout.maintenanceIds.map((id) => maintenanceMap[id]).whereType().toList();
 
     return Container(
       width: double.infinity,
@@ -294,58 +252,19 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             ),
           ),
           const SizedBox(height: 10),
-
           if (widget.firearm != null) ...[
-                FirearmItemCard(
-                  firearm: widget.firearm!,
-                  userId: widget.userId,
-                  showDelete: false,
-                ),
-
+            FirearmItemCard(firearm: widget.firearm!, userId: widget.userId, showDelete: false),
             const SizedBox(height: 10),
           ],
-
           if (widget.ammunition != null) ...[
-                AmmunitionItemCard(
-                  ammunition: widget.ammunition!,
-                  userId: widget.userId,
-                  showDelete: false,
-                ),
-
+            AmmunitionItemCard(ammunition: widget.ammunition!, userId: widget.userId, showDelete: false),
             const SizedBox(height: 10),
           ],
-
-          _buildExpandableSection(
-            'GEAR',
-            gearItems.length,
-            gearItems.map((gear) => GearItemCard(
-              gear: gear,
-              userId: widget.userId,
-              showDelete: false,
-            )).toList(),
-          ),
+          _buildExpandableSection('GEAR', gearItems.length, gearItems.map((gear) => GearItemCard(gear: gear, userId: widget.userId, showDelete: false)).toList()),
           const SizedBox(height: 10),
-
-          _buildExpandableSection(
-            'TOOLS',
-            toolItems.length,
-            toolItems.map((tool) => ToolItemCard(
-              tool: tool,
-              userId: widget.userId,
-              showDelete: false,
-            )).toList(),
-          ),
+          _buildExpandableSection('TOOLS', toolItems.length, toolItems.map((tool) => ToolItemCard(tool: tool, userId: widget.userId, showDelete: false)).toList()),
           const SizedBox(height: 10),
-
-          _buildExpandableSection(
-            'MAINTENANCE',
-            maintenanceItems.length,
-            maintenanceItems.map((maintenance) => MaintenanceItemCard(
-              maintenance: maintenance,
-              userId: widget.userId,
-              showDelete: false,
-            )).toList(),
-          ),
+          _buildExpandableSection('MAINTENANCE', maintenanceItems.length, maintenanceItems.map((m) => MaintenanceItemCard(maintenance: m, userId: widget.userId, showDelete: false)).toList()),
         ],
       ),
     );
@@ -364,7 +283,11 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       child: Column(
         children: [
           InkWell(
-            onTap: () => setState(() => _expandedSections[title] = !isExpanded),
+            onTap: () {
+              if (mounted) {
+                setState(() => _expandedSections[title] = !isExpanded);
+              }
+            },
             borderRadius: BorderRadius.circular(10),
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -386,10 +309,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
                         const SizedBox(height: 4),
                         Text(
                           '$count item${count != 1 ? 's' : ''} attached',
-                          style: AppTheme.bodySmall(context).copyWith(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
+                          style: AppTheme.bodySmall(context).copyWith(fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                       ],
                     ),
@@ -397,11 +317,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: AppTheme.textSecondary(context),
-                      size: 20,
-                    ),
+                    child: Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary(context), size: 20),
                   ),
                 ],
               ),
@@ -412,10 +328,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               child: Column(
                 children: itemCards.map((card) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: card,
-                  );
+                  return Padding(padding: const EdgeInsets.only(top: 8), child: card);
                 }).toList(),
               ),
             ),
@@ -423,14 +336,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       ),
     );
   }
-
-  String _getItemLabel(dynamic item) {
-    if (item is ArmoryGear) return item.model;
-    if (item is ArmoryTool) return item.name;
-    if (item is ArmoryMaintenance) return item.maintenanceType;
-    return '';
-  }
-
 
   Widget _buildPrimarySection(List<EntityField> fields) {
     return Container(
@@ -477,35 +382,13 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       final label = field.label.toLowerCase();
       if (label.contains('type') || label.contains('status') || label.contains('brand') || label.contains('generation')) {
         groups['Type & Status']!.add(field);
-      } else if (label.contains('firing') ||
-          label.contains('action') ||
-          label.contains('feed') ||
-          label.contains('capacity') ||
-          label.contains('mechanism') ||
-          label.contains('primer') ||
-          label.contains('powder') ||
-          label.contains('case')) {
+      } else if (label.contains('firing') || label.contains('action') || label.contains('feed') || label.contains('capacity') || label.contains('mechanism') || label.contains('primer') || label.contains('powder') || label.contains('case')) {
         groups['Technical Details']!.add(field);
-      } else if (label.contains('barrel') ||
-          label.contains('length') ||
-          label.contains('weight') ||
-          label.contains('twist') ||
-          label.contains('thread') ||
-          label.contains('finish') ||
-          label.contains('stock') ||
-          label.contains('trigger') ||
-          label.contains('safety')) {
+      } else if (label.contains('barrel') || label.contains('length') || label.contains('weight') || label.contains('twist') || label.contains('thread') || label.contains('finish') || label.contains('stock') || label.contains('trigger') || label.contains('safety')) {
         groups['Physical Specs']!.add(field);
       } else if (label.contains('purchase') || label.contains('price') || label.contains('value') || label.contains('dealer') || label.contains('cost')) {
         groups['Purchase & Value']!.add(field);
-      } else if (label.contains('clean') ||
-          label.contains('zero') ||
-          label.contains('storage') ||
-          label.contains('velocity') ||
-          label.contains('energy') ||
-          label.contains('ballistic') ||
-          label.contains('group') ||
-          label.contains('test')) {
+      } else if (label.contains('clean') || label.contains('zero') || label.contains('storage') || label.contains('velocity') || label.contains('energy') || label.contains('ballistic') || label.contains('group') || label.contains('test')) {
         groups['Usage & Maintenance']!.add(field);
       } else if (label.contains('round') || label.contains('asset id') || label.contains("date added")) {
       } else {
@@ -529,7 +412,11 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
         mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
-            onTap: () => setState(() => _expandedSections[title] = !isExpanded),
+            onTap: () {
+              if (mounted) {
+                setState(() => _expandedSections[title] = !isExpanded);
+              }
+            },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(

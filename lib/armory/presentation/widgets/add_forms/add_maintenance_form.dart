@@ -1,4 +1,3 @@
-// lib/armory/presentation/widgets/add_forms/add_maintenance_form.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,18 +24,15 @@ class AddMaintenanceForm extends StatefulWidget {
 class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
   final _formKey = GlobalKey<FormState>();
   final _controllers = <String, TextEditingController>{};
-  final _dropdownValues = <String, String?>{};
-
-  List<DropdownOption> _assetOptions = [];
-  List<ArmoryFirearm> _allFirearms = [];
-  List<ArmoryGear> _allGear = [];
+  String? _assetType;
+  String? _asset;
+  String? _maintenanceType;
   DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
-    _loadInitialData();
   }
 
   void _initializeControllers() {
@@ -47,53 +43,23 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
     _controllers['rounds']?.text = '0';
   }
 
-  void _loadInitialData() {
-    context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: widget.userId));
-    context.read<ArmoryBloc>().add(LoadGearEvent(userId: widget.userId));
-  }
-
-  void _handleAssetTypeChange(String? assetType) {
-    setState(() {
-      _dropdownValues['assetType'] = assetType;
-      _dropdownValues['asset'] = null;
-      _updateAssetOptions();
-    });
-  }
-
-  void _updateAssetOptions() {
-    setState(() {
-      if (_dropdownValues['assetType'] == 'firearm') {
-        _assetOptions = _allFirearms
-            .map((firearm) => DropdownOption(
-          value: firearm.id!,
-          label: '${firearm.nickname} (${firearm.make} ${firearm.model})',
-        ))
-            .toList();
-      } else if (_dropdownValues['assetType'] == 'gear') {
-        _assetOptions = _allGear
-            .map((gear) => DropdownOption(
-          value: gear.id!,
-          label: '${gear.model} (${gear.category})',
-        ))
-            .toList();
-      } else {
-        _assetOptions.clear();
-      }
-    });
-  }
-
-  void _handleFirearmsLoaded(List<ArmoryFirearm> firearms) {
-    setState(() {
-      _allFirearms = firearms;
-      _updateAssetOptions();
-    });
-  }
-
-  void _handleGearLoaded(List<ArmoryGear> gear) {
-    setState(() {
-      _allGear = gear;
-      _updateAssetOptions();
-    });
+  List<DropdownOption> _getAssetOptions(ArmoryDataLoaded state) {
+    if (_assetType == 'firearm') {
+      return state.firearms
+          .map((firearm) => DropdownOption(
+        value: firearm.id!,
+        label: '${firearm.nickname} (${firearm.make} ${firearm.model})',
+      ))
+          .toList();
+    } else if (_assetType == 'gear') {
+      return state.gear
+          .map((gear) => DropdownOption(
+        value: gear.id!,
+        label: '${gear.model} (${gear.category})',
+      ))
+          .toList();
+    }
+    return [];
   }
 
   @override
@@ -104,27 +70,21 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ArmoryBloc, ArmoryState>(
+    return BlocConsumer<ArmoryBloc, ArmoryState>(
       listener: (context, state) {
-        if (state is FirearmsLoaded) {
-          _handleFirearmsLoaded(state.firearms);
-        } else if (state is GearLoaded) {
-          _handleGearLoaded(state.gear);
-        } else if (state is ArmoryActionSuccess) {
+        if (state is ArmoryActionSuccess) {
           context.read<ArmoryBloc>().add(const HideFormEvent());
         }
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(child: _buildForm()),
-          BlocBuilder<ArmoryBloc, ArmoryState>(
-            builder: (context, state) {
-              return _buildActions(state);
-            },
-          ),
-        ],
-      ),
+      builder: (context, state) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: _buildForm(state)),
+            _buildActions(state),
+          ],
+        );
+      },
     );
   }
 
@@ -160,7 +120,9 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(ArmoryState state) {
+    final assetOptions = state is ArmoryDataLoaded ? _getAssetOptions(state) : <DropdownOption>[];
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
       child: Form(
@@ -171,22 +133,33 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
               DialogWidgets.buildDropdownField(
                 context: context,
                 label: 'Asset Type *',
-                value: _dropdownValues['assetType'],
+                value: _assetType,
                 options: const [
                   DropdownOption(value: 'firearm', label: 'Firearm'),
                   DropdownOption(value: 'gear', label: 'Gear'),
                 ],
-                onChanged: _handleAssetTypeChange,
+                onChanged: (value) {
+                  if (mounted) {
+                    setState(() {
+                      _assetType = value;
+                      _asset = null;
+                    });
+                  }
+                },
                 isRequired: true,
               ),
               DialogWidgets.buildDropdownField(
                 context: context,
                 label: 'Asset *',
-                value: _dropdownValues['asset'],
-                options: _assetOptions,
-                onChanged: (value) => setState(() => _dropdownValues['asset'] = value),
+                value: _asset,
+                options: assetOptions,
+                onChanged: (value) {
+                  if (mounted) {
+                    setState(() => _asset = value);
+                  }
+                },
                 isRequired: true,
-                enabled: _dropdownValues['assetType'] != null && _assetOptions.isNotEmpty,
+                enabled: _assetType != null && assetOptions.isNotEmpty,
               ),
             ]),
             const SizedBox(height: ArmoryConstants.fieldSpacing),
@@ -195,7 +168,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
               DialogWidgets.buildDropdownField(
                 context: context,
                 label: 'Maintenance Type *',
-                value: _dropdownValues['maintenanceType'],
+                value: _maintenanceType,
                 options: const [
                   DropdownOption(value: 'cleaning', label: 'Cleaning'),
                   DropdownOption(value: 'lubrication', label: 'Lubrication'),
@@ -203,7 +176,11 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
                   DropdownOption(value: 'repair', label: 'Repair'),
                   DropdownOption(value: 'replacement', label: 'Part Replacement'),
                 ],
-                onChanged: (value) => setState(() => _dropdownValues['maintenanceType'] = value),
+                onChanged: (value) {
+                  if (mounted) {
+                    setState(() => _maintenanceType = value);
+                  }
+                },
                 isRequired: true,
               ),
               _buildDatePickerField(),
@@ -258,7 +235,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
                 );
               },
             );
-            if (date != null) {
+            if (date != null && mounted) {
               setState(() => _selectedDate = date);
             }
           },
@@ -294,7 +271,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
   void _saveMaintenance() {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_dropdownValues['assetType'] == null) {
+    if (_assetType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Asset type is required'),
@@ -304,7 +281,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
       return;
     }
 
-    if (_dropdownValues['asset'] == null) {
+    if (_asset == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Asset selection is required'),
@@ -314,7 +291,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
       return;
     }
 
-    if (_dropdownValues['maintenanceType'] == null) {
+    if (_maintenanceType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Maintenance type is required'),
@@ -325,9 +302,9 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
     }
 
     final maintenance = ArmoryMaintenance(
-      assetType: _dropdownValues['assetType']!,
-      assetId: _dropdownValues['asset']!,
-      maintenanceType: _dropdownValues['maintenanceType']!,
+      assetType: _assetType!,
+      assetId: _asset!,
+      maintenanceType: _maintenanceType!,
       date: _selectedDate,
       roundsFired: int.tryParse(_controllers['rounds']?.text.trim() ?? '0'),
       notes: _controllers['notes']?.text.trim(),

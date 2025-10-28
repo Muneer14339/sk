@@ -155,48 +155,7 @@ class GridNavigationWidget extends StatelessWidget {
     ];
   }
 
-  int _getFirearmsCount() {
-    if (state is FirearmsLoaded) {
-      return (state as FirearmsLoaded).firearms.length;
-    }
-    return 0;
-  }
 
-  int _getAmmunitionCount() {
-    if (state is AmmunitionLoaded) {
-      return (state as AmmunitionLoaded).ammunition.length;
-    }
-    return 0;
-  }
-
-  int _getGearCount() {
-    if (state is GearLoaded) {
-      return (state as GearLoaded).gear.length;
-    }
-    return 0;
-  }
-
-  int _getToolsCount() {
-    if (state is ToolsLoaded) {
-      return (state as ToolsLoaded).tools.length;
-    }
-    return 0;
-  }
-
-  int _getLoadoutsCount() {
-    if (state is LoadoutsLoaded) {
-      return (state as LoadoutsLoaded).loadouts.length;
-    }
-    return 0;
-  }
-
-  int _getAllItemsCount() {
-    return _getFirearmsCount() +
-        _getAmmunitionCount() +
-        _getGearCount() +
-        _getToolsCount() +
-        _getLoadoutsCount();
-  }
 }
 
 class TabItemInfo {

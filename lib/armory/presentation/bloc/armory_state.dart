@@ -1,4 +1,3 @@
-// lib/user_dashboard/presentation/bloc/armory_state.dart
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/armory_firearm.dart';
 import '../../domain/entities/armory_ammunition.dart';
@@ -28,40 +27,43 @@ class ArmoryLoadingAction extends ArmoryState {
   const ArmoryLoadingAction();
 }
 
-// Success States
-class FirearmsLoaded extends ArmoryState {
+class ArmoryDataLoaded extends ArmoryState {
   final List<ArmoryFirearm> firearms;
-  const FirearmsLoaded({required this.firearms});
-  @override
-  List<Object> get props => [firearms];
-}
-
-class AmmunitionLoaded extends ArmoryState {
   final List<ArmoryAmmunition> ammunition;
-  const AmmunitionLoaded({required this.ammunition});
-  @override
-  List<Object> get props => [ammunition];
-}
-
-class GearLoaded extends ArmoryState {
   final List<ArmoryGear> gear;
-  const GearLoaded({required this.gear});
-  @override
-  List<Object> get props => [gear];
-}
-
-class ToolsLoaded extends ArmoryState {
   final List<ArmoryTool> tools;
-  const ToolsLoaded({required this.tools});
-  @override
-  List<Object> get props => [tools];
-}
-
-class LoadoutsLoaded extends ArmoryState {
   final List<ArmoryLoadout> loadouts;
-  const LoadoutsLoaded({required this.loadouts});
+  final List<ArmoryMaintenance> maintenance;
+
+  const ArmoryDataLoaded({
+    required this.firearms,
+    required this.ammunition,
+    required this.gear,
+    required this.tools,
+    required this.loadouts,
+    required this.maintenance,
+  });
+
+  ArmoryDataLoaded copyWith({
+    List<ArmoryFirearm>? firearms,
+    List<ArmoryAmmunition>? ammunition,
+    List<ArmoryGear>? gear,
+    List<ArmoryTool>? tools,
+    List<ArmoryLoadout>? loadouts,
+    List<ArmoryMaintenance>? maintenance,
+  }) {
+    return ArmoryDataLoaded(
+      firearms: firearms ?? this.firearms,
+      ammunition: ammunition ?? this.ammunition,
+      gear: gear ?? this.gear,
+      tools: tools ?? this.tools,
+      loadouts: loadouts ?? this.loadouts,
+      maintenance: maintenance ?? this.maintenance,
+    );
+  }
+
   @override
-  List<Object> get props => [loadouts];
+  List<Object> get props => [firearms, ammunition, gear, tools, loadouts, maintenance];
 }
 
 class DropdownOptionsLoaded extends ArmoryState {
@@ -84,14 +86,6 @@ class ArmoryError extends ArmoryState {
   @override
   List<Object> get props => [message];
 }
-
-class MaintenanceLoaded extends ArmoryState {
-  final List<ArmoryMaintenance> maintenance;
-  const MaintenanceLoaded({required this.maintenance});
-  @override
-  List<Object> get props => [maintenance];
-}
-
 
 class ShowingAddForm extends ArmoryState {
   final ArmoryTabType tabType;

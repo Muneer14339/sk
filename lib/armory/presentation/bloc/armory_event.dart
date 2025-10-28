@@ -1,4 +1,3 @@
-// lib/user_dashboard/presentation/bloc/armory_event.dart
 import 'package:equatable/equatable.dart';
 import '../../../core/usecases/usecase.dart';
 import '../../domain/entities/armory_firearm.dart';
@@ -17,43 +16,13 @@ abstract class ArmoryEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// Load Events
-class LoadFirearmsEvent extends ArmoryEvent {
+class LoadAllDataEvent extends ArmoryEvent {
   final String userId;
-  const LoadFirearmsEvent({required this.userId});
+  const LoadAllDataEvent({required this.userId});
   @override
   List<Object> get props => [userId];
 }
 
-class LoadAmmunitionEvent extends ArmoryEvent {
-  final String userId;
-  const LoadAmmunitionEvent({required this.userId});
-  @override
-  List<Object> get props => [userId];
-}
-
-class LoadGearEvent extends ArmoryEvent {
-  final String userId;
-  const LoadGearEvent({required this.userId});
-  @override
-  List<Object> get props => [userId];
-}
-
-class LoadToolsEvent extends ArmoryEvent {
-  final String userId;
-  const LoadToolsEvent({required this.userId});
-  @override
-  List<Object> get props => [userId];
-}
-
-class LoadLoadoutsEvent extends ArmoryEvent {
-  final String userId;
-  const LoadLoadoutsEvent({required this.userId});
-  @override
-  List<Object> get props => [userId];
-}
-
-// Add Events
 class AddFirearmEvent extends ArmoryEvent {
   final String userId;
   final ArmoryFirearm firearm;
@@ -94,32 +63,6 @@ class AddLoadoutEvent extends ArmoryEvent {
   List<Object> get props => [userId, loadout];
 }
 
-// Dropdown Events
-// lib/user_dashboard/presentation/bloc/armory_event.dart - Update LoadDropdownOptionsEvent
-
-class LoadDropdownOptionsEvent extends ArmoryEvent {
-  final DropdownType type;
-  final String? filterValue;// Add this
-
-  const LoadDropdownOptionsEvent({
-    required this.type,
-    this.filterValue,   // Add this
-  });
-
-  @override
-  List<Object> get props => [
-    type,
-    filterValue ?? '',    // Add this
-  ];
-}
-
-class LoadMaintenanceEvent extends ArmoryEvent {
-  final String userId;
-  const LoadMaintenanceEvent({required this.userId});
-  @override
-  List<Object> get props => [userId];
-}
-
 class AddMaintenanceEvent extends ArmoryEvent {
   final String userId;
   final ArmoryMaintenance maintenance;
@@ -128,9 +71,6 @@ class AddMaintenanceEvent extends ArmoryEvent {
   List<Object> get props => [userId, maintenance];
 }
 
-
-
-// Delete Events
 class DeleteFirearmEvent extends ArmoryEvent {
   final String userId;
   final ArmoryFirearm firearm;
@@ -179,6 +119,21 @@ class DeleteLoadoutEvent extends ArmoryEvent {
   List<Object> get props => [userId, loadout];
 }
 
+class LoadDropdownOptionsEvent extends ArmoryEvent {
+  final DropdownType type;
+  final String? filterValue;
+
+  const LoadDropdownOptionsEvent({
+    required this.type,
+    this.filterValue,
+  });
+
+  @override
+  List<Object> get props => [
+    type,
+    filterValue ?? '',
+  ];
+}
 
 class ShowAddFormEvent extends ArmoryEvent {
   final ArmoryTabType tabType;

@@ -1,4 +1,3 @@
-// lib/armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,8 +17,6 @@ import 'gear_tab_widget.dart';
 import 'loadouts_tab_widget.dart';
 import 'tools_tab_widget.dart';
 
-
-
 class EnhancedArmoryTabView extends StatefulWidget {
   const EnhancedArmoryTabView({super.key});
 
@@ -31,15 +28,6 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
   String? userId;
   int _selectedTabIndex = 0;
   bool _showListContent = false;
-
-  Map<ArmoryTabType, int> _counts = {
-    ArmoryTabType.firearms: 0,
-    ArmoryTabType.ammunition: 0,
-    ArmoryTabType.gear: 0,
-    ArmoryTabType.tools: 0,
-    ArmoryTabType.loadouts: 0,
-    ArmoryTabType.report: 0,
-  };
 
   final List<TabInfo> _tabs = [
     TabInfo(title: 'Firearms', tabType: ArmoryTabType.firearms),
@@ -61,67 +49,27 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
     userId = FirebaseAuth.instance.currentUser?.uid;
 
     if (userId != null) {
-      _loadAllData();
-
-      if (AppConfig.navigationStyle == NavigationStyle.grid) {
-        _loadDataForTab(_tabs[0].tabType);
-      }
-    }
-  }
-
-  void _loadAllData() {
-    if (userId == null) return;
-
-    final bloc = context.read<ArmoryBloc>();
-    bloc.add(LoadFirearmsEvent(userId: userId!));
-    bloc.add(LoadAmmunitionEvent(userId: userId!));
-    bloc.add(LoadGearEvent(userId: userId!));
-    bloc.add(LoadToolsEvent(userId: userId!));
-    bloc.add(LoadLoadoutsEvent(userId: userId!));
-  }
-
-  void _loadDataForTab(ArmoryTabType tabType) {
-    if (userId == null) return;
-
-    final bloc = context.read<ArmoryBloc>();
-    switch (tabType) {
-      case ArmoryTabType.firearms:
-        bloc.add(LoadFirearmsEvent(userId: userId!));
-        break;
-      case ArmoryTabType.ammunition:
-        bloc.add(LoadAmmunitionEvent(userId: userId!));
-        break;
-      case ArmoryTabType.gear:
-        bloc.add(LoadGearEvent(userId: userId!));
-        break;
-      case ArmoryTabType.tools:
-        bloc.add(LoadToolsEvent(userId: userId!));
-        break;
-      case ArmoryTabType.loadouts:
-        bloc.add(LoadLoadoutsEvent(userId: userId!));
-        break;
-      case ArmoryTabType.report:
-        _loadAllData();
-        break;
-      case ArmoryTabType.maintenence:
-        break;
+      context.read<ArmoryBloc>().add(LoadAllDataEvent(userId: userId!));
     }
   }
 
   void _onTabChanged(int index) {
-    setState(() {
-      _selectedTabIndex = index;
-      if (AppConfig.navigationStyle == NavigationStyle.list) {
-        _showListContent = true;
-      }
-    });
-    _loadDataForTab(_tabs[index].tabType);
+    if (mounted) {
+      setState(() {
+        _selectedTabIndex = index;
+        if (AppConfig.navigationStyle == NavigationStyle.list) {
+          _showListContent = true;
+        }
+      });
+    }
   }
 
   void _onBackToList() {
-    setState(() {
-      _showListContent = false;
-    });
+    if (mounted) {
+      setState(() {
+        _showListContent = false;
+      });
+    }
   }
 
   @override
@@ -138,43 +86,41 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         }
         return true;
       },
-      child: BlocListener<ArmoryBloc, ArmoryState>(
-        listener: (context, state) {
-          setState(() {
-            if (state is FirearmsLoaded) {
-              _counts[ArmoryTabType.firearms] = state.firearms.length;
-            } else if (state is AmmunitionLoaded) {
-              _counts[ArmoryTabType.ammunition] = state.ammunition.length;
-            } else if (state is GearLoaded) {
-              _counts[ArmoryTabType.gear] = state.gear.length;
-            } else if (state is ToolsLoaded) {
-              _counts[ArmoryTabType.tools] = state.tools.length;
-            } else if (state is LoadoutsLoaded) {
-              _counts[ArmoryTabType.loadouts] = state.loadouts.length;
-            }
-            _counts[ArmoryTabType.report] =
-                _counts[ArmoryTabType.firearms]! +
-                    _counts[ArmoryTabType.ammunition]! +
-                    _counts[ArmoryTabType.gear]! +
-                    _counts[ArmoryTabType.tools]! +
-                    _counts[ArmoryTabType.loadouts]!;
-          });
+      child: BlocBuilder<ArmoryBloc, ArmoryState>(
+        builder: (context, state) {
+          if (_shouldUseSidebarLayout(context)) {
+            return _buildSidebarLayout(state);
+          }
+          switch (AppConfig.navigationStyle) {
+            case NavigationStyle.grid:
+              return _buildGridLayout(state);
+            case NavigationStyle.list:
+              return _buildListLayout(state);
+          }
         },
-        child: BlocBuilder<ArmoryBloc, ArmoryState>(
-          builder: (context, state) {
-            if (_shouldUseSidebarLayout(context)) {
-              return _buildSidebarLayout(state);
-            }
-            switch (AppConfig.navigationStyle) {
-              case NavigationStyle.grid:
-                return _buildGridLayout(state);
-              case NavigationStyle.list:
-                return _buildListLayout(state);
-            }
-          },
-        ),
       ),
     );
+  }
+
+  Map<ArmoryTabType, int> _getCounts(ArmoryState state) {
+    if (state is ArmoryDataLoaded) {
+      return {
+        ArmoryTabType.firearms: state.firearms.length,
+        ArmoryTabType.ammunition: state.ammunition.length,
+        ArmoryTabType.gear: state.gear.length,
+        ArmoryTabType.tools: state.tools.length,
+        ArmoryTabType.loadouts: state.loadouts.length,
+        ArmoryTabType.report: state.firearms.length + state.ammunition.length + state.gear.length + state.tools.length + state.loadouts.length,
+      };
+    }
+    return {
+      ArmoryTabType.firearms: 0,
+      ArmoryTabType.ammunition: 0,
+      ArmoryTabType.gear: 0,
+      ArmoryTabType.tools: 0,
+      ArmoryTabType.loadouts: 0,
+      ArmoryTabType.report: 0,
+    };
   }
 
   Widget _buildSidebarLayout(ArmoryState state) {
@@ -186,29 +132,22 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
           height: double.infinity,
           decoration: BoxDecoration(
             color: AppTheme.surface(context),
-            border: Border(
-              right: BorderSide(
-                color: AppTheme.border(context),
-                width: 1,
-              ),
-            ),
+            border: Border(right: BorderSide(color: AppTheme.border(context), width: 1)),
           ),
           child: ListNavigationWidget(
             selectedTabIndex: _selectedTabIndex,
             onTabChanged: _onTabChanged,
             state: state,
-            counts: _counts,
+            counts: _getCounts(state),
           ),
         ),
         Expanded(
           child: Container(
-            decoration: BoxDecoration(
-              color: AppTheme.background(context),
-            ),
+            decoration: BoxDecoration(color: AppTheme.background(context)),
             alignment: Alignment.topLeft,
             child: RefreshIndicator(
               onRefresh: () async {
-                _loadDataForTab(_tabs[_selectedTabIndex].tabType);
+                context.read<ArmoryBloc>().add(LoadAllDataEvent(userId: userId!));
                 await Future.delayed(const Duration(milliseconds: 400));
               },
               child: SingleChildScrollView(
@@ -234,16 +173,14 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
           selectedTabIndex: _selectedTabIndex,
           onTabChanged: _onTabChanged,
           state: state,
-          counts: _counts,
+          counts: _getCounts(state),
         ),
         Expanded(
           child: Container(
-            decoration: BoxDecoration(
-              color: AppTheme.background(context),
-            ),
+            decoration: BoxDecoration(color: AppTheme.background(context)),
             child: RefreshIndicator(
               onRefresh: () async {
-                _loadDataForTab(_tabs[_selectedTabIndex].tabType);
+                context.read<ArmoryBloc>().add(LoadAllDataEvent(userId: userId!));
                 await Future.delayed(const Duration(milliseconds: 400));
               },
               child: SingleChildScrollView(
@@ -260,12 +197,8 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
 
   Widget _buildListLayout(ArmoryState state) {
     return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.background(context),
-      ),
-      child: _showListContent
-          ? _buildListContentView()
-          : _buildListNavigationView(state),
+      decoration: BoxDecoration(color: AppTheme.background(context)),
+      child: _showListContent ? _buildListContentView() : _buildListNavigationView(state),
     );
   }
 
@@ -274,7 +207,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
       selectedTabIndex: -1,
       onTabChanged: _onTabChanged,
       state: state,
-      counts: _counts,
+      counts: _getCounts(state),
     );
   }
 
@@ -287,7 +220,7 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
             alignment: Alignment.topLeft,
             child: RefreshIndicator(
               onRefresh: () async {
-                _loadDataForTab(_tabs[_selectedTabIndex].tabType);
+                context.read<ArmoryBloc>().add(LoadAllDataEvent(userId: userId!));
                 await Future.delayed(const Duration(milliseconds: 400));
               },
               child: SingleChildScrollView(
@@ -330,8 +263,5 @@ class TabInfo {
   final String title;
   final ArmoryTabType tabType;
 
-  const TabInfo({
-    required this.title,
-    required this.tabType,
-  });
+  const TabInfo({required this.title, required this.tabType});
 }
