@@ -6,6 +6,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_ammunition.dart';
 import '../../../domain/entities/armory_firearm.dart';
 import '../../../domain/entities/armory_gear.dart';
+import '../../../domain/entities/armory_tool.dart';
+import '../../../domain/entities/armory_maintenance.dart';
 import '../../../domain/entities/armory_loadout.dart';
 import '../../../domain/entities/dropdown_option.dart';
 import '../../bloc/armory_bloc.dart';
@@ -31,12 +33,19 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
 
   List<DropdownOption> _firearmOptions = [];
   List<DropdownOption> _ammunitionOptions = [];
+  List<DropdownOption> _gearOptions = [];
+  List<DropdownOption> _toolOptions = [];
+  List<DropdownOption> _maintenanceOptions = [];
+
   bool _loadingFirearms = true;
   bool _loadingAmmunition = true;
-
-  List<DropdownOption> _gearOptions = [];
-  List<String> _selectedGearIds = [];
   bool _loadingGear = true;
+  bool _loadingTools = true;
+  bool _loadingMaintenance = true;
+
+  List<String> _selectedGearIds = [];
+  List<String> _selectedToolIds = [];
+  List<String> _selectedMaintenanceIds = [];
 
   List<ArmoryFirearm> _firearms = [];
   List<ArmoryAmmunition> _allAmmunition = [];
@@ -60,6 +69,8 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
     context.read<ArmoryBloc>().add(LoadFirearmsEvent(userId: widget.userId));
     context.read<ArmoryBloc>().add(LoadAmmunitionEvent(userId: widget.userId));
     context.read<ArmoryBloc>().add(LoadGearEvent(userId: widget.userId));
+    context.read<ArmoryBloc>().add(LoadToolsEvent(userId: widget.userId));
+    context.read<ArmoryBloc>().add(LoadMaintenanceEvent(userId: widget.userId));
   }
 
   void _handleFirearmsLoaded(List<ArmoryFirearm> firearms) {
@@ -118,7 +129,6 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
 
   void _showNoAmmoSnackBar() {
     if (!mounted) return;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Please add ammunition for this firearm first'),
@@ -143,6 +153,20 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
     });
   }
 
+  void _handleToolsLoaded(List<ArmoryTool> tools) {
+    setState(() {
+      _toolOptions = tools.map((t) => DropdownOption(value: t.id!, label: t.name)).toList();
+      _loadingTools = false;
+    });
+  }
+
+  void _handleMaintenanceLoaded(List<ArmoryMaintenance> maintenance) {
+    setState(() {
+      _maintenanceOptions = maintenance.map((m) => DropdownOption(value: m.id!, label: m.maintenanceType)).toList();
+      _loadingMaintenance = false;
+    });
+  }
+
   @override
   void dispose() {
     _controllers.values.forEach((controller) => controller.dispose());
@@ -159,6 +183,10 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
           _handleAmmunitionLoaded(state.ammunition);
         } else if (state is GearLoaded) {
           _handleGearLoaded(state.gear);
+        } else if (state is ToolsLoaded) {
+          _handleToolsLoaded(state.tools);
+        } else if (state is MaintenanceLoaded) {
+          _handleMaintenanceLoaded(state.maintenance);
         } else if (state is ArmoryActionSuccess) {
           context.read<ArmoryBloc>().add(const HideFormEvent());
         }
@@ -272,35 +300,49 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
 
             if (_selectedGearIds.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _selectedGearIds.map((id) {
-                    final label = _gearOptions.firstWhere((g) => g.value == id).label;
-                    return Chip(
-                      label: Text(
-                        label,
-                        style: AppTheme.labelMedium(context).copyWith(fontSize: 13),
-                      ),
-                      backgroundColor: AppTheme.surfaceVariant(context),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(ArmoryConstants.cardBorderRadius),
-                        side: BorderSide(color: AppTheme.border(context)),
-                      ),
-                      deleteIcon: Icon(
-                        Icons.close,
-                        size: 18,
-                        color: AppTheme.textSecondary(context),
-                      ),
-                      onDeleted: () {
-                        setState(() => _selectedGearIds.remove(id));
-                      },
-                    );
-                  }).toList(),
-                ),
-              ),
+              _buildChips(_selectedGearIds, _gearOptions, (id) => setState(() => _selectedGearIds.remove(id))),
+            ],
+
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
+
+            DialogWidgets.buildDropdownField(
+              context: context,
+              label: 'Tools',
+              value: null,
+              options: _toolOptions,
+              isLoading: _loadingTools,
+              enabled: !_loadingTools,
+              onChanged: (value) {
+                if (value != null && !_selectedToolIds.contains(value)) {
+                  setState(() => _selectedToolIds.add(value));
+                }
+              },
+            ),
+
+            if (_selectedToolIds.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildChips(_selectedToolIds, _toolOptions, (id) => setState(() => _selectedToolIds.remove(id))),
+            ],
+
+            const SizedBox(height: ArmoryConstants.fieldSpacing),
+
+            DialogWidgets.buildDropdownField(
+              context: context,
+              label: 'Maintenance',
+              value: null,
+              options: _maintenanceOptions,
+              isLoading: _loadingMaintenance,
+              enabled: !_loadingMaintenance,
+              onChanged: (value) {
+                if (value != null && !_selectedMaintenanceIds.contains(value)) {
+                  setState(() => _selectedMaintenanceIds.add(value));
+                }
+              },
+            ),
+
+            if (_selectedMaintenanceIds.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildChips(_selectedMaintenanceIds, _maintenanceOptions, (id) => setState(() => _selectedMaintenanceIds.remove(id))),
             ],
 
             const SizedBox(height: ArmoryConstants.fieldSpacing),
@@ -315,6 +357,36 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildChips(List<String> ids, List<DropdownOption> options, Function(String) onDelete) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: ids.map((id) {
+          final label = options.firstWhere((o) => o.value == id).label;
+          return Chip(
+            label: Text(
+              label,
+              style: AppTheme.labelMedium(context).copyWith(fontSize: 13),
+            ),
+            backgroundColor: AppTheme.surfaceVariant(context),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(ArmoryConstants.cardBorderRadius),
+              side: BorderSide(color: AppTheme.border(context)),
+            ),
+            deleteIcon: Icon(
+              Icons.close,
+              size: 18,
+              color: AppTheme.textSecondary(context),
+            ),
+            onDeleted: () => onDelete(id),
+          );
+        }).toList(),
       ),
     );
   }
@@ -338,6 +410,8 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
       firearmId: _selectedFirearmId,
       ammunitionId: _selectedAmmunitionId,
       gearIds: _selectedGearIds,
+      toolIds: _selectedToolIds,
+      maintenanceIds: _selectedMaintenanceIds,
       notes: _controllers['notes']?.text.trim(),
       dateAdded: DateTime.now(),
     );

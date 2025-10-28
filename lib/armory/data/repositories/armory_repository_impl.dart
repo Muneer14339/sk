@@ -472,12 +472,15 @@ class ArmoryRepositoryImpl implements ArmoryRepository {
     );
   }
 
+  // lib/armory/data/repositories/armory_repository_impl.dart - Update _mapLoadoutToModel method
   ArmoryLoadoutModel _mapLoadoutToModel(ArmoryLoadout loadout) {
     return ArmoryLoadoutModel(
       name: loadout.name,
       firearmId: loadout.firearmId,
       ammunitionId: loadout.ammunitionId,
       gearIds: loadout.gearIds,
+      toolIds: loadout.toolIds,             // ADD
+      maintenanceIds: loadout.maintenanceIds, // ADD
       notes: loadout.notes,
       dateAdded: loadout.dateAdded,
     );

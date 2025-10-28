@@ -7,14 +7,17 @@ import '../common/common_item_card.dart';
 class FirearmItemCard extends StatelessWidget {
   final ArmoryFirearm firearm;
   final String userId;
+  final bool showDelete;  // ADD
 
-  const FirearmItemCard({super.key, required this.firearm, required this.userId});
+  const FirearmItemCard({super.key, required this.firearm, required this.userId,this.showDelete = true,  });
 
   @override
   Widget build(BuildContext context) {
     return CommonItemCard(
       item: firearm,
       title: '${firearm.make} ${firearm.model}',
+
+  showDelete: showDelete,  // ADD
       details: [
         CardDetailRow(
           icon: 'assets/icons/armory_icons/firearm.png',
@@ -26,13 +29,13 @@ class FirearmItemCard extends StatelessWidget {
             text: firearm.nickname,
           ),
       ],
-      onDelete: () => CommonDialogs.showDeleteDialog(
+      onDelete: showDelete ? () => CommonDialogs.showDeleteDialog(  // ADD condition
         context: context,
         userId: userId,
         armoryType: ArmoryTabType.firearms,
-        itemName: '${firearm.make} ${firearm.model}',
+        itemName: firearm.nickname,
         item: firearm,
-      ),
+      ) : null,
     );
   }
 }

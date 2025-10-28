@@ -7,8 +7,9 @@ import '../common/common_item_card.dart';
 class MaintenanceItemCard extends StatelessWidget {
   final ArmoryMaintenance maintenance;
   final String userId;
+  final bool showDelete;  // ADD
 
-  const MaintenanceItemCard({super.key, required this.maintenance, required this.userId});
+  const MaintenanceItemCard({super.key, required this.maintenance, required this.userId,this.showDelete = true,});
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +18,7 @@ class MaintenanceItemCard extends StatelessWidget {
     return CommonItemCard(
       item: maintenance,
       title: maintenance.maintenanceType,
+      showDelete: showDelete,  // ADD
       details: [
         CardDetailRow(
           icon: 'assets/icons/armory_icons/maintenence_asset_type.png',
@@ -29,13 +31,13 @@ class MaintenanceItemCard extends StatelessWidget {
             text: 'Rounds: ${maintenance.roundsFired}',
           ),
       ],
-      onDelete: () => CommonDialogs.showDeleteDialog(
+      onDelete: showDelete ? () => CommonDialogs.showDeleteDialog(  // ADD condition
         context: context,
         userId: userId,
         armoryType: ArmoryTabType.maintenence,
         itemName: maintenance.maintenanceType,
         item: maintenance,
-      ),
+      ) : null,
     );
   }
 }

@@ -4,15 +4,23 @@ import '../../../domain/entities/armory_ammunition.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'tappable_item_wrapper.dart';
 
+// lib/armory/presentation/widgets/common/common_item_card.dart
+import 'package:flutter/material.dart';
+import '../../../domain/entities/armory_firearm.dart';
+import '../../../domain/entities/armory_ammunition.dart';
+import '../../../../core/theme/app_theme.dart';
+import 'tappable_item_wrapper.dart';
+
 class CommonItemCard extends StatelessWidget {
   final dynamic item;
   final String title;
   final String? subtitle;
   final List<CardDetailRow> details;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;  // Make nullable
   final VoidCallback? onTap;
   final ArmoryFirearm? firearm;
   final ArmoryAmmunition? ammunition;
+  final bool showDelete;  // ADD
 
   const CommonItemCard({
     super.key,
@@ -20,10 +28,11 @@ class CommonItemCard extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.details,
-    required this.onDelete,
+    this.onDelete,  // Make optional
     this.onTap,
     this.firearm,
     this.ammunition,
+    this.showDelete = true,  // ADD - default true
   });
 
   @override
@@ -60,19 +69,21 @@ class CommonItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: onDelete,
-              child: Container(
-                width: 32,
-                height: 32,
-                child: Icon(
-                  Icons.delete_outline,
-                  color: AppTheme.error(context),
-                  size: 18,
+            if (showDelete && onDelete != null) ...[  // ADD condition
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onDelete,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  child: Icon(
+                    Icons.delete_outline,
+                    color: AppTheme.error(context),
+                    size: 18,
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -80,6 +91,7 @@ class CommonItemCard extends StatelessWidget {
   }
 }
 
+// Rest remains same...
 class CardDetailRow extends StatelessWidget {
   final String icon;
   final String text;
@@ -105,7 +117,6 @@ class CardDetailRow extends StatelessWidget {
             color: AppTheme.primary(context),
             width: 28,
             height: 28,
-            // optional: agar color apply karna ho
           ),
           const SizedBox(width: 4),
           Flexible(

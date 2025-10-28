@@ -1,10 +1,22 @@
 // lib/armory/presentation/widgets/common/item_details_bottom_sheet.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pa_sreens/armory/presentation/widgets/common/armory_constants.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../domain/entities/armory_ammunition.dart';
 import '../../../domain/entities/armory_firearm.dart';
+import '../../../domain/entities/armory_gear.dart';
+import '../../../domain/entities/armory_tool.dart';
+import '../../../domain/entities/armory_maintenance.dart';
 import '../../../domain/entities/armory_loadout.dart';
+import '../../bloc/armory_bloc.dart';
+import '../../bloc/armory_event.dart';
+import '../../bloc/armory_state.dart';
+import '../item_cards/ammunition_item_card.dart';
+import '../item_cards/firearm_item_card.dart';
+import '../item_cards/gear_item_card.dart';
+import '../item_cards/maintenance_item_card.dart';
+import '../item_cards/tool_item_card.dart';
 import 'entity_field_helper.dart';
 import 'common_delete_dilogue.dart';
 
@@ -58,6 +70,11 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
   late AnimationController _controller;
   late Animation<double> _animation;
 
+  Map<String, ArmoryGear> _gearMap = {};
+  Map<String, ArmoryTool> _toolMap = {};
+  Map<String, ArmoryMaintenance> _maintenanceMap = {};
+  bool _loadingData = true;
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +84,17 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
     _controller.forward();
+
+    if (widget.tabType == ArmoryTabType.loadouts) {
+      _loadLoadoutData();
+    }
+  }
+
+  void _loadLoadoutData() {
+    final bloc = context.read<ArmoryBloc>();
+    bloc.add(LoadGearEvent(userId: widget.userId));
+    bloc.add(LoadToolsEvent(userId: widget.userId));
+    bloc.add(LoadMaintenanceEvent(userId: widget.userId));
   }
 
   @override
@@ -82,33 +110,53 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
         : EntityFieldHelper.extractDetails(widget.item);
     final screenHeight = MediaQuery.of(context).size.height;
 
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, (1 - _animation.value) * screenHeight * 0.85),
-          child: child,
-        );
+    return BlocListener<ArmoryBloc, ArmoryState>(
+      listener: (context, state) {
+        if (state is GearLoaded) {
+          setState(() {
+            _gearMap = {for (var g in state.gear) if (g.id != null) g.id!: g};
+          });
+        }
+        if (state is ToolsLoaded) {
+          setState(() {
+            _toolMap = {for (var t in state.tools) if (t.id != null) t.id!: t};
+          });
+        }
+        if (state is MaintenanceLoaded) {
+          setState(() {
+            _maintenanceMap = {for (var m in state.maintenance) if (m.id != null) m.id!: m};
+            _loadingData = false;
+          });
+        }
       },
-      child: Container(
-        height: screenHeight * 0.85,
-        decoration: BoxDecoration(
-          color: AppTheme.surface(context),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            _buildHeader(details),
-            Expanded(child: _buildContent(details)),
-            _buildFooter(details),
-          ],
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, (1 - _animation.value) * screenHeight * 0.85),
+            child: child,
+          );
+        },
+        child: Container(
+          height: screenHeight * 0.85,
+          decoration: BoxDecoration(
+            color: AppTheme.surface(context),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildHeader(details),
+              Expanded(child: _buildContent(details)),
+              _buildFooter(details),
+            ],
+          ),
         ),
       ),
     );
@@ -118,7 +166,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
     final loadout = widget.item as ArmoryLoadout;
     final List<EntityField> fields = [];
 
-    // Additional info section
     if (loadout.notes != null && loadout.notes!.isNotEmpty) {
       fields.add(EntityField(
         label: 'Notes',
@@ -140,6 +187,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       sections: fields,
     );
   }
+
   Widget _buildHeader(EntityDetailsData details) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
@@ -183,7 +231,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
   }
 
   Widget _buildContent(EntityDetailsData details) {
-    // For loadouts, show enhanced details with firearm/ammo info
     if (widget.tabType == ArmoryTabType.loadouts) {
       return SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -197,7 +244,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       );
     }
 
-    // Original logic for other types
     final required = details.sections.where((f) => f.isImportant).toList();
     final additional = details.sections.where((f) => !f.isImportant).toList();
 
@@ -213,8 +259,20 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
     );
   }
 
+
   Widget _buildLoadoutPrimarySection() {
     final loadout = widget.item as ArmoryLoadout;
+
+    if (_loadingData) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: CircularProgressIndicator(color: AppTheme.primary(context)),
+      );
+    }
+
+    final gearItems = loadout.gearIds.map((id) => _gearMap[id]).whereType<ArmoryGear>().toList();
+    final toolItems = loadout.toolIds.map((id) => _toolMap[id]).whereType<ArmoryTool>().toList();
+    final maintenanceItems = loadout.maintenanceIds.map((id) => _maintenanceMap[id]).whereType<ArmoryMaintenance>().toList();
 
     return Container(
       width: double.infinity,
@@ -236,73 +294,143 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             ),
           ),
           const SizedBox(height: 10),
+
           if (widget.firearm != null) ...[
-            _buildLoadoutInfoCard(
-              'FIREARM',
-              '${widget.firearm!.make} ${widget.firearm!.model}',
-              widget.firearm!.caliber,
-            ),
+                FirearmItemCard(
+                  firearm: widget.firearm!,
+                  userId: widget.userId,
+                  showDelete: false,
+                ),
+
             const SizedBox(height: 10),
           ],
+
           if (widget.ammunition != null) ...[
-            _buildLoadoutInfoCard(
-              'AMMUNITION',
-              '${widget.ammunition!.brand} ${widget.ammunition!.line ?? ''}',
-              '${widget.ammunition!.caliber} • ${widget.ammunition!.bullet} • ${widget.ammunition!.quantity} rds',
-            ),
+                AmmunitionItemCard(
+                  ammunition: widget.ammunition!,
+                  userId: widget.userId,
+                  showDelete: false,
+                ),
+
             const SizedBox(height: 10),
           ],
-          _buildLoadoutInfoCard(
+
+          _buildExpandableSection(
             'GEAR',
-            '${loadout.gearIds.length} items attached',
-            'Optics, supports, attachments',
+            gearItems.length,
+            gearItems.map((gear) => GearItemCard(
+              gear: gear,
+              userId: widget.userId,
+              showDelete: false,
+            )).toList(),
+          ),
+          const SizedBox(height: 10),
+
+          _buildExpandableSection(
+            'TOOLS',
+            toolItems.length,
+            toolItems.map((tool) => ToolItemCard(
+              tool: tool,
+              userId: widget.userId,
+              showDelete: false,
+            )).toList(),
+          ),
+          const SizedBox(height: 10),
+
+          _buildExpandableSection(
+            'MAINTENANCE',
+            maintenanceItems.length,
+            maintenanceItems.map((maintenance) => MaintenanceItemCard(
+              maintenance: maintenance,
+              userId: widget.userId,
+              showDelete: false,
+            )).toList(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLoadoutInfoCard(String title, String primary, String secondary) {
+  Widget _buildExpandableSection(String title, int count, List<Widget> itemCards) {
+    final isExpanded = _expandedSections[title] ?? false;
+
     return Container(
       width: double.maxFinite,
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppTheme.surface(context),
         border: Border.all(color: AppTheme.primary(context).withOpacity(0.2)),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: AppTheme.labelSmall(context).copyWith(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.primary(context),
-              letterSpacing: 0.5,
+          InkWell(
+            onTap: () => setState(() => _expandedSections[title] = !isExpanded),
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: AppTheme.labelSmall(context).copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primary(context),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$count item${count != 1 ? 's' : ''} attached',
+                          style: AppTheme.bodySmall(context).copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: AppTheme.textSecondary(context),
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 6),
-          Text(
-            primary,
-            style: AppTheme.bodySmall(context).copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+          if (isExpanded && itemCards.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                children: itemCards.map((card) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: card,
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            secondary,
-            style: AppTheme.labelMedium(context).copyWith(
-              fontSize: 12,
-              color: AppTheme.textSecondary(context),
-            ),
-          ),
         ],
       ),
     );
   }
+
+  String _getItemLabel(dynamic item) {
+    if (item is ArmoryGear) return item.model;
+    if (item is ArmoryTool) return item.name;
+    if (item is ArmoryMaintenance) return item.maintenanceType;
+    return '';
+  }
+
 
   Widget _buildPrimarySection(List<EntityField> fields) {
     return Container(
@@ -349,17 +477,38 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       final label = field.label.toLowerCase();
       if (label.contains('type') || label.contains('status') || label.contains('brand') || label.contains('generation')) {
         groups['Type & Status']!.add(field);
-      } else if (label.contains('firing') || label.contains('action') || label.contains('feed') || label.contains('capacity') || label.contains('mechanism') || label.contains('primer') || label.contains('powder') || label.contains('case')) {
+      } else if (label.contains('firing') ||
+          label.contains('action') ||
+          label.contains('feed') ||
+          label.contains('capacity') ||
+          label.contains('mechanism') ||
+          label.contains('primer') ||
+          label.contains('powder') ||
+          label.contains('case')) {
         groups['Technical Details']!.add(field);
-      } else if (label.contains('barrel') || label.contains('length') || label.contains('weight') || label.contains('twist') || label.contains('thread') || label.contains('finish') || label.contains('stock') || label.contains('trigger') || label.contains('safety')) {
+      } else if (label.contains('barrel') ||
+          label.contains('length') ||
+          label.contains('weight') ||
+          label.contains('twist') ||
+          label.contains('thread') ||
+          label.contains('finish') ||
+          label.contains('stock') ||
+          label.contains('trigger') ||
+          label.contains('safety')) {
         groups['Physical Specs']!.add(field);
       } else if (label.contains('purchase') || label.contains('price') || label.contains('value') || label.contains('dealer') || label.contains('cost')) {
         groups['Purchase & Value']!.add(field);
-      } else if ( label.contains('clean') || label.contains('zero') || label.contains('storage') || label.contains('velocity') || label.contains('energy') || label.contains('ballistic') || label.contains('group') || label.contains('test')) {
+      } else if (label.contains('clean') ||
+          label.contains('zero') ||
+          label.contains('storage') ||
+          label.contains('velocity') ||
+          label.contains('energy') ||
+          label.contains('ballistic') ||
+          label.contains('group') ||
+          label.contains('test')) {
         groups['Usage & Maintenance']!.add(field);
-      } else if(label.contains('round') || label.contains('asset id')|| label.contains("date added")){
-
-      }else{
+      } else if (label.contains('round') || label.contains('asset id') || label.contains("date added")) {
+      } else {
         groups['Additional Info']!.add(field);
       }
     }
@@ -475,7 +624,8 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
 
   Widget _buildFieldValue(EntityField field, bool isPrimary) {
     if (field.value == null || field.value!.trim().isEmpty) {
-      return Text('—', style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontStyle: FontStyle.italic, fontSize: 14));
+      return Text('—',
+          style: AppTheme.bodySmall(context).copyWith(color: AppTheme.textSecondary(context), fontStyle: FontStyle.italic, fontSize: 14));
     }
 
     final value = field.value!.trim();
@@ -503,7 +653,8 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today_outlined, size: 12, color: isPrimary ? AppTheme.primary(context) : AppTheme.textSecondary(context)),
+            Icon(Icons.calendar_today_outlined,
+                size: 12, color: isPrimary ? AppTheme.primary(context) : AppTheme.textSecondary(context)),
             const SizedBox(width: 4),
             Expanded(child: Text(value, style: style)),
           ],
@@ -541,13 +692,12 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
               child: ElevatedButton(
                 onPressed: () {
                   CommonDialogs.showDeleteDialog(
-                    context: context,
-                    userId: widget.userId,
-                    armoryType: widget.tabType,
-                    itemName: details.title,
-                    item: widget.item,
-                    parentContext: context
-                  );
+                      context: context,
+                      userId: widget.userId,
+                      armoryType: widget.tabType,
+                      itemName: details.title,
+                      item: widget.item,
+                      parentContext: context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.error(context).withOpacity(0.1),
@@ -555,7 +705,9 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text('Delete', style: AppTheme.button(context).copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.error(context))),
+                child: Text('Delete',
+                    style: AppTheme.button(context)
+                        .copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.error(context))),
               ),
             ),
           ],

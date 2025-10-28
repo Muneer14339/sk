@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/armory_loadout.dart';
-// lib/user_dashboard/data/models/armory_loadout_model.dart
+// lib/armory/data/models/armory_loadout_model.dart
 class ArmoryLoadoutModel extends ArmoryLoadout {
   const ArmoryLoadoutModel({
     super.id,
@@ -8,6 +8,8 @@ class ArmoryLoadoutModel extends ArmoryLoadout {
     super.firearmId,
     super.ammunitionId,
     super.gearIds = const [],
+    super.toolIds = const [],        // ADD
+    super.maintenanceIds = const [], // ADD
     super.notes,
     required super.dateAdded,
   });
@@ -19,6 +21,8 @@ class ArmoryLoadoutModel extends ArmoryLoadout {
       firearmId: map['firearmId'],
       ammunitionId: map['ammunitionId'],
       gearIds: List<String>.from(map['gearIds'] ?? []),
+      toolIds: List<String>.from(map['toolIds'] ?? []),             // ADD
+      maintenanceIds: List<String>.from(map['maintenanceIds'] ?? []), // ADD
       notes: map['notes'],
       dateAdded: (map['dateAdded'] as Timestamp).toDate(),
     );
@@ -30,6 +34,8 @@ class ArmoryLoadoutModel extends ArmoryLoadout {
       'firearmId': firearmId,
       'ammunitionId': ammunitionId,
       'gearIds': gearIds,
+      'toolIds': toolIds,             // ADD
+      'maintenanceIds': maintenanceIds, // ADD
       'notes': notes,
       'dateAdded': Timestamp.fromDate(dateAdded),
     };
