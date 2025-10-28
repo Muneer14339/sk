@@ -355,9 +355,11 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
         groups['Physical Specs']!.add(field);
       } else if (label.contains('purchase') || label.contains('price') || label.contains('value') || label.contains('dealer') || label.contains('cost')) {
         groups['Purchase & Value']!.add(field);
-      } else if (label.contains('round') || label.contains('clean') || label.contains('zero') || label.contains('storage') || label.contains('velocity') || label.contains('energy') || label.contains('ballistic') || label.contains('group') || label.contains('test')) {
+      } else if ( label.contains('clean') || label.contains('zero') || label.contains('storage') || label.contains('velocity') || label.contains('energy') || label.contains('ballistic') || label.contains('group') || label.contains('test')) {
         groups['Usage & Maintenance']!.add(field);
-      } else {
+      } else if(label.contains('round') || label.contains('asset id')|| label.contains("date added")){
+
+      }else{
         groups['Additional Info']!.add(field);
       }
     }

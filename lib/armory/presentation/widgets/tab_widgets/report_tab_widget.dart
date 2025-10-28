@@ -1,4 +1,3 @@
-// lib/armory/presentation/widgets/tab_widgets/report_tab_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -27,6 +26,9 @@ class ReportTabWidget extends StatefulWidget {
 }
 
 class _ReportTabWidgetState extends State<ReportTabWidget> {
+  Map<String, ArmoryFirearm> _firearmsMap = {};
+  Map<String, ArmoryAmmunition> _ammunitionMap = {};
+
   List<ArmoryFirearm> _firearms = [];
   List<ArmoryAmmunition> _ammunition = [];
   List<ArmoryGear> _gear = [];
@@ -44,10 +46,6 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
   @override
   void initState() {
     super.initState();
-    _loadAllData();
-  }
-
-  void _loadAllData() {
     final bloc = context.read<ArmoryBloc>();
     bloc.add(LoadFirearmsEvent(userId: widget.userId));
     bloc.add(LoadAmmunitionEvent(userId: widget.userId));
@@ -60,11 +58,25 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
   Widget build(BuildContext context) {
     return BlocListener<ArmoryBloc, ArmoryState>(
       listener: (context, state) {
-        if (state is FirearmsLoaded) setState(() => _firearms = state.firearms);
-        if (state is AmmunitionLoaded) setState(() => _ammunition = state.ammunition);
-        if (state is GearLoaded) setState(() => _gear = state.gear);
-        if (state is ToolsLoaded) setState(() => _tools = state.tools);
-        if (state is LoadoutsLoaded) setState(() => _loadouts = state.loadouts);
+        if (state is FirearmsLoaded) {
+          _firearms = state.firearms;
+          _firearmsMap = {
+            for (var f in state.firearms)
+              if (f.id != null) f.id!: f
+          };
+        }
+
+        if (state is AmmunitionLoaded) {
+          _ammunition = state.ammunition;
+          _ammunitionMap = {
+            for (var a in state.ammunition)
+              if (a.id != null) a.id!: a
+          };
+        }
+
+        if (state is GearLoaded) _gear = state.gear;
+        if (state is ToolsLoaded) _tools = state.tools;
+        if (state is LoadoutsLoaded) _loadouts = state.loadouts;
       },
       child: Container(
         decoration: BoxDecoration(
@@ -148,10 +160,12 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
     }
 
     return Column(
-      children: items.map((item) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: _buildCard(item, type),
-      )).toList(),
+      children: items.map((item) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _buildCard(item, type),
+        );
+      }).toList(),
     );
   }
 
@@ -166,7 +180,19 @@ class _ReportTabWidgetState extends State<ReportTabWidget> {
       case 'tools':
         return ToolItemCard(tool: item, userId: widget.userId);
       case 'loadouts':
-        return LoadoutItemCard(loadout: item, userId: widget.userId);
+        final loadout = item as ArmoryLoadout;
+        final firearm = loadout.firearmId != null
+            ? _firearmsMap[loadout.firearmId]
+            : null;
+        final ammunition = loadout.ammunitionId != null
+            ? _ammunitionMap[loadout.ammunitionId]
+            : null;
+        return LoadoutItemCard(
+          loadout: loadout,
+          firearm: firearm,
+          ammunition: ammunition,
+          userId: widget.userId,
+        );
       default:
         return const SizedBox();
     }
