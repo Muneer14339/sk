@@ -771,13 +771,15 @@ class TrainingSessionBloc
         lookbackPoints: actualLookback));
   }
 
-  // 1. Update _onProcessShotAtPosition
+  // File: training_session_bloc.dart (around line 680)
+
   void _onProcessShotAtPosition(
       ProcessShotAtPosition event, Emitter<TrainingSessionState> emit)
   {
     final distanceFromCenter = math.sqrt(
         math.pow(event.shotPosition.dx - 200, 2) +
-            math.pow(event.shotPosition.dy - 200, 2));
+            math.pow(event.shotPosition.dy - 200, 2)
+    );
     final maxRadius = 190.0;
     final accuracy = (distanceFromCenter / maxRadius).clamp(0.0, 1.0);
 
@@ -796,11 +798,10 @@ class TrainingSessionBloc
       updatedShotMarkers.removeAt(0);
     }
 
-    final updatedShotLog = List<Map<String, dynamic>>.from(state.shotLog);
+    // ✅ Calculate stability here as well
     final double ring10Radius = state.ringRadii[10] ?? 0.0;
     final double ring5Radius = state.ringRadii[5] ?? 190.0;
 
-// Stability Calculation
     int stabilityPercent;
     if (distanceFromCenter <= ring10Radius) {
       stabilityPercent = 100;
@@ -810,17 +811,16 @@ class TrainingSessionBloc
       final double ratio = (distanceFromCenter - ring10Radius) / (ring5Radius - ring10Radius);
       stabilityPercent = (100 - ratio * 100).clamp(0, 100).round();
     }
+
+    final updatedShotLog = List<Map<String, dynamic>>.from(state.shotLog);
     updatedShotLog.insert(0, {
       'time': event.timestamp,
       'theta': thetaDot,
       'score': score,
-      'stability': stabilityPercent, // ✅ NEW FIELD
+      'stability': stabilityPercent,
     });
 
-
     final newShotCount = state.shotCount + 1;
-
-    // NEW: Calculate actual shot sequence number
     final actualShotNumber = newShotCount + state.missedShotCount;
 
     emit(state.copyWith(
@@ -829,11 +829,10 @@ class TrainingSessionBloc
       shotCount: newShotCount,
     ));
 
-    // NEW: Pass actual shot number
     add(StartShotCapture(
       shotPosition: event.shotPosition,
       lookbackPoints: event.lookbackPoints,
-      shotNumber: actualShotNumber, // NEW
+      shotNumber: actualShotNumber,
     ));
 
     HapticFeedback.mediumImpact();
@@ -934,34 +933,56 @@ class TrainingSessionBloc
   }
 
 // 4. Update _onCompleteShotCapture
+  // File: training_session_bloc.dart (around line 770)
+
   void _onCompleteShotCapture(
       CompleteShotCapture event, Emitter<TrainingSessionState> emit)
   {
-    final shotNumber = event.shotNumber; // NEW: Use passed shot number
+    final shotNumber = event.shotNumber;
     print('🎯 Completing shot capture for shot $shotNumber');
 
     final completeTraceline = event.completeTraceline;
-    final shotPosition =
-        state.lastShotPosition ?? Offset(state.lastDrawX, state.lastDrawY);
+
+    // ✅ FIXED: Extract actual shot point position from traceline
+    final shotPoint = completeTraceline.firstWhere(
+          (tp) => tp.phase == TracePhase.shot,
+      orElse: () => completeTraceline.isNotEmpty
+          ? completeTraceline.first
+          : TracePoint(Point3D(200, 200, 0), TracePhase.shot),
+    );
+
+    final shotPosition = Offset(shotPoint.point.x, shotPoint.point.y);
     final now = DateTime.now();
 
-    final distanceFromCenter = math.sqrt(math.pow(shotPosition.dx - 200, 2) +
-        math.pow(shotPosition.dy - 200, 2));
+    final distanceFromCenter = math.sqrt(
+        math.pow(shotPosition.dx - 200, 2) + math.pow(shotPosition.dy - 200, 2)
+    );
     final maxRadius = 190.0;
     final accuracy = (distanceFromCenter / maxRadius).clamp(0.0, 1.0);
 
+    // ✅ Calculate score using extracted shot position
     final score = _calculateScoreAtPosition(shotPosition, state);
     final thetaDot = _calculateThetaDotAtPosition(shotPosition, state);
 
-    final preShotCount =
-        completeTraceline.where((p) => p.phase == TracePhase.preShot).length;
-    final shotCount =
-        completeTraceline.where((p) => p.phase == TracePhase.shot).length;
-    final postShotCount =
-        completeTraceline.where((p) => p.phase == TracePhase.postShot).length;
+    final preShotCount = completeTraceline.where((p) => p.phase == TracePhase.preShot).length;
+    final shotCount = completeTraceline.where((p) => p.phase == TracePhase.shot).length;
+    final postShotCount = completeTraceline.where((p) => p.phase == TracePhase.postShot).length;
 
-    print(
-        '_onCompleteShotCapture 🎯 Shot $shotNumber complete: Pre=$preShotCount, Shot=$shotCount, Post=$postShotCount, Total=${completeTraceline.length}');
+    print('_onCompleteShotCapture 🎯 Shot $shotNumber complete: Pre=$preShotCount, Shot=$shotCount, Post=$postShotCount, Total=${completeTraceline.length}');
+
+    // ✅ Calculate stability using shot position
+    final double ring10Radius = state.ringRadii[10] ?? 0.0;
+    final double ring5Radius = state.ringRadii[5] ?? 190.0;
+
+    int stabilityPercent;
+    if (distanceFromCenter <= ring10Radius) {
+      stabilityPercent = 100;
+    } else if (distanceFromCenter > ring5Radius) {
+      stabilityPercent = 0;
+    } else {
+      final double ratio = (distanceFromCenter - ring10Radius) / (ring5Radius - ring10Radius);
+      stabilityPercent = (100 - ratio * 100).clamp(0, 100).round();
+    }
 
     final steadinessShotData = SteadinessShotData(
       shotNumber: shotNumber,
@@ -981,10 +1002,9 @@ class TrainingSessionBloc
         'shotPackets': shotCount,
         'postShotPackets': postShotCount,
         'totalTracelinePackets': completeTraceline.length,
-        "stability": state.shotLog.first["stability"]?? 0
+        'stability': stabilityPercent,  // ✅ Use calculated stability
       },
-      analysisNotes:
-      'Complete traceline: $preShotCount pre-shot + $shotCount shot + $postShotCount post-shot packets',
+      analysisNotes: 'Complete traceline: $preShotCount pre-shot + $shotCount shot + $postShotCount post-shot packets',
     );
 
     add(AddSteadinessShot(steadinessShotData));
@@ -993,7 +1013,6 @@ class TrainingSessionBloc
       add(const ClearPostShotDisplay());
     });
   }
-
   // Handler update (line ~640)
   void _onClearPostShotDisplay(
       ClearPostShotDisplay event, Emitter<TrainingSessionState> emit)
@@ -1168,21 +1187,22 @@ class TrainingSessionBloc
     return Offset(newX, newY);
   }
 
-  // Replace _calculateScoreAtPosition method (around line 815)
   int _calculateScoreAtPosition(Offset position, TrainingSessionState state) {
     // ✅ Calculate distance from exact center (200, 200)
     final distanceFromCenter = math.sqrt(
         math.pow(position.dx - 200, 2) + math.pow(position.dy - 200, 2)
     );
 
-    // ✅ Use ring radii directly - center se bahar ki taraf
+    // ✅ Check rings from innermost (10) to outermost (5)
+    // Center se bahar ki taraf
     if (distanceFromCenter <= (state.ringRadii[10] ?? 0)) return 10;
     if (distanceFromCenter <= (state.ringRadii[9] ?? 0)) return 9;
     if (distanceFromCenter <= (state.ringRadii[8] ?? 0)) return 8;
     if (distanceFromCenter <= (state.ringRadii[7] ?? 0)) return 7;
     if (distanceFromCenter <= (state.ringRadii[6] ?? 0)) return 6;
     if (distanceFromCenter <= (state.ringRadii[5] ?? 0)) return 5;
-    return 0; // Outside all rings
+
+    return 0; // ✅ Outside ring 5 = 0 score
   }
 
   double _calculateThetaDotAtPosition(
