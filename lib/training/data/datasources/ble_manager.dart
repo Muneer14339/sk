@@ -30,7 +30,7 @@ class BleManager {
     var subscription = fbp.FlutterBluePlus.scanResults.listen((results) {
       print("BleManager: Found ${results.length} devices");
       discoveredDevices = results
-          .where((result) => result.device.platformName == 'GMSync')
+          .where((result) => result.device.platformName == 'GMSync' || result.device.platformName == 'RA')
           .toList();
     });
 
