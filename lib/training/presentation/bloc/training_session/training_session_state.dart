@@ -95,6 +95,8 @@ class TrainingSessionState extends Equatable {
   final Duration? pausedDuration; // NEW: Pause ke time ka total duration
   final DateTime? pauseStartTime; // NEW: Jab pause kiya tha
 
+  final bool sessionJustCompleted;
+
   const TrainingSessionState({
     // Core session state
     this.isTraining = false,
@@ -254,6 +256,7 @@ class TrainingSessionState extends Equatable {
 
     this.pausedDuration, // NEW
     this.pauseStartTime, // NEW
+    this.sessionJustCompleted = false, // NEW
   });
 
   TrainingSessionState copyWith({
@@ -341,7 +344,7 @@ class TrainingSessionState extends Equatable {
 
     Duration? pausedDuration, // NEW
     DateTime? pauseStartTime, // NEW
-
+    bool? sessionJustCompleted, // NEW
   }) {
     return TrainingSessionState(
       // Core session state
@@ -430,6 +433,7 @@ class TrainingSessionState extends Equatable {
 
       pausedDuration: pausedDuration ?? this.pausedDuration, // NEW
       pauseStartTime: pauseStartTime ?? this.pauseStartTime, // NEW
+      sessionJustCompleted: sessionJustCompleted ?? this.sessionJustCompleted, // NEW
     );
   }
 
@@ -574,5 +578,6 @@ class TrainingSessionState extends Equatable {
 
     pausedDuration, // NEW
     pauseStartTime, // NEW
+    sessionJustCompleted, // NEW
   ];
 }

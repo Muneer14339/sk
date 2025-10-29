@@ -250,8 +250,6 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
     );
   }
 
-  // training_programs_page.dart mein _showLoadoutDialog method ko replace karo
-
   void _showLoadoutDialog() {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     showDialog(

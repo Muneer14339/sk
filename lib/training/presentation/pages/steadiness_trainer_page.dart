@@ -33,6 +33,7 @@ class SteadinessTrainerPage extends StatefulWidget {
 
 class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
   int _shotCount = 0;
+  bool _toastShown = false; // NEW: Track if toast already shown
 
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     return Scaffold(
       backgroundColor: AppTheme.background(context),
       appBar: customAppBar(
-        title: 'Steadiness Trainer',
+        title: 'PulseSkadi Session\nSession Name: ${widget.program.programName ?? 'Training'}',
         context: context,
         actions: [
           Spacer(),
@@ -102,11 +103,37 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
         },
         builder: (_, bleState) {
           return BlocConsumer<TrainingSessionBloc, TrainingSessionState>(
+            // lib/training/presentation/pages/steadiness_trainer_page.dart
+// Update listener in BlocConsumer (around line 115):
+            // Update listener in BlocConsumer (around line 115):
             listener: (_, sessionState) {
               _shotCount = sessionState.shotCount;
 
               if (sessionState.sensorError != null) {
                 _handleSensorError(context, sessionState.sensorError!);
+              }
+
+              // NEW: Show toast only once when session completes
+              if (sessionState.sessionJustCompleted && !_toastShown) {
+                _toastShown = true; // Mark as shown
+                final sessionName = widget.program.programName ?? 'Training Session';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Session Complete: $sessionName',
+                      style: AppTheme.bodyMedium(context).copyWith(color: Colors.white),
+                    ),
+                    backgroundColor: AppTheme.success(context),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    margin: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).size.height - 150,
+                      left: 10,
+                      right: 10,
+                    ),
+                  ),
+                );
+                context.read<TrainingSessionBloc>().add(const ClearSessionCompletionFlag());
               }
 
               if (sessionState.hasNavigatedToSessionDetail && sessionState.sessionCompleted) {
@@ -122,11 +149,7 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Column(
                   children: [
-                    _buildProgramHeader(
-                      widget.program.programName ?? '',
-                      widget.program.programDescription ?? '',
-                    ),
-                    const SizedBox(height: 8),
+
                     _buildStatusCard(sessionState, widget.program),
                     const SizedBox(height: 8),
                     TargetDisplay(
@@ -272,14 +295,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     _navigateToAnalysisPage(context);
   }
 
-  void _stopTraining() {
-    final bleState = context.read<BleScanBloc>().state;
-    if (bleState.connectedDevice != null) {
-      context.read<TrainingSessionBloc>().add(DisableSensors(device: bleState.connectedDevice!));
-    }
-    context.read<TrainingSessionBloc>().add(const StopTrainingSession());
-  }
-
   void _resetTrace() {
     context.read<TrainingSessionBloc>().add(const ResetTrace());
   }
@@ -288,49 +303,6 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const SessionSummaryPage()),
-    );
-  }
-
-  Widget _buildProgramHeader(String title, String desc) {
-    return Container(
-      width: double.maxFinite,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppTheme.primary(context),
-            AppTheme.primary(context).withValues(alpha: .6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.25),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: AppTheme.textPrimary(context),
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            desc,
-            style: TextStyle(color: AppTheme.textPrimary(context), fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     );
   }
 

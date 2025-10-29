@@ -58,6 +58,8 @@ class SessionSummaryPage extends StatelessWidget {
     );
   }
 
+  // lib/training/presentation/pages/session_summary_page.dart
+// Remove toast logic from _handleStateChanges (around line 60):
   void _handleStateChanges(BuildContext context, TrainingSessionState state) {
     if (state.isSessionSaved == true) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,25 +95,19 @@ class SessionSummaryPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Column(
               children: [
-                GradientHeader(
-                  icon: Icons.check_circle,
-                  title: 'Session Complete',
-                  subtitle: savedSession?.programName ?? state.program?.programName ?? 'Training',
-                ),
-                const SizedBox(height: 10),
                 _buildMetricsCard(context, metrics, totalShots, detectedShots),
                 const SizedBox(height: 10),
                 _buildActionButtons(context),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+                _buildBottomActions(context, state),
               ],
             ),
           ),
         ),
-        _buildBottomActions(context, state),
+
       ],
     );
   }
-
   Widget _buildMetricsCard(BuildContext context, _SessionMetrics metrics, int totalShots, int detectedShots) {
     return CompactCard(
       child: Column(

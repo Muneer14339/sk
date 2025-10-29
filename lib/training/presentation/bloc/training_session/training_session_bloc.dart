@@ -120,6 +120,15 @@ class TrainingSessionBloc
     on<ResumeTrainingSession>(_onResumeTrainingSession); // NEW
 
     on<SendHapticCommand>(_onSendHapticCommand);
+
+    on<ClearSessionCompletionFlag>(_onClearSessionCompletionFlag);
+  }
+
+  // Add this new handler method (around line 1070):
+  void _onClearSessionCompletionFlag(
+      ClearSessionCompletionFlag event, Emitter<TrainingSessionState> emit)
+  {
+    emit(state.copyWith(sessionJustCompleted: false));
   }
 
   void _onNavigateToSessionDetail(
@@ -1404,6 +1413,7 @@ class TrainingSessionBloc
       emit(state.copyWith(
         sessionCompleted: true,
         isTraining: false,
+        sessionJustCompleted: true, // NEW
         waitingForLastShotTrace: false,
         sessionTotalTime: state.sessionStartTime?.difference(DateTime.now()),
       ));

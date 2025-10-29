@@ -397,3 +397,6 @@ class SendHapticCommand extends TrainingSessionEvent {
   @override
   List<Object?> get props => [intensity, device];
 }
+class ClearSessionCompletionFlag extends TrainingSessionEvent {
+  const ClearSessionCompletionFlag();
+}
