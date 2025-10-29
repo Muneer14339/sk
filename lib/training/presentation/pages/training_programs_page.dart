@@ -1,4 +1,6 @@
 // lib/training/presentation/pages/training_programs_page.dart
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -413,7 +415,19 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
   // Replace _showAlertsDialog method (around line 320)
   void _showAlertsDialog() async {
     final prefs = await SharedPreferences.getInstance();
-    int savedHaptic = prefs.getInt(hapticCustomSettingsKey) ?? 0;
+    String? hapticJson = prefs.getString(hapticCustomSettingsKey);
+    int savedHaptic = 0; // default
+
+    if (hapticJson != null) {
+      try {
+        final Map<String, dynamic> customMap = jsonDecode(hapticJson);
+        // Take an average or representative value (e.g., level of key 8)
+        savedHaptic = (customMap['8'] ?? 0) is int ? customMap['8'] : int.parse(customMap['8'].toString());
+      } catch (e) {
+        print('⚠️ Error decoding hapticCustomSettingsKey: $e');
+      }
+    }
+
     String savedAudio = prefs.getString(audioAlertTypeKey) ?? 'Off';
 
     String tempHaptic = savedHaptic == 0 ? 'Off' : (savedHaptic == 1 ? 'Low' : 'High');
@@ -478,16 +492,26 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                             print('💾 Saving alert settings...');
                             print('Haptic: $tempHaptic, Audio: $tempAudio');
 
-                            // ✅ Calculate haptic value
-                            int hapticValue = tempHaptic == 'Off' ? 0 : (tempHaptic == 'Low' ? 1 : 3);
+                            // ✅ FIXED: Create proper custom haptic map based on selection
+                            Map<int, int> customHapticValues;
+                            if (tempHaptic == 'Off') {
+                              customHapticValues = {10: 0, 9: 0, 8: 0, 7: 0, 6: 0, 5: 0};
+                            } else if (tempHaptic == 'Low') {
+                              customHapticValues = {10: 0, 9: 0, 8: 1, 7: 1, 6: 1, 5: 1};
+                            } else { // High
+                              customHapticValues = {10: 0, 9: 0, 8: 3, 7: 3, 6: 3, 5: 3};
+                            }
 
-                            // ✅ Save all settings
-                            await prefs.setInt(hapticCustomSettingsKey, hapticValue);
+                            // ✅ FIXED: Save as JSON string in hapticCustomSettingsKey
+                            final customJson = jsonEncode(
+                              customHapticValues.map((k, v) => MapEntry(k.toString(), v)),
+                            );
+                            await prefs.setString(hapticCustomSettingsKey, customJson);
                             await prefs.setString(audioAlertTypeKey, tempAudio);
                             await prefs.setBool(hapticEnabledKey, tempHaptic != 'Off');
 
                             print('✅ Settings saved:');
-                            print('  - hapticCustomSettingsKey: $hapticValue');
+                            print('  - hapticCustomSettingsKey (JSON): $customJson');
                             print('  - audioAlertTypeKey: $tempAudio');
                             print('  - hapticEnabledKey: ${tempHaptic != 'Off'}');
 

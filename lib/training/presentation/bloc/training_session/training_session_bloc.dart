@@ -254,7 +254,7 @@ class TrainingSessionBloc
     add(const StartSessionTimer());
   }
 
-// ✅ Same for stop
+// ✅ IMPROVED: Detect finish vs stop based on shot count
   Future<void> _onStopTrainingSession(
       StopTrainingSession event, Emitter<TrainingSessionState> emit) async
   {
@@ -264,8 +264,9 @@ class TrainingSessionBloc
 
     print('🛑 Stopping training session');
 
-    // ✅ Wait for audio
-    await _playAudioAlert(isStart: false);
+    // ✅ NEW: Check if it's a finish (has shots) or just stop
+    final isFinish = state.shotCount > 0;
+    await _playAudioAlert(isStart: false, isFinish: isFinish);
 
     if (state.device != null) {
       add(SendHapticCommand(intensity: 0, device: state.device!));
@@ -292,14 +293,13 @@ class TrainingSessionBloc
   }
 
 
-// ✅ Replace _playAudioAlert method completely
-  Future<void> _playAudioAlert({required bool isStart}) async {
+// ✅ IMPROVED: Add isFinish parameter for different messages
+  Future<void> _playAudioAlert({required bool isStart, bool isFinish = false}) async {
     try {
-      // ✅ Get fresh instance of SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final audioType = prefs.getString(audioAlertTypeKey);
 
-      print('🔊 Audio Alert - Type: $audioType, IsStart: $isStart');
+      print('🔊 Audio Alert - Type: $audioType, IsStart: $isStart, IsFinish: $isFinish');
 
       if (audioType == null || audioType == 'Off') {
         print('🔇 Audio is OFF');
@@ -317,7 +317,12 @@ class TrainingSessionBloc
           await _initializeTts();
         }
 
-        final message = isStart ? 'Session started' : 'Session ended';
+        // ✅ IMPROVED: Different messages for start/stop/finish
+        final message = isStart
+            ? 'Session started'
+            : isFinish
+            ? 'Session complete'
+            : 'Session ended';
         print('🗣️ Speaking: $message');
         await _flutterTts?.speak(message);
       }
@@ -484,12 +489,11 @@ class TrainingSessionBloc
     final distanceFromCenter = math.sqrt(
       math.pow(position.dx - 200, 2) + math.pow(position.dy - 200, 2),
     );
-    final hapticKey = prefs?.getInt(hapticCustomSettingsKey) ?? 0;
 
-    // Load custom settings
+    // ✅ FIXED: Properly load custom settings from JSON
     final customSettingsJson = prefs?.getString(hapticCustomSettingsKey);
     Map<int, int> hapticMap = {
-      10: 0, 9: 0, 8: hapticKey, 7: hapticKey, 6: hapticKey, 5: hapticKey,
+      10: 0, 9: 0, 8: 1, 7: 1, 6: 1, 5: 1, // Default values
     };
 
     if (customSettingsJson != null) {
@@ -497,7 +501,7 @@ class TrainingSessionBloc
         final decoded = jsonDecode(customSettingsJson) as Map<String, dynamic>;
         hapticMap = decoded.map((k, v) => MapEntry(int.parse(k), v as int));
       } catch (e) {
-        print('Error loading haptic settings: $e');
+        print('❌ Error loading haptic settings: $e');
       }
     }
 
@@ -509,7 +513,7 @@ class TrainingSessionBloc
       }
     }
 
-    return 0; // Outside all rings - maximum intensity
+    return 0; // Outside all rings
   }
 
 // Add this variable at class level
