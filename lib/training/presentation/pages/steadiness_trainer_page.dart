@@ -571,6 +571,9 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                   final score = shot['score'] as int;
                   final stability = shot['stability'] as int? ?? 0;
 
+                  // ✅ NEW: Check if missed shot
+                  final isMissedShot = score == 0 && stability == 0;
+
                   return Container(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
@@ -599,7 +602,10 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
                               fontSize: fontSize,
                               textColor: AppTheme.textPrimary(context),
                             ),
-                            _buildBadgeCell(context, score.toString(), _getScoreColor(score), fontSize),
+                            // ✅ MODIFIED: Show "MISS" for missed shots
+                            isMissedShot
+                                ? _buildMissedShotBadge(context, fontSize)
+                                : _buildBadgeCell(context, score.toString(), _getScoreColor(score), fontSize),
                             _buildBadgeCell(
                               context,
                               "$stability%",
@@ -619,6 +625,34 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
               ],
             ),
         ],
+      ),
+    );
+  }
+
+  // ✅ NEW: Add this method after _buildBadgeCell (around line 580)
+  Widget _buildMissedShotBadge(BuildContext context, double fontSize) {
+    return Expanded(
+      flex: 1,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppTheme.error(context).withOpacity(0.15),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'MISS',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.error(context),
+                fontWeight: FontWeight.bold,
+                fontSize: fontSize,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

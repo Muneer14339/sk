@@ -28,7 +28,10 @@ class SplitTimesPage extends StatelessWidget {
             return _buildEmptyState(context);
           }
 
-          return _SplitTimesContent(shots: shots);
+          return _SplitTimesContent(
+            shots: shots,
+            savedSession: savedSession, // ✅ NEW
+          );
         },
       ),
     );
@@ -63,21 +66,34 @@ class SplitTimesPage extends StatelessWidget {
   }
 }
 
+// Update _SplitTimesContent widget (around line 44)
 class _SplitTimesContent extends StatelessWidget {
   final List<dynamic> shots;
+  final SavedSessionModel? savedSession; // ✅ NEW
 
-  const _SplitTimesContent({required this.shots});
+  const _SplitTimesContent({
+    required this.shots,
+    this.savedSession, // ✅ NEW
+  });
 
   @override
   Widget build(BuildContext context) {
-    return _SplitTimesView(shots: shots);
+    return _SplitTimesView(
+      shots: shots,
+      savedSession: savedSession, // ✅ NEW
+    );
   }
 }
 
+// Update _SplitTimesView widget (around line 55)
 class _SplitTimesView extends StatefulWidget {
   final List<dynamic> shots;
+  final SavedSessionModel? savedSession; // ✅ NEW
 
-  const _SplitTimesView({required this.shots});
+  const _SplitTimesView({
+    required this.shots,
+    this.savedSession, // ✅ NEW
+  });
 
   @override
   State<_SplitTimesView> createState() => _SplitTimesViewState();
@@ -86,9 +102,18 @@ class _SplitTimesView extends StatefulWidget {
 class _SplitTimesViewState extends State<_SplitTimesView> {
   int? _selectedShotIndex;
 
+  // Replace _SplitTimesView widget's build method (around line 55)
   @override
   Widget build(BuildContext context) {
-    final splitData = _SplitData.calculate(widget.shots);
+    // ✅ NEW: Get session start time
+    final sessionStartTime = widget.savedSession?.startedAt ??
+        context.read<TrainingSessionBloc>().state.sessionStartTime;
+
+    // Replace the line where calculate is called (around line 63)
+    final splitData = _SplitData.calculate(
+        widget.shots,
+        widget.savedSession?.startedAt ?? context.read<TrainingSessionBloc>().state.sessionStartTime
+    );
     final stats = _SplitStats.calculate(splitData.splits);
 
     return Column(
@@ -121,6 +146,8 @@ class _SplitTimesViewState extends State<_SplitTimesView> {
       ],
     );
   }
+
+
 
   Widget _buildInfoCard(BuildContext context, _SplitData data) {
     return Container(
@@ -221,6 +248,7 @@ class _SplitTimesViewState extends State<_SplitTimesView> {
     );
   }
 
+  // Replace _buildTableRow method (around line 85)
   Widget _buildTableRow(BuildContext context, dynamic shot, int index, _SplitData data, _SplitStats stats) {
     final split = index == 0 ? 0.0 : data.splits[index - 1];
     final elapsed = data.timestamps[index];
@@ -230,6 +258,9 @@ class _SplitTimesViewState extends State<_SplitTimesView> {
     final isSlowest = split > 0 && split == stats.max;
     final isSelected = _selectedShotIndex == index;
     final stabilityColor = _getStabilityColor(context, stability);
+
+    // ✅ NEW: Check if this is a missed shot
+    final isMissedShot = shot.metrics["status"] == "missed";
 
     return InkWell(
       onTap: () => setState(() => _selectedShotIndex = isSelected ? null : index),
@@ -247,7 +278,10 @@ class _SplitTimesViewState extends State<_SplitTimesView> {
               color: AppTheme.primary(context),
               isBold: true,
             ),
-            _buildDataCell(context, '$score', flex: 1),
+            // ✅ MODIFIED: Show "MISS" for missed shots
+            isMissedShot
+                ? _buildMissCell(context)
+                : _buildDataCell(context, '$score', flex: 1),
             _buildDataCell(
               context,
               index == 0 ? '0.00s' : '${split.toStringAsFixed(2)}s',
@@ -271,6 +305,28 @@ class _SplitTimesViewState extends State<_SplitTimesView> {
     );
   }
 
+// ✅ NEW: Add this method after _buildDataCell (around line 140)
+  Widget _buildMissCell(BuildContext context) {
+    return Expanded(
+      flex: 1,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppTheme.error(context).withOpacity(0.15),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          'MISS',
+          textAlign: TextAlign.center,
+          style: AppTheme.bodyMedium(context).copyWith(
+            color: AppTheme.error(context),
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+          ),
+        ),
+      ),
+    );
+  }
   Widget _buildDataCell(BuildContext context, String text, {int flex = 1, Color? color, bool isBold = false}) {
     return Expanded(
       flex: flex,
@@ -432,7 +488,8 @@ class _SplitData {
     required this.totalElapsed,
   });
 
-  static _SplitData calculate(List<dynamic> shots) {
+  // Replace _SplitData.calculate method (around line 300)
+  static _SplitData calculate(List<dynamic> shots, DateTime? sessionStartTime) {
     if (shots.isEmpty) {
       return _SplitData(
         shotCount: 0,
@@ -442,13 +499,15 @@ class _SplitData {
       );
     }
 
-    final firstTime = shots.first.timestamp as DateTime;
+    // ✅ FIXED: Use session start time instead of first shot time
+    final baseTime = sessionStartTime ?? shots.first.timestamp as DateTime;
     final splits = <double>[];
     final timestamps = <double>[];
 
     for (int i = 0; i < shots.length; i++) {
       final currentTime = shots[i].timestamp as DateTime;
-      final elapsed = currentTime.difference(firstTime).inMilliseconds / 1000.0;
+      // ✅ Elapsed from session start
+      final elapsed = currentTime.difference(baseTime).inMilliseconds / 1000.0;
       timestamps.add(elapsed);
 
       if (i > 0) {

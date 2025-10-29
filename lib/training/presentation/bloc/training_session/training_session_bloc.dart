@@ -325,20 +325,58 @@ class TrainingSessionBloc
     add(const StopSessionTimer());
   }
 
-  // Update _onIncrementMissedShot method
+  // Replace _onIncrementMissedShot method (around line 180)
   void _onIncrementMissedShot(
       IncrementMissedShot event, Emitter<TrainingSessionState> emit)
   {
     final newMissedCount = state.missedShotCount + 1;
     final updatedMissedShots = List<int>.from(state.missedShotNumbers)
-      ..add(event.shotNumber); // NEW: Store missed shot number
+      ..add(event.shotNumber);
+
+    // ✅ NEW: Create complete shot log entry for missed shot
+    final updatedShotLog = List<Map<String, dynamic>>.from(state.shotLog);
+    updatedShotLog.insert(0, {
+      'time': DateTime.now(),
+      'theta': state.thetaInstDeg,
+      'score': 0,
+      'stability': 0,
+    });
+
+    // ✅ NEW: Create steadiness shot data for missed shot
+    final missedShotData = SteadinessShotData(
+      shotNumber: event.shotNumber,
+      timestamp: DateTime.now(),
+      position: Offset(state.lastDrawX, state.lastDrawY),
+      score: 0,
+      thetaDot: state.thetaInstDeg,
+      accuracy: 0.0,
+      tracelinePoints: [],
+      metrics: {
+        'distance': state.currentDistancePreset['distance'],
+        'difficulty': DIFFICULTY,
+        'gateValue': GATE_VALUE,
+        'linearWobble': _calculateCurrentLinearWobble(state),
+        'status': 'missed',
+        'stability': 0,
+        'preShotPackets': 0,
+        'shotPackets': 0,
+        'postShotPackets': 0,
+        'totalTracelinePackets': 0,
+      },
+      analysisNotes: 'Missed shot - outside valid range or not visible',
+    );
+
+    final updatedSteadinessShots = List<SteadinessShotData>.from(state.steadinessShots);
+    updatedSteadinessShots.add(missedShotData);
 
     emit(state.copyWith(
       missedShotCount: newMissedCount,
-      missedShotNumbers: updatedMissedShots, // NEW
+      missedShotNumbers: updatedMissedShots,
+      shotLog: updatedShotLog,
+      steadinessShots: updatedSteadinessShots,
     ));
 
-    // Rest of existing code...
+    // Rest remains same...
     final targetShotCount = state.program?.drill!.plannedRounds!.toInt() ?? 5;
     final totalShots = state.shotCount + newMissedCount;
 
@@ -1130,17 +1168,21 @@ class TrainingSessionBloc
     return Offset(newX, newY);
   }
 
+  // Replace _calculateScoreAtPosition method (around line 815)
   int _calculateScoreAtPosition(Offset position, TrainingSessionState state) {
-    final rPx = math
-        .sqrt(math.pow(position.dx - 200, 2) + math.pow(position.dy - 200, 2));
+    // ✅ Calculate distance from exact center (200, 200)
+    final distanceFromCenter = math.sqrt(
+        math.pow(position.dx - 200, 2) + math.pow(position.dy - 200, 2)
+    );
 
-    if (rPx <= (state.scoreRadii[10] ?? 0)) return 10;
-    if (rPx <= (state.scoreRadii[9] ?? 0)) return 9;
-    if (rPx <= (state.scoreRadii[8] ?? 0)) return 8;
-    if (rPx <= (state.scoreRadii[7] ?? 0)) return 7;
-    if (rPx <= (state.scoreRadii[6] ?? 0)) return 6;
-    if (rPx <= (state.scoreRadii[5] ?? 0)) return 5;
-    return 0;
+    // ✅ Use ring radii directly - center se bahar ki taraf
+    if (distanceFromCenter <= (state.ringRadii[10] ?? 0)) return 10;
+    if (distanceFromCenter <= (state.ringRadii[9] ?? 0)) return 9;
+    if (distanceFromCenter <= (state.ringRadii[8] ?? 0)) return 8;
+    if (distanceFromCenter <= (state.ringRadii[7] ?? 0)) return 7;
+    if (distanceFromCenter <= (state.ringRadii[6] ?? 0)) return 6;
+    if (distanceFromCenter <= (state.ringRadii[5] ?? 0)) return 5;
+    return 0; // Outside all rings
   }
 
   double _calculateThetaDotAtPosition(
@@ -1351,7 +1393,7 @@ class TrainingSessionBloc
       _lastHapticIntensity = 0;
       _lastHapticUpdate = null;
     } catch (e) {
-      print('⚠️ Error stopping haptic: $e');
+      print('⚠ Error stopping haptic: $e');
     }
 
     await bleRepository.disableSensors(event.device);
