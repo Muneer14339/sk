@@ -10,6 +10,7 @@ class LoadoutItemCard extends StatelessWidget {
   final ArmoryFirearm? firearm;
   final ArmoryAmmunition? ammunition;
   final String userId;
+  final bool showDelete; // ✅ NEW
 
   const LoadoutItemCard({
     super.key,
@@ -17,6 +18,7 @@ class LoadoutItemCard extends StatelessWidget {
     this.firearm,
     this.ammunition,
     required this.userId,
+    this.showDelete = true, // ✅ NEW - default true for backward compatibility
   });
 
   @override
@@ -28,6 +30,7 @@ class LoadoutItemCard extends StatelessWidget {
       title: loadout.name,
       firearm: firearm,
       ammunition: ammunition,
+      showDelete: showDelete, // ✅ PASS parameter
       details: [
         if (firearm != null)
           CardDetailRow(
@@ -42,13 +45,15 @@ class LoadoutItemCard extends StatelessWidget {
             date: dateStr,
           ),
       ],
-      onDelete: () => CommonDialogs.showDeleteDialog(
+      onDelete: showDelete // ✅ Conditionally pass onDelete
+          ? () => CommonDialogs.showDeleteDialog(
         context: context,
         userId: userId,
         armoryType: ArmoryTabType.loadouts,
         itemName: loadout.name,
         item: loadout,
-      ),
+      )
+          : null,
     );
   }
 }

@@ -336,6 +336,7 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                                         firearm: firearm,
                                         ammunition: ammunition,
                                         userId: userId!,
+                                        showDelete: false, // ✅ Hide delete button in training setup
                                       ),
                                     ),
                                     // Transparent overlay for selection tap
@@ -357,28 +358,22 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                                     ),
                                     // Info button on top
                                     Positioned(
-                                      top: 8,
+                                      top: 0,
                                       right: 8,
                                       child: Row(
                                         children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: AppTheme.surface(context),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: IconButton(
-                                              icon: Icon(Icons.info_outline, size: 20, color: AppTheme.primary(context)),
-                                              onPressed: () {
-                                                ItemDetailsBottomSheet.show(
-                                                  context,
-                                                  loadout,
-                                                  userId!,
-                                                  ArmoryTabType.loadouts,
-                                                  firearm: firearm,
-                                                  ammunition: ammunition,
-                                                );
-                                              },
-                                            ),
+                                          IconButton(
+                                            icon: Icon(Icons.info_outline, size: 20, color: AppTheme.primary(context)),
+                                            onPressed: () {
+                                              ItemDetailsBottomSheet.show(
+                                                context,
+                                                loadout,
+                                                userId!,
+                                                ArmoryTabType.loadouts,
+                                                firearm: firearm,
+                                                ammunition: ammunition,
+                                              );
+                                            },
                                           ),
                                           if (isSelected) ...[
                                             const SizedBox(width: 4),
