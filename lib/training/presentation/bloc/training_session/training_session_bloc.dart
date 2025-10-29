@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/prefs.dart';
 import '../../../data/datasources/saved_sessions_datasource.dart';
@@ -292,6 +293,21 @@ class TrainingSessionBloc
     add(const StopSessionTimer());
   }
 
+  Future<void> _playBeep() async {
+    try {
+      final player = AudioPlayer();
+      await player.setAsset('assets/audios/beep.mp3');
+      player.play();
+
+      // ⏱️ Stop after 300 ms no matter how long the file is
+      await Future.delayed(const Duration(milliseconds: 500));
+      await player.stop();
+      await player.dispose();
+
+    } catch (e) {
+      print('❌ Beep error: $e');
+    }
+  }
 
 // ✅ IMPROVED: Add isFinish parameter for different messages
   Future<void> _playAudioAlert({required bool isStart, bool isFinish = false}) async {
@@ -308,9 +324,7 @@ class TrainingSessionBloc
 
       if (audioType == 'Beep') {
         print('🔔 Playing beep sound');
-        await SystemSound.play(SystemSoundType.alert);
-        await Future.delayed(const Duration(milliseconds: 100));
-        await SystemSound.play(SystemSoundType.click);
+        await _playBeep();
       } else if (audioType == 'Voice') {
         if (!_ttsInitialized || _flutterTts == null) {
           print('⚠️ TTS not initialized, initializing now...');
