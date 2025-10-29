@@ -4,10 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../armory/domain/entities/armory_ammunition.dart';
+import '../../../armory/domain/entities/armory_firearm.dart';
 import '../../../armory/domain/entities/armory_loadout.dart';
 import '../../../armory/presentation/bloc/armory_bloc.dart';
 import '../../../armory/presentation/bloc/armory_event.dart';
 import '../../../armory/presentation/bloc/armory_state.dart';
+import '../../../armory/presentation/widgets/common/common_delete_dilogue.dart';
+import '../../../armory/presentation/widgets/common/item_details_bottom_sheet.dart';
+import '../../../armory/presentation/widgets/item_cards/loadout_item_card.dart';
 import '../../../core/services/prefs.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/custom_dialog.dart';
@@ -245,14 +250,17 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
     );
   }
 
+  // training_programs_page.dart mein _showLoadoutDialog method ko replace karo
+
   void _showLoadoutDialog() {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
           backgroundColor: Colors.transparent,
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+            constraints: const BoxConstraints(maxWidth: 450, maxHeight: 600),
             decoration: BoxDecoration(
               color: AppTheme.surface(context),
               borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
@@ -277,7 +285,6 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                 Expanded(
                   child: BlocBuilder<ArmoryBloc, ArmoryState>(
                     builder: (context, state) {
-                      // CHANGE: LoadoutsLoaded ki jagah ArmoryDataLoaded
                       if (state is ArmoryDataLoaded) {
                         if (state.loadouts.isEmpty) {
                           return Center(
@@ -293,58 +300,104 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                             ),
                           );
                         }
+
+                        final firearmsMap = <String, ArmoryFirearm>{
+                          for (var f in state.firearms) if (f.id != null) f.id!: f
+                        };
+                        final ammunitionMap = <String, ArmoryAmmunition>{
+                          for (var a in state.ammunition) if (a.id != null) a.id!: a
+                        };
+
                         return ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(12),
                           itemCount: state.loadouts.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 10),
-                          itemBuilder: (context, index) {
-                            final loadout = state.loadouts[index];
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _selectedLoadout = loadout;
-                                  _loadoutCompleted = true;
-                                });
-                                Navigator.pop(context);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final loadout = state.loadouts[index];
+                              final firearm = loadout.firearmId != null ? firearmsMap[loadout.firearmId] : null;
+                              final ammunition = loadout.ammunitionId != null ? ammunitionMap[loadout.ammunitionId] : null;
+                              final isSelected = _selectedLoadout?.id == loadout.id;
+
+                              return Container(
                                 decoration: BoxDecoration(
-                                  color: AppTheme.surfaceVariant(context),
-                                  borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
                                   border: Border.all(
-                                    color: _selectedLoadout?.id == loadout.id
-                                        ? AppTheme.primary(context)
-                                        : AppTheme.border(context).withOpacity(0.1),
-                                    width: 1.5,
+                                    color: isSelected ? AppTheme.primary(context) : Colors.transparent,
+                                    width: 2,
                                   ),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Row(
+                                child: Stack(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primary(context).withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(8),
+                                    // Card ko wrap karo AbsorbPointer se to disable its internal tap
+                                    AbsorbPointer(
+                                      absorbing: true,
+                                      child: LoadoutItemCard(
+                                        loadout: loadout,
+                                        firearm: firearm,
+                                        ammunition: ammunition,
+                                        userId: userId!,
                                       ),
-                                      child: Icon(Icons.inventory_2, color: AppTheme.primary(context), size: 20),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                    // Transparent overlay for selection tap
+                                    Positioned.fill(
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(12),
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedLoadout = loadout;
+                                              _loadoutCompleted = true;
+                                            });
+                                            Navigator.pop(context);
+                                          },
+                                          child: Container(), // Empty container for tap area
+                                        ),
+                                      ),
+                                    ),
+                                    // Info button on top
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Row(
                                         children: [
-                                          Text(loadout.name, style: AppTheme.titleMedium(context).copyWith(fontWeight: FontWeight.w700, fontSize: 13)),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.surface(context),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: IconButton(
+                                              icon: Icon(Icons.info_outline, size: 20, color: AppTheme.primary(context)),
+                                              onPressed: () {
+                                                ItemDetailsBottomSheet.show(
+                                                  context,
+                                                  loadout,
+                                                  userId!,
+                                                  ArmoryTabType.loadouts,
+                                                  firearm: firearm,
+                                                  ammunition: ammunition,
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          if (isSelected) ...[
+                                            const SizedBox(width: 4),
+                                            Container(
+                                              padding: const EdgeInsets.all(4),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.primary(context),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: Icon(Icons.check, color: Colors.black, size: 16),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ),
-                                    if (_selectedLoadout?.id == loadout.id)
-                                      Icon(Icons.check_circle, color: AppTheme.primary(context), size: 20),
                                   ],
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            }
                         );
                       }
                       return const Center(child: CircularProgressIndicator());

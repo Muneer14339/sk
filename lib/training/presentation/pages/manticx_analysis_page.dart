@@ -255,7 +255,7 @@ class _ManticXAnalysisPageState extends State<ManticXAnalysisPage>
             ),
             const SizedBox(height: 8),
             Text(
-              'This shot wasn\'t detected or saved. It may have landed outside the target area, been a dry press, or the detection threshold was set too high.',
+              'This is a missing shot, it is landed outside the Target Rings.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
