@@ -85,7 +85,7 @@ class SessionSummaryPage extends StatelessWidget {
     final metrics = _SessionMetrics.calculate(steadinessShots);
     final missedCount = savedSession?.missedShotNumbers.length ?? state.missedShotCount;
     final totalShots = steadinessShots.length;
-    final detectedShots = totalShots + missedCount;
+    final detectedShots = totalShots - missedCount;
 
     return Column(
       children: [

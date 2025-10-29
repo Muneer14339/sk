@@ -181,40 +181,229 @@ class _SplitTimesViewState extends State<_SplitTimesView> {
     );
   }
 
+  // Replace _buildTable method (around line 120)
   Widget _buildTable(BuildContext context, List<dynamic> shots, _SplitData data, _SplitStats stats) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface(context),
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        border: Border.all(
-          color: AppTheme.border(context).withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildTableHeader(context),
-          ListView.separated(
-            itemCount: shots.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              color: AppTheme.border(context).withOpacity(0.3),
-            ),
-            itemBuilder: (context, index) => _buildTableRow(
-              context,
-              shots[index],
-              index,
-              data,
-              stats,
+    // ✅ First shot data
+    final firstShot = shots.first;
+    final firstShotTime = data.timestamps[0];
+    final firstScore = firstShot.score ?? 0;
+    final firstStability = firstShot.metrics["stability"] ?? 0;
+    final isMissed = firstShot.metrics["status"] == "missed";
+
+    return Column(
+      children: [
+        // ✅ First shot card - compact design
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+            border: Border.all(
+              color: AppTheme.border(context).withOpacity(0.2),
+              width: 1,
             ),
           ),
-        ],
-      ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.timer, size: 12, color: AppTheme.primary(context)),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Response Time',
+                    style: AppTheme.bodyMedium(context).copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  // Shot number
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Shot',
+                          style: AppTheme.labelSmall(context).copyWith(fontSize: 9),
+                        ),
+                        Text(
+                          '1',
+                          style: AppTheme.bodyMedium(context).copyWith(
+                            color: AppTheme.primary(context),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Score
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Score',
+                          style: AppTheme.labelSmall(context).copyWith(fontSize: 9),
+                        ),
+                        isMissed
+                            ? Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.error(context).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'MISS',
+                            style: AppTheme.bodyMedium(context).copyWith(
+                              color: AppTheme.error(context),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 9,
+                            ),
+                          ),
+                        )
+                            : Text(
+                          '$firstScore',
+                          style: AppTheme.bodyMedium(context).copyWith(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Response time
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Time',
+                          style: AppTheme.labelSmall(context).copyWith(fontSize: 9),
+                        ),
+                        Text(
+                          '${firstShotTime.toStringAsFixed(3)}"',
+                          style: AppTheme.bodyMedium(context).copyWith(
+                            color: AppTheme.success(context),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Stability
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        Text(
+                          'Stability',
+                          style: AppTheme.labelSmall(context).copyWith(fontSize: 9),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(2),
+                                  color: AppTheme.surfaceVariant(context),
+                                ),
+                                child: FractionallySizedBox(
+                                  alignment: Alignment.centerLeft,
+                                  widthFactor: firstStability / 100.0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(2),
+                                      color: _getStabilityColor(context, firstStability),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$firstStability%',
+                              style: AppTheme.bodySmall(context).copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: _getStabilityColor(context, firstStability),
+                                fontSize: 9,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // ✅ Table with shots 2+
+        Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface(context),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
+            border: Border.all(
+              color: AppTheme.border(context).withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppTheme.border(context))),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.access_time, size: 12, color: AppTheme.primary(context)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Time Between Individual Shots',
+                      style: AppTheme.bodyMedium(context).copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildTableHeader(context),
+              ListView.separated(
+                itemCount: shots.length - 1,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                separatorBuilder: (_, __) => Divider(
+                  height: 1,
+                  color: AppTheme.border(context).withOpacity(0.3),
+                ),
+                itemBuilder: (context, index) => _buildTableRow(
+                  context,
+                  shots[index + 1],
+                  index + 1,
+                  data,
+                  stats,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
-
   Widget _buildTableHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

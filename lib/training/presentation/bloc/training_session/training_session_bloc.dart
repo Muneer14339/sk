@@ -540,6 +540,9 @@ class TrainingSessionBloc
   {
     if (!state.isTraining) return;
 
+    // ✅ NEW: Don't process shots if session already completed
+    if (state.sessionCompleted) return;
+
     final streamingModel = event.streamingModel;
     final now = DateTime.now();
     const dt = 0.016;
@@ -1114,6 +1117,37 @@ class TrainingSessionBloc
     Timer(const Duration(milliseconds: 5), () {
       add(const ClearPostShotDisplay());
     });
+
+    // ✅ ADD THIS: Check completion AFTER data saved
+    final targetShotCount = state.program?.drill!.plannedRounds!.toInt() ?? 5;
+    final totalShots = state.shotCount + state.missedShotCount;
+
+    if (totalShots >= targetShotCount) {
+      _completeSessionImmediately(emit);
+    }
+  }
+
+  // ✅ NEW: Helper method to immediately complete session
+  void _completeSessionImmediately(Emitter<TrainingSessionState> emit) {
+    bleRepository.resetShotCycleForSessionComplete();
+
+    if (state.device != null) {
+      bleRepository.sendHapticCommand(0, state.device!);
+      _lastHapticIntensity = 0;
+      _lastHapticUpdate = null;
+    }
+
+    emit(state.copyWith(
+      sessionCompleted: true,
+      isTraining: false,
+      sessionJustCompleted: true,
+      waitingForLastShotTrace: false,
+      sessionTotalTime: state.sessionStartTime != null
+          ? DateTime.now().difference(state.sessionStartTime!)
+          : null,
+    ));
+
+    add(const NavigateToSessionDetail());
   }
   // Handler update (line ~640)
   void _onClearPostShotDisplay(
