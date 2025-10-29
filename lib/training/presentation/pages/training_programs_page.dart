@@ -410,11 +410,14 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
     );
   }
 
+  // Replace _showAlertsDialog method (around line 320)
   void _showAlertsDialog() async {
     final prefs = await SharedPreferences.getInstance();
     int savedHaptic = prefs.getInt(hapticCustomSettingsKey) ?? 0;
+    String savedAudio = prefs.getString(audioAlertTypeKey) ?? 'Off';
+
     String tempHaptic = savedHaptic == 0 ? 'Off' : (savedHaptic == 1 ? 'Low' : 'High');
-    String tempAudio = _audioType;
+    String tempAudio = savedAudio;
 
     showDialog(
       context: context,
@@ -470,9 +473,24 @@ class _TrainingSessionSetupPageState extends State<TrainingSessionSetupPage> {
                       Expanded(
                         child: TrainingButton(
                           label: 'Save Settings',
+                          // ✅ Replace the onPressed in Save Settings button (around line 380)
                           onPressed: () async {
+                            print('💾 Saving alert settings...');
+                            print('Haptic: $tempHaptic, Audio: $tempAudio');
+
+                            // ✅ Calculate haptic value
                             int hapticValue = tempHaptic == 'Off' ? 0 : (tempHaptic == 'Low' ? 1 : 3);
+
+                            // ✅ Save all settings
                             await prefs.setInt(hapticCustomSettingsKey, hapticValue);
+                            await prefs.setString(audioAlertTypeKey, tempAudio);
+                            await prefs.setBool(hapticEnabledKey, tempHaptic != 'Off');
+
+                            print('✅ Settings saved:');
+                            print('  - hapticCustomSettingsKey: $hapticValue');
+                            print('  - audioAlertTypeKey: $tempAudio');
+                            print('  - hapticEnabledKey: ${tempHaptic != 'Off'}');
+
                             setState(() {
                               _audioType = tempAudio;
                               _alertsCompleted = true;

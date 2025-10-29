@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/prefs.dart';
 import '../../../data/datasources/saved_sessions_datasource.dart';
 import '../../../data/model/shot_trace_model.dart';
@@ -54,9 +56,16 @@ class TrainingSessionBloc
   // FIXED: Shot capture state management
   final Map<int, Timer> _activeShotCaptureTimers = {};
 
+  // Add this at class level (around line 70, with other instance variables)
+  // Add at class level (around line 70)
+  FlutterTts? _flutterTts;
+  bool _ttsInitialized = false;
+
   TrainingSessionBloc({required this.bleRepository})
       : super(const TrainingSessionState()) {
     // Core session events
+    // ✅ Initialize TTS
+    _initializeTts();
     on<StartTrainingSession>(_onStartTrainingSession);
     on<StopTrainingSession>(_onStopTrainingSession);
     on<EnableSensors>(_onEnableSensors);
@@ -124,6 +133,23 @@ class TrainingSessionBloc
     on<ClearSessionCompletionFlag>(_onClearSessionCompletionFlag);
   }
 
+  // ✅ Replace _initializeTts method
+  Future<void> _initializeTts() async {
+    try {
+      _flutterTts = FlutterTts();
+      await _flutterTts?.setLanguage("en-US");
+      await _flutterTts?.setSpeechRate(0.5);
+      await _flutterTts?.setVolume(1.0);
+      await _flutterTts?.setPitch(1.0);
+      _ttsInitialized = true;
+      print('✅ TTS initialized successfully');
+    } catch (e) {
+      print('❌ TTS initialization failed: $e');
+      _ttsInitialized = false;
+    }
+  }
+
+
   // Add this new handler method (around line 1070):
   void _onClearSessionCompletionFlag(
       ClearSessionCompletionFlag event, Emitter<TrainingSessionState> emit)
@@ -179,16 +205,23 @@ class TrainingSessionBloc
     add(const StartSessionTimer());
   }
 
-  // UPDATED: Proper training session start - ensures calibration is off
-  void _onStartTrainingSession(
-      StartTrainingSession event, Emitter<TrainingSessionState> emit)
+
+
+// ✅ Replace _onStartTrainingSession with async version
+  Future<void> _onStartTrainingSession(
+      StartTrainingSession event, Emitter<TrainingSessionState> emit) async
   {
     _cleanupShotCaptureTimers();
 
+    print('🎯 Starting training session');
+
+    // ✅ Wait for audio to play
+    await _playAudioAlert(isStart: true);
+
     emit(state.copyWith(
-        sensorError: null, // ✅ Clear previous errors
+        sensorError: null,
         isTraining: true,
-        isCalibrationMode: false, // IMPORTANT: Explicitly set to false
+        isCalibrationMode: false,
         sessionStartTime: DateTime.now(),
         sessionCompleted: false,
         shotCount: 0,
@@ -218,18 +251,22 @@ class TrainingSessionBloc
         program: event.program
     ));
     bleRepository.startTrainingForSensorProcessor();
-
     add(const StartSessionTimer());
   }
 
-  void _onStopTrainingSession(
-      StopTrainingSession event, Emitter<TrainingSessionState> emit)
+// ✅ Same for stop
+  Future<void> _onStopTrainingSession(
+      StopTrainingSession event, Emitter<TrainingSessionState> emit) async
   {
     if (state.isCalibrationMode) return;
 
     _cleanupShotCaptureTimers();
 
-    // ✅ Stop haptic immediately
+    print('🛑 Stopping training session');
+
+    // ✅ Wait for audio
+    await _playAudioAlert(isStart: false);
+
     if (state.device != null) {
       add(SendHapticCommand(intensity: 0, device: state.device!));
     }
@@ -254,6 +291,53 @@ class TrainingSessionBloc
     add(const StopSessionTimer());
   }
 
+
+// ✅ Replace _playAudioAlert method completely
+  Future<void> _playAudioAlert({required bool isStart}) async {
+    try {
+      // ✅ Get fresh instance of SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final audioType = prefs.getString(audioAlertTypeKey);
+
+      print('🔊 Audio Alert - Type: $audioType, IsStart: $isStart');
+
+      if (audioType == null || audioType == 'Off') {
+        print('🔇 Audio is OFF');
+        return;
+      }
+
+      if (audioType == 'Beep') {
+        print('🔔 Playing beep sound');
+        await SystemSound.play(SystemSoundType.alert);
+        await Future.delayed(const Duration(milliseconds: 100));
+        await SystemSound.play(SystemSoundType.click);
+      } else if (audioType == 'Voice') {
+        if (!_ttsInitialized || _flutterTts == null) {
+          print('⚠️ TTS not initialized, initializing now...');
+          await _initializeTts();
+        }
+
+        final message = isStart ? 'Session started' : 'Session ended';
+        print('🗣️ Speaking: $message');
+        await _flutterTts?.speak(message);
+      }
+      print('✅ Audio played successfully');
+    } catch (e) {
+      print('❌ Audio alert error: $e');
+    }
+  }
+
+// ✅ Update close() method (around line 1150)
+  @override
+  Future<void> close() {
+    _sensorStreamSubscription?.cancel();
+    _shotTracesSubscription?.cancel();
+    _sessionTimer?.cancel();
+    _cleanupShotCaptureTimers();
+    _flutterTts?.stop();
+    bleRepository.dispose();
+    return super.close();
+  }
   // NEW: Proper calibration session start - ensures training is configured for calibration
   void _onStartCalibrationSession(
       StartCalibrationSession event, Emitter<TrainingSessionState> emit)
@@ -1586,13 +1670,5 @@ class TrainingSessionBloc
     );
   }
 
-  @override
-  Future<void> close() {
-    _sensorStreamSubscription?.cancel();
-    _shotTracesSubscription?.cancel();
-    _sessionTimer?.cancel();
-    _cleanupShotCaptureTimers();
-    bleRepository.dispose();
-    return super.close();
-  }
+
 }

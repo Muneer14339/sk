@@ -7,6 +7,8 @@ const String sensitivityKey = 'sensitivity';
 const String hapticEnabledKey = 'haptic_enabled';
 const String traceDisplayModeKey = 'trace_display_mode'; // Stores int 0/1/2
 const String hapticCustomSettingsKey = 'haptic_custom_settings';
+// Add this constant with other keys
+const String audioAlertTypeKey = 'audioAlertType'; // NEW
 
 //
 SharedPreferences? prefs;
