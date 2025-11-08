@@ -24,14 +24,14 @@ class BleManager {
 
     // Start scanning
     await fbp.FlutterBluePlus.startScan(
-        timeout: Duration(seconds: scanTimeoutSeconds));
+        timeout: Duration(seconds: scanTimeoutSeconds),
+      withNames: ["GMSync", "SK", "RA"],
+    );
 
     // Listen to scan results
     var subscription = fbp.FlutterBluePlus.scanResults.listen((results) {
       print("BleManager: Found ${results.length} devices");
-      discoveredDevices = results
-          .where((result) => result.device.platformName == 'GMSync' || result.device.platformName == 'RA')
-          .toList();
+      discoveredDevices = results;
     });
 
     // Wait for the scan timeout
@@ -73,6 +73,7 @@ class BleManager {
 
   Future<void> disconnect(fbp.BluetoothDevice device) async {
     try {
+      stopBatteryMonitoring(); // ✅ ADD THIS LINE
       // Disable sensors before disconnecting
       await disableSensors(device);
 
@@ -904,5 +905,44 @@ class BleManager {
       await writeChar.write([0x55, 0xAA, 0xFE, 0x00]); // Factory reset command
       print('✅ Factory reset command sent');
     }
+  }
+
+  // Add these class-level variables (around line 10)
+  Timer? _batteryUpdateTimer;
+  final StreamController<int> _batteryStreamController = StreamController<int>.broadcast();
+
+// Add this getter (around line 15)
+  Stream<int> get batteryStream => _batteryStreamController.stream;
+
+// Add this method (around line 600, after getDeviceInfo method)
+  /// Starts periodic battery level monitoring
+  void startBatteryMonitoring(fbp.BluetoothDevice device) {
+    _batteryUpdateTimer?.cancel();
+
+    _batteryUpdateTimer = Timer.periodic(
+      const Duration(seconds: 30), // Update every 30 seconds
+          (timer) async {
+        try {
+          final deviceInfo = await getDeviceInfo(device);
+          final batteryLevel = deviceInfo['batteryLevel'] as int? ?? 0;
+
+          if (!_batteryStreamController.isClosed) {
+            _batteryStreamController.add(batteryLevel);
+            print('🔋 Battery updated: $batteryLevel%');
+          }
+        } catch (e) {
+          print('⚠️ Battery update failed: $e');
+        }
+      },
+    );
+
+    print('✅ Battery monitoring started');
+  }
+
+  /// Stops battery monitoring
+  void stopBatteryMonitoring() {
+    _batteryUpdateTimer?.cancel();
+    _batteryUpdateTimer = null;
+    print('🛑 Battery monitoring stopped');
   }
 }

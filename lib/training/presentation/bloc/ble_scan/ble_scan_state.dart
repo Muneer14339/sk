@@ -19,6 +19,9 @@ class BleScanState extends Equatable {
   final Map<String, dynamic>? deviceInfo;
   final String? sensitivity;
   final bool needsCalibration;
+  // Add these fields in BleScanState class (around line 21)
+  final bool lowBatteryDialogShown;
+
   const BleScanState({
     this.isScanning = false,
     this.isConnecting = false,
@@ -34,6 +37,8 @@ class BleScanState extends Equatable {
     this.sensitivity,
 // In constructor:
     this.needsCalibration = false,
+
+    this.lowBatteryDialogShown = false,
   });
 
   // Initial state
@@ -55,6 +60,7 @@ class BleScanState extends Equatable {
     String? sensitivity,
     // In copyWith method:
     bool? needsCalibration,
+    bool? lowBatteryDialogShown,
   }) {
     return BleScanState(
       isScanning: isScanning ?? this.isScanning,
@@ -71,6 +77,7 @@ class BleScanState extends Equatable {
       sensitivity: sensitivity ?? this.sensitivity,
       // In copyWith return:
       needsCalibration: needsCalibration ?? this.needsCalibration,
+      lowBatteryDialogShown: lowBatteryDialogShown ?? this.lowBatteryDialogShown,
     );
   }
 
@@ -90,6 +97,7 @@ class BleScanState extends Equatable {
         sensitivity,
     // In props:
     needsCalibration,
+    lowBatteryDialogShown,
       ];
 
   @override

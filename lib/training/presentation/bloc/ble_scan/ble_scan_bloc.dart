@@ -14,6 +14,8 @@ class BleScanBloc extends Bloc<BleScanEvent, BleScanState> {
   final BleRepository _bleRepository;
   StreamSubscription? _scanSubscription;
   final TrainingSessionBloc _trainingSessionBloc;
+  // Add this subscription variable (around line 20)
+  StreamSubscription<int>? _batterySubscription;
 
   BleScanBloc(
       {required BleRepository bleRepository,
@@ -28,6 +30,45 @@ class BleScanBloc extends Bloc<BleScanEvent, BleScanState> {
     on<DisconnectDevice>(_onDeviceDisconnected);
     on<GetDeviceInfo>(_onGetDeviceInfo);
     on<MarkCalibrationComplete>(_onMarkCalibrationComplete);
+    // Add this handler in constructor (around line 30)
+    on<CheckLowBattery>(_onCheckLowBattery);
+    on<UpdateBatteryLevel>(_onUpdateBatteryLevel);
+  }
+
+  // Add this method (around line 190)
+  void _onUpdateBatteryLevel(
+      UpdateBatteryLevel event,
+      Emitter<BleScanState> emit,
+      ) {
+    if (!state.isConnected || state.deviceInfo == null) return;
+
+    final updatedDeviceInfo = Map<String, dynamic>.from(state.deviceInfo!);
+    updatedDeviceInfo['batteryLevel'] = event.batteryLevel;
+
+    emit(state.copyWith(
+      deviceInfo: updatedDeviceInfo,
+      lowBatteryDialogShown: event.batteryLevel > 20
+          ? false
+          : state.lowBatteryDialogShown,
+    ));
+
+    // Check if we need to show low battery dialog
+    if (event.batteryLevel <= 20 && !state.lowBatteryDialogShown) {
+      add(const CheckLowBattery());
+    }
+  }
+  // Add this method (around line 180)
+  void _onCheckLowBattery(
+      CheckLowBattery event,
+      Emitter<BleScanState> emit,
+      ) {
+    if (state.deviceInfo == null || state.lowBatteryDialogShown) return;
+
+    final batteryLevel = state.deviceInfo!['batteryLevel'] as int? ?? 100;
+
+    if (batteryLevel <= 20) {
+      emit(state.copyWith(lowBatteryDialogShown: true));
+    }
   }
 
   void _onMarkCalibrationComplete(
@@ -92,6 +133,11 @@ class BleScanBloc extends Bloc<BleScanEvent, BleScanState> {
       await _bleRepository.connectToDevice(event.device);
       final deviceInfo = await _bleRepository.getDeviceInfo(event.device);
       String? sensitivity;
+      // ✅ ADD THIS BLOCK before the final emit
+      _batterySubscription?.cancel();
+      _batterySubscription = _bleRepository.batteryUpdates.listen((batteryLevel) {
+        add(UpdateBatteryLevel(batteryLevel));
+      });
 
       // ✅ Try reading settings with timeout
       try {
@@ -170,6 +216,7 @@ class BleScanBloc extends Bloc<BleScanEvent, BleScanState> {
     DisconnectDevice event,
     Emitter<BleScanState> emit,
   ) {
+    _batterySubscription?.cancel(); // ✅ ADD THIS LINE
     _trainingSessionBloc.add(DisableSensors(device: event.device));
     emit(state.copyWith(
         connectedDevice: null,
@@ -200,6 +247,7 @@ class BleScanBloc extends Bloc<BleScanEvent, BleScanState> {
   @override
   Future<void> close() {
     _scanSubscription?.cancel();
+    _batterySubscription?.cancel(); // ✅ ADD THIS LINE
     return super.close();
   }
 }

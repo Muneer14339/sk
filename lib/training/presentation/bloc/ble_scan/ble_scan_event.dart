@@ -64,3 +64,18 @@ class SensorDataReceived extends BleScanEvent {
 class MarkCalibrationComplete extends BleScanEvent {
   const MarkCalibrationComplete();
 }
+
+// Add this new event class
+class CheckLowBattery extends BleScanEvent {
+  const CheckLowBattery();
+}
+
+// Add this new event (around line 80)
+class UpdateBatteryLevel extends BleScanEvent {
+  final int batteryLevel;
+
+  const UpdateBatteryLevel(this.batteryLevel);
+
+  @override
+  List<Object> get props => [batteryLevel];
+}

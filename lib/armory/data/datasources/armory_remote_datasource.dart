@@ -424,7 +424,10 @@ class ArmoryRemoteDataSourceImpl implements ArmoryRemoteDataSource {
   Future<List<Map<String, dynamic>>> getFirearmsRawData() async {
     try {
       final querySnapshot = await firestore.collection('firearms').get();
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
+      return querySnapshot.docs.map((doc) => {
+        'id': doc.id,
+        ...doc.data(),
+      }).toList();
     } catch (e) {
       throw Exception('Failed to load firearms data: $e');
     }
@@ -434,7 +437,10 @@ class ArmoryRemoteDataSourceImpl implements ArmoryRemoteDataSource {
   Future<List<Map<String, dynamic>>> getAmmunitionRawData() async {
     try {
       final querySnapshot = await firestore.collection('ammunition').get();
-      return querySnapshot.docs.map((doc) => doc.data()).toList();
+      return querySnapshot.docs.map((doc) => {
+        'id': doc.id,
+        ...doc.data(),
+      }).toList();
     } catch (e) {
       throw Exception('Failed to load ammunition data: $e');
     }

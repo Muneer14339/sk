@@ -60,9 +60,8 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
         title: 'PulseSkadi Session\nSession Name: ${widget.program.programName ?? 'Training'}',
         context: context,
         actions: [
-          Spacer(),
           IconButton(
-            icon: Icon(Icons.settings, color: AppTheme.textPrimary(context), size: 20),
+            icon: Icon(Icons.settings, color: AppTheme.textPrimary(context)),
             padding: EdgeInsets.zero,
             constraints: BoxConstraints(),
             onPressed: () {
@@ -77,15 +76,13 @@ class _SteadinessTrainerPageState extends State<SteadinessTrainerPage> {
               );
             },
           ),
-          SizedBox(width: 8),
           IconButton(
-            icon: Icon(Icons.tune, color: AppTheme.textPrimary(context), size: 20),
+            icon: Icon(Icons.tune, color: AppTheme.textPrimary(context)),
             padding: EdgeInsets.zero,
             constraints: BoxConstraints(),
             tooltip: 'Calibration Wizard',
             onPressed: () => _showCalibrationWizard(context),
           ),
-          SizedBox(width: 8),
         ],
       ),
       body: BlocConsumer<BleScanBloc, BleScanState>(

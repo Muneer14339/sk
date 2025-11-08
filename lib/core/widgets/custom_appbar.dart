@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import 'battery_indicator_widget.dart';
 
 
 
@@ -30,28 +31,26 @@ PreferredSizeWidget customAppBar({
               ],
             ),
             child: SafeArea(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                        icon: Icon(Icons.arrow_back_ios,
-                            color: showBackButton ?? true
-                                ? AppTheme.textPrimary(context)
-                                : Colors.transparent,
-                            size: 20),
-                        onPressed: showBackButton ?? true
-                            ? () => Navigator.pop(context)
-                            : null),
-                    Text(title,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color:
-                                AppTheme.textPrimary(context).withValues(alpha: .9))),
-                    ...actions ?? [],
-                  ],
-                ),
+              child: Row(
+                children: [
+                   // ✅ Add this
+                  IconButton(
+                      icon: Icon(Icons.arrow_back_ios,
+                          color: showBackButton ?? true
+                              ? AppTheme.textPrimary(context)
+                              : Colors.transparent,
+                          size: 20),
+                      onPressed: showBackButton ?? true
+                          ? () => Navigator.pop(context)
+                          : null),
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color:
+                              AppTheme.textPrimary(context).withValues(alpha: .9))),
+                  ...actions ?? [Spacer()],
+                  const BatteryIndicatorWidget(),
+                ],
               ),
             )));

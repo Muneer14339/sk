@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/armory_ammunition.dart';
 
 class ArmoryAmmunitionModel extends ArmoryAmmunition {
-  const ArmoryAmmunitionModel({
+  ArmoryAmmunitionModel({
     super.id,
     required super.brand,
     super.line,
@@ -42,13 +42,22 @@ class ArmoryAmmunitionModel extends ArmoryAmmunition {
     super.bulletDiameter,  // ADD THIS
   });
 
+  // lib/armory/data/models/armory_ammunition_model.dart - MODIFY fromMap
   factory ArmoryAmmunitionModel.fromMap(Map<String, dynamic> map, String id) {
+    DateTime? safeToDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) return DateTime.tryParse(value);
+      if (value is DateTime) return value;
+      return null;
+    }
+
     return ArmoryAmmunitionModel(
       id: id,
       brand: map['brand'] ?? '',
       line: map['line'],
       caliber: map['caliber'] ?? '',
-      bullet: map['bullet'] ?? '',
+      bullet: map['bullet weight (gr)'] ?? map['bullet'] ?? '',
       quantity: map['quantity'] ?? 0,
       status: map['status'] ?? 'available',
       lot: map['lot'],
@@ -75,13 +84,14 @@ class ArmoryAmmunitionModel extends ArmoryAmmunition {
       expirationDate: map['expirationDate'],
       performanceNotes: map['performanceNotes'],
       environmentalConditions: map['environmentalConditions'],
-      isHandloaded: map['isHandloaded'] ?? false,
+      isHandloaded: (map['isHandloaded'] == 1 || map['isHandloaded'] == true), // 👈 Handle both int and bool
       loadData: map['loadData'],
-      dateAdded: (map['dateAdded'] as Timestamp).toDate(),
-      bulletDiameter: map['bulletdiameter'],  // ADD THIS
+      dateAdded: safeToDate(map['dateAdded']) ?? DateTime.now(),
+      //bulletDiameter: map['bulletdiameter'] as double?,
     );
   }
 
+  // lib/armory/data/models/armory_ammunition_model.dart - MODIFY toMap
   Map<String, dynamic> toMap() {
     return {
       'brand': brand,
@@ -114,10 +124,10 @@ class ArmoryAmmunitionModel extends ArmoryAmmunition {
       'expirationDate': expirationDate,
       'performanceNotes': performanceNotes,
       'environmentalConditions': environmentalConditions,
-      'isHandloaded': isHandloaded,
+      'isHandloaded': isHandloaded ? 1 : 0, // 👈 Convert bool to int
       'loadData': loadData,
-      'bulletdiameter': bulletDiameter,  // ADD THIS
-      'dateAdded': Timestamp.fromDate(dateAdded),
+      'bulletdiameter': bulletDiameter,
+      'dateAdded': dateAdded.toIso8601String(),
     };
   }
 }

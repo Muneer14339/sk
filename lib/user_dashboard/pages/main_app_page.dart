@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/services/prefs.dart';
+import '../../core/widgets/battery_indicator_widget.dart';
+import '../../core/widgets/low_battery_dialog.dart';
 import '../../injection_container.dart';
 import '../../core/config/app_config.dart';
 import '../../authentication/presentation/bloc/login_bloc/auth_bloc.dart';
@@ -12,6 +14,9 @@ import '../../authentication/presentation/pages/login_page.dart';
 import '../../armory/presentation/bloc/armory_bloc.dart';
 import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
 import '../../core/theme/app_theme.dart';
+import '../../training/presentation/bloc/ble_scan/ble_scan_bloc.dart';
+import '../../training/presentation/bloc/ble_scan/ble_scan_event.dart';
+import '../../training/presentation/bloc/ble_scan/ble_scan_state.dart';
 import '../../training/presentation/pages/sensitity_settings_page.dart';
 import '../../training/presentation/pages/training_programs_page.dart';
 import 'placeholder_tabs.dart';
@@ -50,26 +55,54 @@ class _MainAppViewState extends State<MainAppView> {
     userId = FirebaseAuth.instance.currentUser?.uid;
   }
 
+  // Add BlocListener for low battery in build method (around line 50)
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthUnauthenticated) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginPage()),
-          );
+    return BlocListener<BleScanBloc, BleScanState>(
+      listenWhen: (previous, current) =>
+      previous.deviceInfo != current.deviceInfo ||
+          previous.lowBatteryDialogShown != current.lowBatteryDialogShown,
+      listener: (context, bleState) {
+        if (bleState.isConnected &&
+            bleState.deviceInfo != null &&
+            !bleState.lowBatteryDialogShown) {
+          final batteryLevel = bleState.deviceInfo!['batteryLevel'] as int? ?? 100;
+          if (batteryLevel <= 20) {
+            // ✅ Show low battery dialog
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                LowBatteryDialog.show(
+                  context,
+                  batteryLevel: batteryLevel,
+                  onDismiss: () {
+                    context.read<BleScanBloc>().add(const CheckLowBattery());
+                  },
+                );
+              }
+            });
+          }
         }
       },
-      child: Scaffold(
-        backgroundColor: AppTheme.background(context),
-        appBar: _buildAppBar(),
-        body: userId == null ? _buildUnauthenticatedView() : _buildBody(),
-        bottomNavigationBar: _buildBottomNavigation(),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthUnauthenticated) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: AppTheme.background(context),
+          appBar: _buildAppBar(),
+          body: userId == null ? _buildUnauthenticatedView() : _buildBody(),
+          bottomNavigationBar: _buildBottomNavigation(),
+        ),
       ),
     );
   }
 
+  // Modify _buildAppBar method (around line 75)
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppTheme.primary(context).withOpacity(0.22),
@@ -79,7 +112,9 @@ class _MainAppViewState extends State<MainAppView> {
         style: AppTheme.headingMedium(context),
       ),
       actions: [
-        if(_currentIndex ==2 )
+        const BatteryIndicatorWidget(), // ✅ NEW: Battery indicator
+        const SizedBox(width: 8),
+        if(_currentIndex == 2)
           IconButton(
             icon: Icon(Icons.settings, color: AppTheme.textPrimary(context), size: 20),
             padding: EdgeInsets.zero,
@@ -96,7 +131,7 @@ class _MainAppViewState extends State<MainAppView> {
               );
             },
           ),
-        if(_currentIndex!=2)
+        if(_currentIndex != 2)
           IconButton(
             icon: Icon(
               Icons.logout,
@@ -107,7 +142,6 @@ class _MainAppViewState extends State<MainAppView> {
               context.read<AuthBloc>().add(const LogoutRequested());
             },
           ),
-
       ],
     );
   }

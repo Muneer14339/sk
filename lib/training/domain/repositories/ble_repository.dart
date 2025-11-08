@@ -95,6 +95,9 @@ abstract class BleRepository {
   void startTrainingForSensorProcessor();
   void stopTrainingForSensorProcessor();
 
+  // Add this stream getter (around line 20, after other getters)
+  Stream<int> get batteryUpdates;
+
   // Dispose resources
   void dispose();
 }

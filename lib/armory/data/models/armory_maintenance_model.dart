@@ -1,9 +1,8 @@
-// lib/user_dashboard/data/models/armory_maintenance_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/armory_maintenance.dart';
 
 class ArmoryMaintenanceModel extends ArmoryMaintenance {
-  const ArmoryMaintenanceModel({
+  ArmoryMaintenanceModel({
     super.id,
     required super.assetType,
     required super.assetId,
@@ -15,15 +14,24 @@ class ArmoryMaintenanceModel extends ArmoryMaintenance {
   });
 
   factory ArmoryMaintenanceModel.fromMap(Map<String, dynamic> map, String id) {
+    DateTime? safeToDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+      if (value is String) return DateTime.tryParse(value);
+      if (value is DateTime) return value;
+      return null;
+    }
+
     return ArmoryMaintenanceModel(
       id: id,
       assetType: map['assetType'] ?? '',
       assetId: map['assetId'] ?? '',
       maintenanceType: map['maintenanceType'] ?? '',
-      date: (map['date'] as Timestamp).toDate(),
+      date: safeToDate(map['date']) ?? DateTime.now(),
       roundsFired: map['roundsFired'],
       notes: map['notes'],
-      dateAdded: (map['dateAdded'] as Timestamp).toDate(),
+      dateAdded: safeToDate(map['dateAdded']) ?? DateTime.now(),
     );
   }
 
@@ -32,10 +40,10 @@ class ArmoryMaintenanceModel extends ArmoryMaintenance {
       'assetType': assetType,
       'assetId': assetId,
       'maintenanceType': maintenanceType,
-      'date': Timestamp.fromDate(date),
+      'date': date.millisecondsSinceEpoch,
       'roundsFired': roundsFired,
       'notes': notes,
-      'dateAdded': Timestamp.fromDate(dateAdded),
+      'dateAdded': dateAdded.millisecondsSinceEpoch,
     };
   }
 }

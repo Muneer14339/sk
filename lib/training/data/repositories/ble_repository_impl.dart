@@ -38,6 +38,10 @@ class BleRepositoryImpl implements BleRepository {
   final SensorProcessor sensorProcessor = SensorProcessor();
   bool isClearing = false;
   Timer? timer;
+  StreamSubscription<int>? _batterySubscription;
+  // Add this stream getter (around line 35)
+  @override
+  Stream<int> get batteryUpdates => bleManager.batteryStream;
 
   // ✅ CONSTRUCTOR: Set up callback to sensor processor
   BleRepositoryImpl() {
@@ -221,6 +225,7 @@ class BleRepositoryImpl implements BleRepository {
   Future<void> connectToDevice(BluetoothDevice device) async {
     try {
       await bleManager.connectToDevice(device);
+      bleManager.startBatteryMonitoring(device); // ✅ ADD THIS LINE
     } catch (e) {
       rethrow;
     }
@@ -229,6 +234,7 @@ class BleRepositoryImpl implements BleRepository {
   @override
   Future<void> disconnectFromDevice(BluetoothDevice device) async {
     try {
+      bleManager.stopBatteryMonitoring(); // ✅ ADD THIS LINE
       sensorProcessor.resetCalibrationFlags(); // NEW: Reset calibration
       await bleManager.disconnect(device);
     } catch (e) {
@@ -424,6 +430,7 @@ class BleRepositoryImpl implements BleRepository {
     _orientationSubscription?.cancel();
     _streamController?.close();
     _shotTracesController.close();
+    _batterySubscription?.cancel(); // ✅ ADD THIS LINE
     sensorProcessor.dispose();
   }
 
