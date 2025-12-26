@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/armory_gear.dart';
 
 class ArmoryGearModel extends ArmoryGear {
-  const ArmoryGearModel({
+   ArmoryGearModel({
     super.id,
     required super.category,
     required super.model,
@@ -15,6 +15,13 @@ class ArmoryGearModel extends ArmoryGear {
   });
 
   factory ArmoryGearModel.fromMap(Map<String, dynamic> map, String id) {
+           DateTime? safeToDate(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
+    if (value is DateTime) return value;
+    return null;
+  }
     return ArmoryGearModel(
       id: id,
       category: map['category'] ?? '',
@@ -22,7 +29,7 @@ class ArmoryGearModel extends ArmoryGear {
       serial: map['serial'],
       quantity: map['quantity'] ?? 1,
       notes: map['notes'],
-      dateAdded: (map['dateAdded'] as Timestamp).toDate(),
+      dateAdded: safeToDate(map['dateAdded']) ?? DateTime.now(),
     );
   }
 
@@ -33,7 +40,7 @@ class ArmoryGearModel extends ArmoryGear {
       'serial': serial,
       'quantity': quantity,
       'notes': notes,
-      'dateAdded': Timestamp.fromDate(dateAdded),
+      'dateAdded': DateTime.now().millisecondsSinceEpoch,
     };
   }
 }

@@ -30,17 +30,24 @@ class DialogWidgets {
                 if (badge != null) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primary(context).withOpacity(0.1),
-                      border: Border.all(color: AppTheme.primary(context).withOpacity(0.2)),
-                      borderRadius: BorderRadius.circular(ArmoryConstants.badgeBorderRadius),
+                      border: Border.all(
+                        color: AppTheme.primary(context).withOpacity(0.2),
+                      ),
+                      borderRadius: BorderRadius.circular(
+                        ArmoryConstants.badgeBorderRadius,
+                      ),
                     ),
                     child: Text(
                       badge,
-                      style: AppTheme.labelMedium(context).copyWith(
-                        color: AppTheme.primary(context),
-                      ),
+                      style: AppTheme.labelMedium(
+                        context,
+                      ).copyWith(color: AppTheme.primary(context)),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -58,88 +65,105 @@ class DialogWidgets {
       ),
     );
   }
+static Widget buildTextField({
+  required BuildContext context,
+  required String label,
+  required TextEditingController controller,
+  bool isRequired = false,
+  int maxLines = 1,
+  int? maxLength,
+  String? hintText,
+  TextInputType keyboardType = TextInputType.text,
+  bool enabled = true,
+  String? Function(String?)? validator,
+  void Function(String)? onChanged,
+}) {
+  final isMultiline = maxLines > 1 || keyboardType == TextInputType.multiline;
 
-  static Widget buildTextField({
-    required BuildContext context,
-    required String label,
-    required TextEditingController controller,
-    bool isRequired = false,
-    int maxLines = 1,
-    int? maxLength,
-    String? hintText,
-    TextInputType keyboardType = TextInputType.text,
-    bool enabled = true,
-    String? Function(String?)? validator,
-    void Function(String)? onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTheme.labelMedium(context)),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          maxLength: maxLength,
-          keyboardType: keyboardType,
-          enabled: enabled,
-          style: AppTheme.bodyMedium(context).copyWith(
-            color: enabled ? null : AppTheme.textPrimary(context).withOpacity(0.5),
-          ),
-          decoration: InputDecoration(
-            hintText: enabled ? hintText : 'Select required field first...',
-            hintStyle: AppTheme.labelMedium(context),
-            filled: true,
-            fillColor: enabled
-                ? AppTheme.surfaceVariant(context)
-                : AppTheme.surfaceVariant(context).withOpacity(0.5),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
-              borderSide: BorderSide(color: AppTheme.border(context)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
-              borderSide: BorderSide(
-                color: enabled
-                    ? AppTheme.border(context)
-                    : AppTheme.border(context).withOpacity(0.5),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
-              borderSide: BorderSide(color: AppTheme.primary(context)),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
-              borderSide: BorderSide(color: AppTheme.error(context)),
-            ),
-            contentPadding: const EdgeInsets.all(12),
-          ),
-          buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-          validator: validator ??
-              (isRequired
-                  ? (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return '${label.replaceAll('*', '').trim()} is required';
-                }
-                if (maxLength != null && value.trim().length > maxLength) {
-                  return '${label.replaceAll('*', '').trim()} must be $maxLength characters or less';
-                }
-                return null;
-              }
-                  : maxLength != null
-                  ? (value) {
-                if (value != null && value.trim().length > maxLength) {
-                  return '${label.replaceAll('*', '').trim()} must be $maxLength characters or less';
-                }
-                return null;
-              }
-                  : null),
-          onChanged: onChanged,
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: AppTheme.labelMedium(context)),
+      const SizedBox(height: 6),
+      TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        maxLength: maxLength,
+        keyboardType: isMultiline ? TextInputType.multiline : keyboardType,
+        textInputAction:
+            isMultiline ? TextInputAction.newline : TextInputAction.done,
+        enabled: enabled,
+        style: AppTheme.bodyMedium(context).copyWith(
+          color:
+              enabled ? null : AppTheme.textPrimary(context).withOpacity(0.5),
         ),
-      ],
-    );
-  }
+        decoration: InputDecoration(
+          hintText: enabled ? hintText : 'Select required field first...',
+          hintStyle: AppTheme.labelMedium(context),
+          filled: true,
+          fillColor: enabled
+              ? AppTheme.background(context)
+              : AppTheme.background(context).withOpacity(0.0),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
+            borderSide: BorderSide(color: AppTheme.border(context)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
+            borderSide: BorderSide(
+              color: enabled
+                  ? AppTheme.border(context)
+                  : AppTheme.border(context),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
+            borderSide: BorderSide(color: AppTheme.primary(context)),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
+            borderSide: BorderSide(color: AppTheme.error(context)),
+          ),
+          contentPadding: const EdgeInsets.all(12),
+        ),
+        buildCounter: (
+          context, {
+          required currentLength,
+          required isFocused,
+          maxLength,
+        }) =>
+            null,
+        validator: validator ??
+            (isRequired
+                ? (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return '${label.replaceAll('*', '').trim()} is required';
+                    }
+                    if (maxLength != null &&
+                        value.trim().length > maxLength) {
+                      return '${label.replaceAll('*', '').trim()} must be $maxLength characters or less';
+                    }
+                    return null;
+                  }
+                : maxLength != null
+                    ? (value) {
+                        if (value != null &&
+                            value.trim().length > maxLength) {
+                          return '${label.replaceAll('*', '').trim()} must be $maxLength characters or less';
+                        }
+                        return null;
+                      }
+                    : null),
+        onChanged: onChanged,
+        // 👇 Prevents keyboard from closing when pressing Enter (for multiline)
+        onFieldSubmitted: (_) {
+          if (!isMultiline) FocusScope.of(context).unfocus();
+        },
+      ),
+    ],
+  );
+}
+
 
   static Widget buildDropdownField({
     required BuildContext context,
@@ -163,8 +187,8 @@ class DialogWidgets {
           decoration: InputDecoration(
             filled: true,
             fillColor: enabled
-                ? AppTheme.surfaceVariant(context)
-                : AppTheme.surfaceVariant(context).withOpacity(0.5),
+                ? AppTheme.background(context)
+                : AppTheme.background(context).withOpacity(0.5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
               borderSide: BorderSide(color: AppTheme.border(context)),
@@ -174,7 +198,7 @@ class DialogWidgets {
               borderSide: BorderSide(
                 color: enabled
                     ? AppTheme.border(context)
-                    : AppTheme.border(context).withOpacity(0.5),
+                    : AppTheme.border(context).withOpacity(0.0),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -188,21 +212,23 @@ class DialogWidgets {
             contentPadding: const EdgeInsets.all(12),
             suffixIcon: isLoading
                 ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppTheme.primary(context),
-                ),
-              ),
-            )
+                    padding: const EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primary(context),
+                      ),
+                    ),
+                  )
                 : null,
           ),
           dropdownColor: AppTheme.surface(context),
           style: AppTheme.bodyMedium(context).copyWith(
-            color: enabled ? null : AppTheme.textPrimary(context).withOpacity(0.5),
+            color: enabled
+                ? null
+                : AppTheme.textPrimary(context).withOpacity(0.5),
           ),
           items: !enabled
               ? [
@@ -226,34 +252,59 @@ class DialogWidgets {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            ...options.map((option) => DropdownMenuItem<String>(
-              value: option.value.startsWith('---') ? null : option.value,
-              enabled: !option.value.startsWith('---'),
-              child: Text(
-                option.label,
-                style: option.value.startsWith('---')
-                    ? AppTheme.labelMedium(context)
-                    : null,
-                overflow: TextOverflow.ellipsis,
-              ),
-            )),
+            ...options.where((opt) => opt.value != null).map(
+                  (option) {
+                final isSeparator = option.value.startsWith('---SEP');
+                final isDisabled = option.value.startsWith('---DISABLED---');
+                final isAction = option.value.startsWith('---ADD_');
+
+                return DropdownMenuItem<String>(
+                  value: option.value,
+                  enabled: !isSeparator && !isDisabled,
+                  child: Text(
+                    option.label,
+                    style: isSeparator
+                        ? AppTheme.labelMedium(context).copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary(context),
+                    )
+                        : isDisabled
+                        ? AppTheme.bodyMedium(context).copyWith(
+                      color: AppTheme.textSecondary(context).withOpacity(0.5),
+                    )
+                        : isAction
+                        ? AppTheme.labelLarge(context).copyWith(
+                      color: AppTheme.primary(context),
+                      fontWeight: FontWeight.w600,
+                    )
+                        : null,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              },
+            ),
           ],
           onChanged: !enabled || isLoading ? null : onChanged,
-          validator: validator ??
+          validator:
+              validator ??
               (isRequired
                   ? (value) {
-                if (value == null || value.isEmpty) {
-                  return '${label.replaceAll('*', '').trim()} is required';
-                }
-                return null;
-              }
+                      if (value == null || value.isEmpty) {
+                        return '${label.replaceAll('*', '').trim()} is required';
+                      }
+                      return null;
+                    }
                   : null),
         ),
       ],
     );
   }
 
-  static Widget buildResponsiveRow(BuildContext context, List<Widget> children, {double breakpoint = 520}) {
+  static Widget buildResponsiveRow(
+    BuildContext context,
+    List<Widget> children, {
+    double breakpoint = 520,
+  }) {
     return Builder(
       builder: (context) {
         final screenWidth = MediaQuery.of(context).size.width;
@@ -261,30 +312,24 @@ class DialogWidgets {
           return IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(
-                children.length * 2 - 1,
-                    (index) {
-                  if (index.isEven) {
-                    return Expanded(child: children[index ~/ 2]);
-                  } else {
-                    return const SizedBox(width: 10);
-                  }
-                },
-              ),
+              children: List.generate(children.length * 2 - 1, (index) {
+                if (index.isEven) {
+                  return Expanded(child: children[index ~/ 2]);
+                } else {
+                  return const SizedBox(width: 10);
+                }
+              }),
             ),
           );
         } else {
           return Column(
-            children: List.generate(
-              children.length * 2 - 1,
-                  (index) {
-                if (index.isEven) {
-                  return children[index ~/ 2];
-                } else {
-                  return const SizedBox(height: ArmoryConstants.fieldSpacing);
-                }
-              },
-            ),
+            children: List.generate(children.length * 2 - 1, (index) {
+              if (index.isEven) {
+                return children[index ~/ 2];
+              } else {
+                return const SizedBox(height: ArmoryConstants.fieldSpacing);
+              }
+            }),
           );
         }
       },
@@ -314,36 +359,30 @@ class DialogWidgets {
                   onPressed: isLoading ? null : onSave,
                   child: isLoading
                       ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : Text(saveButtonText),
                 ),
                 const SizedBox(height: 8),
-                TextButton(
-                  onPressed: onCancel,
-                  child: const Text('Cancel'),
-                ),
+                TextButton(onPressed: onCancel, child: const Text('Cancel')),
               ],
             );
           } else {
             return Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: onCancel,
-                  child: const Text('Cancel'),
-                ),
+                TextButton(onPressed: onCancel, child: const Text('Cancel')),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: isLoading ? null : onSave,
                   child: isLoading
                       ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : Text(saveButtonText),
                 ),
               ],
@@ -370,7 +409,8 @@ class DialogWidgets {
           final screenHeight = MediaQuery.of(context).size.height;
           return ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: maxWidth ?? (screenWidth > 600 ? 600 : screenWidth * 0.95),
+              maxWidth:
+                  maxWidth ?? (screenWidth > 600 ? 600 : screenWidth * 0.95),
               maxHeight: screenHeight * 0.9,
             ),
             child: child,
@@ -392,43 +432,44 @@ class DialogWidgets {
     bool isLoading = false,
     bool enabled = true,
     bool allowCustom = true,
+    bool keepSearchable = false,
     String? Function(String?)? validator,
     String? Function(String)? customValueFormatter,
-  })
-  {
+  }) {
     final showSearch = options.length > 5 && enabled && !isLoading;
 
     return showSearch
         ? _SearchableDropdownField(
-      context: context,
-      label: label,
-      value: value,
-      options: options,
-      onChanged: onChanged,
-      customFieldLabel: customFieldLabel,
-      customHintText: customHintText,
-      isRequired: isRequired,
-      isLoading: isLoading,
-      enabled: enabled,
-      allowCustom: allowCustom,
+            context: context,
+            label: label,
+            value: value,
+            options: options,
+            onChanged: onChanged,
+            customFieldLabel: customFieldLabel,
+            customHintText: customHintText,
+            isRequired: isRequired,
+            isLoading: isLoading,
+            enabled: enabled,
+            allowCustom: allowCustom,
+      keepSearchable: keepSearchable,
       validator: validator,
-      customValueFormatter: customValueFormatter,
-    )
+            customValueFormatter: customValueFormatter,
+          )
         : _buildStaticDropdown(
-      context: context,
-      label: label,
-      value: value,
-      options: options,
-      onChanged: onChanged,
-      customFieldLabel: customFieldLabel,
-      customHintText: customHintText,
-      isRequired: isRequired,
-      isLoading: isLoading,
-      enabled: enabled,
-      allowCustom: allowCustom,
-      validator: validator,
-      customValueFormatter: customValueFormatter,
-    );
+            context: context,
+            label: label,
+            value: value,
+            options: options,
+            onChanged: onChanged,
+            customFieldLabel: customFieldLabel,
+            customHintText: customHintText,
+            isRequired: isRequired,
+            isLoading: isLoading,
+            enabled: enabled,
+            allowCustom: allowCustom,
+            validator: validator,
+            customValueFormatter: customValueFormatter,
+          );
   }
 
   static Widget _buildStaticDropdown({
@@ -445,15 +486,15 @@ class DialogWidgets {
     bool allowCustom = true,
     String? Function(String?)? validator,
     String? Function(String)? customValueFormatter,
-  })
-  {
+  }) {
     final allOptions = List<DropdownOption>.from(options);
 
-    if (value != null && isCustomValue(value) && !allOptions.any((opt) => opt.value == value)) {
-      allOptions.add(DropdownOption(
-        value: value,
-        label: getDisplayValue(value),
-      ));
+    if (value != null &&
+        isCustomValue(value) &&
+        !allOptions.any((opt) => opt.value == value)) {
+      allOptions.add(
+        DropdownOption(value: value, label: getDisplayValue(value)),
+      );
     }
 
     return Column(
@@ -466,9 +507,8 @@ class DialogWidgets {
           isExpanded: true,
           decoration: InputDecoration(
             filled: true,
-            fillColor: enabled
-                ? AppTheme.surfaceVariant(context)
-                : AppTheme.surfaceVariant(context).withOpacity(0.5),
+            fillColor: AppTheme.background(context),
+
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
               borderSide: BorderSide(color: AppTheme.border(context)),
@@ -476,7 +516,9 @@ class DialogWidgets {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
               borderSide: BorderSide(
-                color: enabled ? AppTheme.border(context) : AppTheme.border(context).withOpacity(0.5),
+                color: enabled
+                    ? AppTheme.border(context)
+                    : AppTheme.border(context).withOpacity(0.2),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -490,96 +532,101 @@ class DialogWidgets {
             contentPadding: const EdgeInsets.all(12),
             suffixIcon: isLoading
                 ? Padding(
-              padding: const EdgeInsets.all(12),
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppTheme.primary(context),
-                ),
-              ),
-            )
+                    padding: const EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primary(context),
+                      ),
+                    ),
+                  )
                 : null,
           ),
           dropdownColor: AppTheme.surface(context),
-          style: AppTheme.bodyMedium(context).copyWith(
-            color: enabled ? null : AppTheme.textPrimary(context).withOpacity(0.5),
-          ),
+          style: AppTheme.bodyMedium(
+            context,
+          ).copyWith(color: enabled ? null : AppTheme.textPrimary(context)),
           items: !enabled
               ? [
-            DropdownMenuItem<String>(
-              value: null,
-              child: Text(
-                'Select required field first...',
-                style: AppTheme.labelMedium(context),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ]
-              : [
-            DropdownMenuItem<String>(
-              value: null,
-              child: Text(
-                isLoading ? 'Loading...' : 'Select ${label.replaceAll('*', '').trim().toLowerCase()}...',
-                style: AppTheme.labelMedium(context),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            ...allOptions.map((option) => DropdownMenuItem<String>(
-              value: option.value,
-              enabled: option.value != '---SEPARATOR---',
-              child: Text(
-                option.label,
-                overflow: TextOverflow.ellipsis,
-              ),
-            )),
-            if (allowCustom && !isLoading)
-              DropdownMenuItem<String>(
-                value: '__ADD_CUSTOM__',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.add_circle_outline,
-                      color: AppTheme.primary(context),
-                      size: ArmoryConstants.smallIcon,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Add Custom $customFieldLabel',
-                      style: AppTheme.labelLarge(context).copyWith(
-                        color: AppTheme.primary(context),
-                      ),
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(
+                      'Select required field first...',
+                      style: AppTheme.labelMedium(context),
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
-              ),
-          ],
+                  ),
+                ]
+              : [
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(
+                      isLoading
+                          ? 'Loading...'
+                          : 'Select ${label.replaceAll('*', '').trim().toLowerCase()}...',
+                      style: AppTheme.labelMedium(context),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  ...allOptions.map(
+                    (option) => DropdownMenuItem<String>(
+                      value: option.value,
+                      enabled: option.value != '---SEPARATOR---',
+                      child: Text(
+                        option.label,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  if (allowCustom && !isLoading)
+                    DropdownMenuItem<String>(
+                      value: '__ADD_CUSTOM__',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.add_circle_outline,
+                            color: AppTheme.primary(context),
+                            size: ArmoryConstants.smallIcon,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Add Custom $customFieldLabel',
+                            style: AppTheme.labelLarge(
+                              context,
+                            ).copyWith(color: AppTheme.primary(context)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
           onChanged: !enabled || isLoading
               ? null
               : (selectedValue) {
-            if (selectedValue == '__ADD_CUSTOM__') {
-              _showCustomDialog(
-                context: context,
-                label: customFieldLabel,
-                hintText: customHintText,
-                onSave: onChanged,
-                customValueFormatter: customValueFormatter,
-                validator: validator,
-              );
-            } else {
-              onChanged(selectedValue);
-            }
-          },
-          validator: validator ??
+                  if (selectedValue == '__ADD_CUSTOM__') {
+                    _showCustomDialog(
+                      context: context,
+                      label: customFieldLabel,
+                      hintText: customHintText,
+                      onSave: onChanged,
+                      customValueFormatter: customValueFormatter,
+                      validator: validator,
+                    );
+                  } else {
+                    onChanged(selectedValue);
+                  }
+                },
+          validator:
+              validator ??
               (isRequired
                   ? (value) {
-                if (value == null || value.isEmpty) {
-                  return '${label.replaceAll('*', '').trim()} is required';
-                }
-                return null;
-              }
+                      if (value == null || value.isEmpty) {
+                        return '${label.replaceAll('*', '').trim()} is required';
+                      }
+                      return null;
+                    }
                   : null),
         ),
       ],
@@ -593,8 +640,7 @@ class DialogWidgets {
     required Function(String?) onSave,
     String? Function(String)? customValueFormatter,
     String? Function(String?)? validator,
-  })
-  {
+  }) {
     showDialog(
       context: context,
       builder: (dialogContext) => _CustomValueDialog(
@@ -644,6 +690,7 @@ class _SearchableDropdownField extends StatefulWidget {
   final bool isLoading;
   final bool enabled;
   final bool allowCustom;
+  final bool keepSearchable;
   final String? Function(String?)? validator;
   final String? Function(String)? customValueFormatter;
 
@@ -659,12 +706,14 @@ class _SearchableDropdownField extends StatefulWidget {
     required this.isLoading,
     required this.enabled,
     required this.allowCustom,
+    this.keepSearchable = false,
     this.validator,
     this.customValueFormatter,
   });
 
   @override
-  State<_SearchableDropdownField> createState() => _SearchableDropdownFieldState();
+  State<_SearchableDropdownField> createState() =>
+      _SearchableDropdownFieldState();
 }
 
 class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
@@ -695,10 +744,12 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
     if (widget.value != null &&
         DialogWidgets.isCustomValue(widget.value!) &&
         !_filteredOptions.any((opt) => opt.value == widget.value)) {
-      _filteredOptions.add(DropdownOption(
-        value: widget.value!,
-        label: DialogWidgets.getDisplayValue(widget.value),
-      ));
+      _filteredOptions.add(
+        DropdownOption(
+          value: widget.value!,
+          label: DialogWidgets.getDisplayValue(widget.value),
+        ),
+      );
     }
   }
 
@@ -710,6 +761,10 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
 
   @override
   Widget build(BuildContext context) {
+    // 👇 Determine if field should be read-only
+    final hasSelectedValue = widget.value != null && widget.value!.isNotEmpty;
+    final shouldBeReadOnly = hasSelectedValue && !widget.keepSearchable;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -718,19 +773,22 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
         TextFormField(
           controller: _searchController,
           enabled: widget.enabled,
+          readOnly: shouldBeReadOnly,  // 👈 Can't type when value selected
           style: AppTheme.bodyMedium(context).copyWith(
-            color: widget.enabled ? null : AppTheme.textPrimary(context).withOpacity(0.5),
+            color: widget.enabled
+                ? null
+                : AppTheme.textPrimary(context).withOpacity(0.5),
           ),
           decoration: InputDecoration(
             hintText: widget.enabled
                 ? (widget.isLoading
                 ? 'Loading...'
+                : shouldBeReadOnly
+                ? DialogWidgets.getDisplayValue(widget.value)
                 : 'Search ${widget.label.replaceAll('*', '').trim().toLowerCase()}...')
                 : 'Select required field first...',
             filled: true,
-            fillColor: widget.enabled
-                ? AppTheme.surfaceVariant(context)
-                : AppTheme.surfaceVariant(context).withOpacity(0.5),
+            fillColor: AppTheme.background(context),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
               borderSide: BorderSide(color: AppTheme.border(context)),
@@ -738,7 +796,9 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(ArmoryConstants.borderRadius),
               borderSide: BorderSide(
-                color: widget.enabled ? AppTheme.border(context) : AppTheme.border(context).withOpacity(0.5),
+                color: widget.enabled
+                    ? AppTheme.border(context)
+                    : AppTheme.border(context).withOpacity(0.0),
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -765,6 +825,7 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
                       ),
                     ),
                   ),
+                // 👇 Always show dropdown arrow (no cross button)
                 IconButton(
                   onPressed: widget.enabled && !widget.isLoading
                       ? () => setState(() => _showDropdown = !_showDropdown)
@@ -779,7 +840,7 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
               ],
             ),
           ),
-          onChanged: widget.enabled && !widget.isLoading
+          onChanged: widget.enabled && !widget.isLoading && !shouldBeReadOnly
               ? (value) {
             setState(() {
               _updateFilteredOptions();
@@ -787,9 +848,11 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
             });
           }
               : null,
-          onTap: widget.enabled && !widget.isLoading ? () => setState(() => _showDropdown = true) : null,
-          readOnly: false,
-          validator: widget.validator ??
+          onTap: widget.enabled && !widget.isLoading
+              ? () => setState(() => _showDropdown = true)  // 👈 Always allow dropdown open
+              : null,
+          validator:
+          widget.validator ??
               (widget.isRequired
                   ? (value) {
                 if (widget.value == null || widget.value!.isEmpty) {
@@ -799,7 +862,7 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
               }
                   : null),
         ),
-        if (_showDropdown && widget.enabled && !widget.isLoading) ...[
+        if (_showDropdown && widget.enabled && !widget.isLoading) ...[  // 👈 Removed shouldBeReadOnly check
           const SizedBox(height: 4),
           Container(
             constraints: const BoxConstraints(maxHeight: 200),
@@ -812,23 +875,25 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ..._filteredOptions.map((option) => InkWell(
-                    onTap: option.value == '---SEPARATOR---'
-                        ? null
-                        : () {
-                      widget.onChanged(option.value);
-                      _searchController.text = option.label;
-                      setState(() => _showDropdown = false);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        option.label,
-                        style: AppTheme.bodyMedium(context),
-                        overflow: TextOverflow.ellipsis,
+                  ..._filteredOptions.map(
+                        (option) => InkWell(
+                      onTap: option.value == '---SEPARATOR---'
+                          ? null
+                          : () {
+                        widget.onChanged(option.value);
+                        _searchController.text = option.label;
+                        setState(() => _showDropdown = false);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: Text(
+                          option.label,
+                          style: AppTheme.bodyMedium(context),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
-                  )),
+                  ),
                   if (widget.allowCustom) ...[
                     Divider(color: AppTheme.border(context), height: 1),
                     InkWell(
@@ -839,7 +904,8 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
                           hintText: widget.customHintText,
                           onSave: (customValue) {
                             widget.onChanged(customValue);
-                            _searchController.text = DialogWidgets.getDisplayValue(customValue);
+                            _searchController.text =
+                                DialogWidgets.getDisplayValue(customValue);
                           },
                           customValueFormatter: widget.customValueFormatter,
                           validator: widget.validator,
@@ -858,9 +924,9 @@ class _SearchableDropdownFieldState extends State<_SearchableDropdownField> {
                             const SizedBox(width: 8),
                             Text(
                               'Add Custom ${widget.customFieldLabel}',
-                              style: AppTheme.labelLarge(context).copyWith(
-                                color: AppTheme.primary(context),
-                              ),
+                              style: AppTheme.labelLarge(
+                                context,
+                              ).copyWith(color: AppTheme.primary(context)),
                             ),
                           ],
                         ),
@@ -944,8 +1010,9 @@ class _CustomValueDialogState extends State<_CustomValueDialog> {
                 isRequired: true,
                 maxLength: 30,
                 hintText: widget.hintText,
-                validator: widget.validator ??
-                        (value) {
+                validator:
+                    widget.validator ??
+                    (value) {
                       if (value == null || value.trim().isEmpty) {
                         return '${widget.fieldLabel} is required';
                       }

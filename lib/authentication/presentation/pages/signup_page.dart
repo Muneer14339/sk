@@ -2,9 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:country_picker/country_picker.dart';
-import '../../../armory/presentation/pages/armory_page.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../injection_container.dart';
+import '../bloc/login_bloc/auth_bloc.dart';
+import '../bloc/login_bloc/auth_event.dart';
+import '../bloc/login_bloc/auth_state.dart';
 import '../bloc/signup_bloc/signup_bloc.dart';
 import '../bloc/signup_bloc/signup_event.dart';
 import '../bloc/signup_bloc/signup_state.dart';
@@ -16,10 +17,7 @@ class SignupPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background(context),
-      body: BlocProvider(
-        create: (_) => sl<SignupBloc>(),
-        child: const SignupForm(),
-      ),
+      body: const SignupForm(),
     );
   }
 }
@@ -49,21 +47,42 @@ class _SignupFormState extends State<SignupForm> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SignupBloc, SignupState>(
-      listener: (context, state) {
-        if (state is SignupSuccess) {
-          final route = MaterialPageRoute(builder: (_) => const ArmoryPage());
-          Navigator.pushReplacement(context, route);
-        } else if (state is SignupError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppTheme.error(context),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SignupBloc, SignupState>(
+          listener: (context, state) {
+            if (state is SignupSuccess) {
+              // ✅ Signup successful - trigger AuthBloc to check login status
+              context.read<AuthBloc>().add(const CheckLoginStatus());
+
+              // Show success message
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Account created successfully!'),
+                  backgroundColor: Colors.green,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } else if (state is SignupError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppTheme.error(context),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthAuthenticated) {
+              // ✅ Auth successful - pop back to root to trigger DataSyncWrapper
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            }
+          },
+        ),
+      ],
       child: Center(
         child: SingleChildScrollView(
           padding: AppTheme.paddingLarge,
@@ -85,6 +104,8 @@ class _SignupFormState extends State<SignupForm> {
       ),
     );
   }
+
+  // ... rest of the code remains same ...
 
   Widget _buildHeader() {
     return Container(

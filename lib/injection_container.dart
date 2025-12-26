@@ -6,6 +6,8 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 // Authentication imports
+import 'armory/data/datasources/armory_local_dataresouces.dart';
+import 'armory/data/datasources/armory_local_repository_impl.dart';
 import 'armory/data/datasources/armory_remote_datasource.dart';
 import 'armory/data/repositories/armory_repository_impl.dart';
 import 'armory/domain/repositories/armory_repository.dart';
@@ -16,6 +18,8 @@ import 'armory/domain/usecases/add_gear_usecase.dart';
 import 'armory/domain/usecases/add_loadout_usecase.dart';
 import 'armory/domain/usecases/add_maintenance_usecase.dart';
 import 'armory/domain/usecases/add_tool_usecase.dart';
+import 'armory/domain/usecases/batch_delete_ammunition_usecase.dart';
+import 'armory/domain/usecases/batch_delete_loadouts_usecase.dart';
 import 'armory/domain/usecases/delete_ammunition_usecase.dart';
 import 'armory/domain/usecases/delete_firearm_usecase.dart';
 import 'armory/domain/usecases/delete_gear_usecase.dart';
@@ -29,6 +33,9 @@ import 'armory/domain/usecases/get_gear_usecase.dart';
 import 'armory/domain/usecases/get_loadouts_usecase.dart';
 import 'armory/domain/usecases/get_maintenance_usecase.dart';
 import 'armory/domain/usecases/get_tools_usecase.dart';
+import 'armory/domain/usecases/initial_data_sync_usecase.dart';
+import 'armory/domain/usecases/sync_local_to_remote_usecase.dart';
+import 'armory/domain/usecases/sync_remote_to_local_usecase.dart';
 import 'armory/presentation/bloc/armory_bloc.dart';
 import 'armory/presentation/bloc/dropdown/dropdown_bloc.dart';
 import 'authentication/data/datasources/auth_remote_datasource.dart';
@@ -38,12 +45,14 @@ import 'authentication/domain/usecases/get_current_user_usecase.dart';
 import 'authentication/domain/usecases/google_signin_usecase.dart';
 import 'authentication/domain/usecases/login_usecase.dart';
 import 'authentication/domain/usecases/logout_usecase.dart';
+import 'authentication/domain/usecases/send_password_reset_usecase.dart';
 import 'authentication/domain/usecases/signup_usecase.dart';
 import 'authentication/presentation/bloc/login_bloc/auth_bloc.dart';
 import 'authentication/presentation/bloc/signup_bloc/signup_bloc.dart';
 
 import 'core/network/network_info.dart';
 import 'core/usecases/usecase.dart';
+import 'core/utils/database_helper.dart';
 import 'training/data/datasources/ProgramsDataSource.dart';
 import 'training/data/datasources/session_details_local_datasource.dart';
 import 'training/data/datasources/session_details_remote_datasource.dart';
@@ -68,8 +77,11 @@ Future<void> init() async {
       logoutUseCase: sl(),
       getCurrentUserUseCase: sl(),
       googleSignInUseCase: sl(),
+      sendPasswordResetUseCase: sl(), // ✅ NEW
     ),
   );
+
+  sl.registerLazySingleton(() => SendPasswordResetUseCase(sl()));
 
   sl.registerFactory(
         () => SignupBloc(
@@ -85,6 +97,17 @@ Future<void> init() async {
       auth: sl(),
     ),
   );
+
+  sl.registerLazySingleton(() => SyncLocalToRemoteUseCase(
+    localDataSource: sl(),
+    remoteDataSource: sl(),
+  ));
+
+  sl.registerLazySingleton(() => SyncRemoteToLocalUseCase(
+    localDataSource: sl(),
+    remoteDataSource: sl(),
+    dbHelper: sl(),
+  ));
 
   // Clean Architecture ArmoryBloc - Updated without GetDropdownOptionsUseCase
   sl.registerFactory(
@@ -107,6 +130,10 @@ Future<void> init() async {
       deleteLoadoutUseCase: sl(),
       deleteMaintenanceUseCase: sl(),
       deleteToolUseCase: sl(),
+      syncLocalToRemoteUseCase: sl(),
+      syncRemoteToLocalUseCase: sl(),
+      batchDeleteLoadoutsUseCase: sl(),
+      batchDeleteAmmunitionUseCase: sl(),
     ),
   );
 
@@ -124,6 +151,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => GoogleSignInUseCase(sl()));
 
+
   // =============== Clean Architecture Use Cases - User Dashboard ===============
   // Basic CRUD Use Cases (Pure Repository Operations)
   sl.registerLazySingleton(() => user_firearms.GetFirearmsUseCase(sl<ArmoryRepository>()));
@@ -138,21 +166,19 @@ Future<void> init() async {
   sl.registerLazySingleton(() => AddLoadoutUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => GetMaintenanceUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => AddMaintenanceUseCase(sl<ArmoryRepository>()));
-
-  // Delete Use Cases
   sl.registerLazySingleton(() => DeleteFirearmUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => DeleteAmmunitionUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => DeleteGearUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => DeleteToolUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => DeleteLoadoutUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => DeleteMaintenanceUseCase(sl<ArmoryRepository>()));
-
-  // Business Logic Use Cases (Contains Complex Logic)
-  // Used by DropdownBloc now, not ArmoryBloc
+  sl.registerLazySingleton(() => BatchDeleteLoadoutsUseCase(sl<ArmoryRepository>()));
+  sl.registerLazySingleton(() => BatchDeleteAmmunitionUseCase(sl<ArmoryRepository>()));
   sl.registerLazySingleton(() => GetDropdownOptionsUseCase(sl<ArmoryRepository>(), sl<FirebaseAuth>()));
+  sl.registerLazySingleton(() => InitialDataSyncUseCase(remoteDataSource: sl(), localDataSource: sl()));
+
 
   // =============== Domain Services ===============
-  sl.registerLazySingleton<ArmoryDataCacheService>(() => ArmoryDataCacheServiceImpl());
 
   // =============== Repositories - Clean Implementation ===============
   sl.registerLazySingleton<AuthRepository>(
@@ -161,10 +187,12 @@ Future<void> init() async {
 
   // Pure Repository Implementation (No Business Logic)
   sl.registerLazySingleton<ArmoryRepository>(
-        () => ArmoryRepositoryImpl(remoteDataSource: sl()),
+        () => ArmoryRepositoryImpl(
+      remoteDataSource: sl(),
+      localDataSource: sl(),
+    ),
   );
 
-  // =============== Data Sources ===============
   sl.registerLazySingleton<AuthRemoteDataSource>(
         () => AuthRemoteDataSourceImpl(
       firebaseAuth: sl(),
@@ -177,7 +205,12 @@ Future<void> init() async {
         () => ArmoryRemoteDataSourceImpl(firestore: sl()),
   );
 
+  sl.registerLazySingleton<ArmoryLocalDataSource>(
+        () => ArmoryLocalDataSourceImpl(dbHelper: sl()),
+  );
+
   // =============== External Dependencies ===============
+  sl.registerLazySingleton(() => DatabaseHelper());
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => GoogleSignIn());
@@ -226,4 +259,5 @@ Future<void> init() async {
       networkInfo: sl(),
     ),
   );
+
 }

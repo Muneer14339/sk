@@ -2,7 +2,7 @@
 import 'package:equatable/equatable.dart';
 
 class ArmoryGear extends Equatable {
-  final String? id;
+   String? id;
   final String category;
   final String model;
   final String? serial;
@@ -10,7 +10,7 @@ class ArmoryGear extends Equatable {
   final String? notes;
   final DateTime dateAdded;
 
-  const ArmoryGear({
+   ArmoryGear({
     this.id,
     required this.category,
     required this.model,

@@ -35,7 +35,7 @@ class LoadoutItemCard extends StatelessWidget {
         if (firearm != null)
           CardDetailRow(
             icon: 'assets/icons/armory_icons/firearm.png',
-            text: '${firearm!.make} ${firearm!.model}',
+            text: '${firearm!.brand} ${firearm!.model}',
           ),
         if (ammunition != null)
           CardDetailRow(

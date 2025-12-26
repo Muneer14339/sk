@@ -4,7 +4,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_state.dart';
 import '../common/armory_constants.dart';
 import '../common/common_delete_dilogue.dart';
-import '../tab_widgets/enhanced_armory_tab_view.dart';
 
 class GridNavigationWidget extends StatelessWidget {
   final int selectedTabIndex;
@@ -98,7 +97,6 @@ class GridNavigationWidget extends StatelessWidget {
                     size: isCompact ? 16 : 20,
                     color: isActive ? Colors.black : AppTheme.textPrimary(context),
                   ),
-                  if (tabItem.count > 0)
                     Positioned(
                       top: -3,
                       right: -3,
@@ -149,7 +147,7 @@ class GridNavigationWidget extends StatelessWidget {
       TabItemInfo(title: 'Firearms', icon: Icons.radio_button_unchecked, count: counts[ArmoryTabType.firearms] ?? 0),
       TabItemInfo(title: 'Ammo', icon: Icons.inventory_2_outlined, count: counts[ArmoryTabType.ammunition] ?? 0),
       TabItemInfo(title: 'Gear', icon: Icons.backpack_outlined, count: counts[ArmoryTabType.gear] ?? 0),
-      TabItemInfo(title: 'Tools', icon: Icons.build_outlined, count: counts[ArmoryTabType.tools] ?? 0),
+      TabItemInfo(title: 'Tools', icon: Icons.build_outlined, count: ((counts[ArmoryTabType.tools]?? 0) + (counts[ArmoryTabType.maintenence]?? 0))),
       TabItemInfo(title: 'Loadouts', icon: Icons.flash_on_outlined, count: counts[ArmoryTabType.loadouts] ?? 0),
       TabItemInfo(title: 'Report', icon: Icons.analytics_outlined, count: counts[ArmoryTabType.report] ?? 0),
     ];

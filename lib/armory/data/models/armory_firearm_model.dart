@@ -1,9 +1,11 @@
 // lib/user_dashboard/data/models/armory_firearm_model.dart
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/armory_firearm.dart';
 
 class ArmoryFirearmModel extends ArmoryFirearm {
-  const ArmoryFirearmModel({
+   ArmoryFirearmModel({
     super.id,
     required super.type,
     required super.make,
@@ -42,11 +44,19 @@ class ArmoryFirearmModel extends ArmoryFirearm {
     super.modifications,
     super.accessoriesIncluded,
     super.storageLocation,
-    super.photos = const [],
+    super.photos = '',
     required super.dateAdded,
   });
 
-  factory ArmoryFirearmModel.fromMap(Map<String, dynamic> map, String id) {
+  factory ArmoryFirearmModel.fromMap(Map<String, dynamic> map, String ?id) {
+     DateTime? safeToDate(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is String) return DateTime.tryParse(value);
+    if (value is DateTime) return value;
+    return null;
+  }
+
     return ArmoryFirearmModel(
       id: id,
       type: map['type'] ?? '',
@@ -59,7 +69,7 @@ class ArmoryFirearmModel extends ArmoryFirearm {
       notes: map['notes'],
       brand: map['brand'],
       generation: map['generation'],
-      firingMechanism: map['firingMechanism'],
+      firingMechanism: map['firing_machanism'],
       detailedType: map['detailedType'],
       purpose: map['purpose'],
       condition: map['condition'],
@@ -86,52 +96,53 @@ class ArmoryFirearmModel extends ArmoryFirearm {
       modifications: map['modifications'],
       accessoriesIncluded: map['accessoriesIncluded'],
       storageLocation: map['storageLocation'],
-      photos: List<String>.from(map['photos'] ?? []),
-      dateAdded: (map['dateAdded'] as Timestamp).toDate(),
+      // photos: map['photos'],
+      dateAdded: safeToDate(map['dateAdded']) ?? DateTime.now(),
     );
   }
 
-  Map<String, dynamic> toMap() {
+   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'type': type,
       'make': make,
       'model': model,
       'caliber': caliber,
       'nickname': nickname,
       'status': status,
-      'serial': serial,
-      'notes': notes,
-      'brand': brand,
-      'generation': generation,
-      'firingMechanism': firingMechanism,
-      'detailedType': detailedType,
-      'purpose': purpose,
-      'condition': condition,
-      'purchaseDate': purchaseDate,
-      'purchasePrice': purchasePrice,
-      'currentValue': currentValue,
-      'fflDealer': fflDealer,
-      'manufacturerPN': manufacturerPN,
-      'finish': finish,
-      'stockMaterial': stockMaterial,
-      'triggerType': triggerType,
-      'safetyType': safetyType,
-      'feedSystem': feedSystem,
-      'magazineCapacity': magazineCapacity,
-      'twistRate': twistRate,
-      'threadPattern': threadPattern,
-      'overallLength': overallLength,
-      'weight': weight,
-      'barrelLength': barrelLength,
-      'actionType': actionType,
+      'serial': serial ?? '',
+      'notes': notes ?? '',
+      'brand': brand ?? '',
+      'generation': generation ?? '',
+      'firingMechanism': firingMechanism ?? '',
+      'detailedType': detailedType ?? '',
+      'purpose': purpose ?? '',
+      'condition': condition ?? '',
+      'purchaseDate': purchaseDate ?? '',
+      'purchasePrice': purchasePrice ?? '',
+      'currentValue': currentValue ?? '',
+      'fflDealer': fflDealer ?? '',
+      'manufacturerPN': manufacturerPN ?? '',
+      'finish': finish ?? '',
+      'stockMaterial': stockMaterial ?? '',
+      'triggerType': triggerType ?? '',
+      'safetyType': safetyType ?? '',
+      'feedSystem': feedSystem ?? '',
+      'magazineCapacity': magazineCapacity ?? '',
+      'twistRate': twistRate ?? '',
+      'threadPattern': threadPattern ?? '',
+      'overallLength': overallLength ?? '',
+      'weight': weight ?? '',
+      'barrelLength': barrelLength ?? '',
+      'actionType': actionType ?? '',
       'roundCount': roundCount,
-      'lastCleaned': lastCleaned,
-      'zeroDistance': zeroDistance,
-      'modifications': modifications,
-      'accessoriesIncluded': accessoriesIncluded,
-      'storageLocation': storageLocation,
-      'photos': photos,
-      'dateAdded': Timestamp.fromDate(dateAdded),
+      'lastCleaned': lastCleaned ?? '',
+      'zeroDistance': zeroDistance ?? '',
+      'modifications': modifications ?? '',
+      'accessoriesIncluded': accessoriesIncluded ?? '',
+      'storageLocation': storageLocation ?? '',
+      'photos': jsonEncode(photos), 
+      'dateAdded': dateAdded.toIso8601String(), 
     };
   }
 }

@@ -5,6 +5,7 @@ import '../../../domain/usecases/get_current_user_usecase.dart';
 import '../../../domain/usecases/login_usecase.dart';
 import '../../../domain/usecases/logout_usecase.dart';
 import '../../../domain/usecases/google_signin_usecase.dart';
+import '../../../domain/usecases/send_password_reset_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -13,17 +14,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUseCase logoutUseCase;
   final GetCurrentUserUseCase getCurrentUserUseCase;
   final GoogleSignInUseCase googleSignInUseCase;
+  final SendPasswordResetUseCase sendPasswordResetUseCase;
 
   AuthBloc({
     required this.loginUseCase,
     required this.logoutUseCase,
     required this.getCurrentUserUseCase,
     required this.googleSignInUseCase,
+    required this.sendPasswordResetUseCase, // ✅ NEW
   }) : super(const AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<CheckLoginStatus>(_onCheckLoginStatus);
+    on<PasswordResetRequested>(_onPasswordResetRequested); // ✅ NEW
   }
 
   void _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
@@ -93,6 +97,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(const AuthUnauthenticated());
         }
       },
+    );
+  }
+
+  void _onPasswordResetRequested(PasswordResetRequested event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    final result = await sendPasswordResetUseCase(event.email);
+
+    result.fold(
+          (failure) {
+        final message = failure is AuthFailure
+            ? failure.message
+            : 'Failed to send reset email. Please try again';
+        emit(AuthError(message));
+      },
+          (_) => emit(const AuthUnauthenticated()),
     );
   }
 }

@@ -61,4 +61,8 @@ abstract class ArmoryRepository {
   Future<Either<Failure, List<DropdownOption>>> getAmmoCalibers();
   Future<Either<Failure, List<DropdownOption>>> getAmmunitionBrands([String? caliber]);
   Future<Either<Failure, List<DropdownOption>>> getBulletTypes([String? brand]);
+
+  Future<Either<Failure, void>> batchDeleteLoadouts(String userId, List<String> loadoutIds);
+  Future<Either<Failure, void>> batchDeleteAmmunition(String userId, List<String> ammunitionIds);
+
 }

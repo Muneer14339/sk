@@ -160,9 +160,10 @@ class CommonWidgets {
           color: AppTheme.textPrimary(context),
         ),
       )
-          : Icon(icon ?? Icons.add, size: ArmoryConstants.smallIcon),
-      label: Text(label),
+          : Icon(icon ?? Icons.add,color: AppTheme.textPrimary(context), size: ArmoryConstants.smallIcon),
+      label: Text(label, style: AppTheme.bodyMedium(context)),
       style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.primary(context),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -177,60 +178,69 @@ class CommonWidgets {
     required String subtitle,
     required List<Widget> children,
     bool initiallyExpanded = false,
+    int? count, // ✅ ADD count parameter
   }) {
     return Container(
       margin: ArmoryConstants.itemMargin,
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: AppTheme.border(context))),
       ),
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-        iconColor: AppTheme.textSecondary(context),
-        collapsedIconColor: AppTheme.textSecondary(context),
-        initiallyExpanded: initiallyExpanded,
-        title: LayoutBuilder(
-          builder: (context, constraints) {
-            final availableWidth = constraints.maxWidth - 40;
-            return SizedBox(
-              width: availableWidth,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: AppTheme.titleMedium(context),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  if (subtitle.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        subtitle,
-                        style: AppTheme.labelMedium(context),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+          iconColor: AppTheme.textSecondary(context),
+          collapsedIconColor: AppTheme.textSecondary(context),
+          initiallyExpanded: initiallyExpanded,
+          title: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ Title + Subtitle left side
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: AppTheme.titleMedium(context),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                ],
+                    if (subtitle.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          subtitle,
+                          style: AppTheme.labelMedium(context),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            );
-          },
-        ),
-        children: children.isEmpty
-            ? [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Text(
-              'No items.',
-              style: AppTheme.bodySmall(context),
-            ),
-          )
-        ]
-            : children,
-      ),
+
+              // ✅ Count badge right side inline
+              if (count != null) ...[
+                const SizedBox(width: 8),
+                buildCountBadge(context, count, 'items'),
+              ],
+            ],
+          ),
+
+          children: children.isEmpty
+              ? [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(
+                'No items.',
+                style: AppTheme.bodySmall(context),
+              ),
+            )
+          ]
+              : children,
+        )
+
     );
   }
 

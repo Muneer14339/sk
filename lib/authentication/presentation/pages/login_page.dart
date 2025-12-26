@@ -1,13 +1,11 @@
 // lib/authentication/presentation/pages/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pa_sreens/user_dashboard/pages/main_app_page.dart';
-import '../../../armory/presentation/pages/armory_page.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../injection_container.dart';
 import '../bloc/login_bloc/auth_bloc.dart';
 import '../bloc/login_bloc/auth_event.dart';
 import '../bloc/login_bloc/auth_state.dart';
+import 'forgot_password_page.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -17,10 +15,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background(context),
-      body: BlocProvider(
-        create: (_) => sl<AuthBloc>(),
-        child: const LoginForm(),
-      ),
+      body: const LoginForm(),
     );
   }
 }
@@ -50,8 +45,9 @@ class _LoginFormState extends State<LoginForm> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          final route = MaterialPageRoute(builder: (_) => const MainAppPage());
-          Navigator.pushReplacement(context, route);
+          // Pop back to root to let AuthWrapper handle navigation
+          // This ensures DataSyncWrapper is shown and _initializeData() is called
+          Navigator.of(context).popUntil((route) => route.isFirst);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -153,7 +149,29 @@ class _LoginFormState extends State<LoginForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Password', style: AppTheme.labelMedium(context)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Password', style: AppTheme.labelMedium(context)),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ForgotPasswordPage(),
+                  ),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primary(context),
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Forgot?'),
+            ),
+          ],
+        ),
         const SizedBox(height: 6),
         TextFormField(
           controller: _passwordController,

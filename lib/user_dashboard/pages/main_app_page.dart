@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../armory/presentation/pages/enhanced_armory_tab_view.dart';
 import '../../core/services/prefs.dart';
 import '../../core/widgets/battery_indicator_widget.dart';
 import '../../core/widgets/low_battery_dialog.dart';
@@ -12,7 +13,6 @@ import '../../authentication/presentation/bloc/login_bloc/auth_event.dart';
 import '../../authentication/presentation/bloc/login_bloc/auth_state.dart';
 import '../../authentication/presentation/pages/login_page.dart';
 import '../../armory/presentation/bloc/armory_bloc.dart';
-import '../../armory/presentation/widgets/tab_widgets/enhanced_armory_tab_view.dart';
 import '../../core/theme/app_theme.dart';
 import '../../training/presentation/bloc/ble_scan/ble_scan_bloc.dart';
 import '../../training/presentation/bloc/ble_scan/ble_scan_event.dart';

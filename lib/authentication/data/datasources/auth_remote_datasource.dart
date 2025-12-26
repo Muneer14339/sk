@@ -11,6 +11,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithGoogle();
   Future<void> logout();
   Future<UserModel?> getCurrentUser();
+  Future<void> sendPasswordResetEmail(String email);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -106,7 +107,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<UserModel> signInWithGoogle() async {
     try {
-      // Google Sign In process
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
         throw Exception('Sign-in was cancelled');
@@ -122,19 +122,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (result.user != null) {
         final user = result.user!;
-
-        // Check if user already exists in Firestore
         final userDoc = await firestore.collection('users').doc(user.uid).get();
 
         if (userDoc.exists) {
-          // Existing user - just update currentlyLogin
+          // ✅ Existing user - update currentlyLogin
           await firestore.collection('users').doc(user.uid).update({
             'currentlyLogin': 'PA',
           });
 
           return UserModel.fromFirestore(userDoc.data()!, user.uid);
         } else {
-          // New user - create profile in Firestore
+          // ✅ New Google user - create profile
           final userData = {
             'uid': user.uid,
             'email': user.email ?? '',
@@ -161,6 +159,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       } else {
         throw Exception('Google Sign In failed');
       }
+    } on FirebaseAuthException catch (e) {
+      // ✅ Better error handling
+      if (e.code == 'account-exists-with-different-credential') {
+        throw Exception('An account already exists with this email. Please login with your password first.');
+      }
+      throw Exception(FirebaseErrorHandler.getAuthErrorMessage(e));
     } catch (e) {
       throw Exception(FirebaseErrorHandler.getAuthErrorMessage(e));
     }
@@ -195,6 +199,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return null;
     } catch (e) {
       throw Exception(FirebaseErrorHandler.getFirestoreErrorMessage(e));
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw Exception(FirebaseErrorHandler.getAuthErrorMessage(e));
     }
   }
 

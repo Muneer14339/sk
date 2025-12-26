@@ -78,4 +78,17 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(AuthFailure('An unexpected error occurred'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
+    try {
+      await remoteDataSource.sendPasswordResetEmail(email);
+      return const Right(null);
+    } on Exception catch (e) {
+      final message = e.toString().replaceFirst('Exception: ', '');
+      return Left(AuthFailure(message));
+    } catch (e) {
+      return Left(AuthFailure('An unexpected error occurred'));
+    }
+  }
 }

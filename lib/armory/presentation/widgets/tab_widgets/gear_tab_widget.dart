@@ -76,6 +76,7 @@ class GearTabWidget extends StatelessWidget {
         context: context,
         title: title,
         subtitle: subtitle,
+        count: items.length, // ✅ ADD
         children: [ResponsiveGridWidget(children: gearCards)],
       ),
     );

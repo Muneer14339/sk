@@ -12,8 +12,9 @@ import '../item_cards/loadout_item_card.dart';
 
 class LoadoutsTabWidget extends StatelessWidget {
   final String userId;
+  final VoidCallback? onNavigateToAddAmmo;
 
-  const LoadoutsTabWidget({super.key, required this.userId});
+  const LoadoutsTabWidget({super.key, required this.userId,this.onNavigateToAddAmmo, });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class LoadoutsTabWidget extends StatelessWidget {
       formTitle: 'Create Loadout',
       cardTitle: 'Loadouts',
       cardDescription: 'Create named bundles of your gear to speed up Training setup.',
-      formBuilder: (userId) => AddLoadoutForm(userId: userId),
+      formBuilder: (userId) => AddLoadoutForm(userId: userId, onNavigateToAddAmmo: onNavigateToAddAmmo,),
       listBuilder: _buildLoadoutsList,
       getItemCount: (state) => state is ArmoryDataLoaded ? state.loadouts.length : 0,
     );

@@ -2,7 +2,7 @@
 import 'package:equatable/equatable.dart';
 
 class ArmoryMaintenance extends Equatable {
-  final String? id;
+   String? id;
   final String assetType; // 'firearm' or 'gear'
   final String assetId;
   final String maintenanceType; // 'cleaning', 'lubrication', etc.
@@ -11,7 +11,7 @@ class ArmoryMaintenance extends Equatable {
   final String? notes;
   final DateTime dateAdded;
 
-  const ArmoryMaintenance({
+   ArmoryMaintenance({
     this.id,
     required this.assetType,
     required this.assetId,

@@ -13,7 +13,8 @@ import '../common/dialog_widgets.dart';
 
 class AddLoadoutForm extends StatefulWidget {
   final String userId;
-  const AddLoadoutForm({super.key, required this.userId});
+  final VoidCallback? onNavigateToAddAmmo;
+  const AddLoadoutForm({super.key, required this.userId, this.onNavigateToAddAmmo,});
 
   @override
   State createState() => _AddLoadoutFormState();
@@ -115,13 +116,71 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
       List loadouts,
       List maintenance,
       ) {
-    final firearmOptions = firearms.map((f) => DropdownOption(value: f.id!, label: '${f.nickname} (${f.make} ${f.model})')).toList();
+    // Group firearms based on ammo availability
+    final firearmsWithAmmo = <dynamic>[];
+    final firearmsWithoutAmmo = <dynamic>[];
+
+    for (var firearm in firearms) {
+      final firearmCalibers = firearm.caliber.split(',').map((c) => c.trim().toLowerCase()).toList();
+      final hasAmmo = ammunition.any((a) =>
+          firearmCalibers.contains(a.caliber.toLowerCase())
+      );
+      if (hasAmmo) {
+        firearmsWithAmmo.add(firearm);
+      } else {
+        firearmsWithoutAmmo.add(firearm);
+      }
+    }
+
+
+    // Build dropdown options with unique separator values
+    final List<DropdownOption> firearmOptions = [];
+
+    if (firearmsWithAmmo.isNotEmpty) {
+      firearmOptions.add(const DropdownOption(
+          value: '---SEP1---',
+          label: '── Firearms (Ammo Available) ──'
+      ));
+      firearmOptions.addAll(
+          firearmsWithAmmo.map((f) => DropdownOption(
+            value: f.id!,
+            label: '${f.nickname} (${f.caliber})',
+          ))
+      );
+    }
+
+    if (firearmsWithoutAmmo.isNotEmpty) {
+      firearmOptions.add(const DropdownOption(
+        value: '---SEP2---',
+        label: '── Add Ammo First For These ──',
+      ));
+      firearmOptions.addAll(
+          firearmsWithoutAmmo.map((f) => DropdownOption(
+            value: '---DISABLED---${f.id}',
+            label: '${f.nickname} (${f.caliber})',
+          ))
+      );
+      firearmOptions.add(const DropdownOption(
+        value: '---SEP3---',
+        label: '──────────────────',
+      ));
+      firearmOptions.add(const DropdownOption(
+        value: '---ADD_AMMO---',
+        label: '➕ Add Ammunition',
+      ));
+    }
+
     final ammunitionOptions = _selectedFirearmId != null
         ? ammunition.where((a) {
       final firearm = firearms.firstWhere((f) => f.id == _selectedFirearmId);
-      return a.caliber.toLowerCase() == firearm.caliber.toLowerCase();
-    }).map((a) => DropdownOption(value: a.id!, label: '${a.brand} ${a.caliber} ${a.bullet} (${a.quantity} rds)')).toList()
+      final firearmCalibers = firearm.caliber.split(',').map((c) => c.trim().toLowerCase()).toList();
+      return firearmCalibers.contains(a.caliber.toLowerCase());
+    }).map((a) => DropdownOption(
+      value: a.id!,
+      label: '${a.brand} ${a.caliber} ${a.bullet} (${a.quantity} rds)',
+    )).toList()
         : [];
+
     final gearOptions = gear.map((g) => DropdownOption(value: g.id!, label: g.model)).toList();
     final toolOptions = tools.map((t) => DropdownOption(value: t.id!, label: t.name)).toList();
     final maintenanceOptions = maintenance.map((m) => DropdownOption(value: m.id!, label: m.maintenanceType)).toList();
@@ -147,7 +206,15 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
               value: _selectedFirearmId,
               options: firearmOptions,
               onChanged: (value) {
-                if (mounted) {
+                if (value == '---ADD_AMMO---') {
+                  if (widget.onNavigateToAddAmmo != null) {
+                    widget.onNavigateToAddAmmo!();
+                  }
+                  return;
+                }
+                if (mounted && value != null &&
+                    !value.startsWith('---SEP') &&
+                    !value.startsWith('---DISABLED---')) {
                   setState(() {
                     _selectedFirearmId = value;
                     _selectedAmmunitionId = null;
@@ -175,7 +242,9 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
               value: null,
               options: gearOptions,
               onChanged: (value) {
-                if (value != null && !_selectedGearIds.contains(value) && mounted) setState(() => _selectedGearIds.add(value));
+                if (value != null && !_selectedGearIds.contains(value) && mounted) {
+                  setState(() => _selectedGearIds.add(value));
+                }
               },
             ),
             if (_selectedGearIds.isNotEmpty) ...[
@@ -191,7 +260,9 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
               value: null,
               options: toolOptions,
               onChanged: (value) {
-                if (value != null && !_selectedToolIds.contains(value) && mounted) setState(() => _selectedToolIds.add(value));
+                if (value != null && !_selectedToolIds.contains(value) && mounted) {
+                  setState(() => _selectedToolIds.add(value));
+                }
               },
             ),
             if (_selectedToolIds.isNotEmpty) ...[
@@ -200,22 +271,24 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
                 if (mounted) setState(() => _selectedToolIds.remove(id));
               }),
             ],
-            const SizedBox(height: ArmoryConstants.fieldSpacing),
-            DialogWidgets.buildDropdownField(
-              context: context,
-              label: 'Maintenance',
-              value: null,
-              options: maintenanceOptions,
-              onChanged: (value) {
-                if (value != null && !_selectedMaintenanceIds.contains(value) && mounted) setState(() => _selectedMaintenanceIds.add(value));
-              },
-            ),
-            if (_selectedMaintenanceIds.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _buildChips(_selectedMaintenanceIds, maintenanceOptions, (id) {
-                if (mounted) setState(() => _selectedMaintenanceIds.remove(id));
-              }),
-            ],
+            // const SizedBox(height: ArmoryConstants.fieldSpacing),
+            // DialogWidgets.buildDropdownField(
+            //   context: context,
+            //   label: 'Maintenance',
+            //   value: null,
+            //   options: maintenanceOptions,
+            //   onChanged: (value) {
+            //     if (value != null && !_selectedMaintenanceIds.contains(value) && mounted) {
+            //       setState(() => _selectedMaintenanceIds.add(value));
+            //     }
+            //   },
+            // ),
+            // if (_selectedMaintenanceIds.isNotEmpty) ...[
+            //   const SizedBox(height: 8),
+            //   _buildChips(_selectedMaintenanceIds, maintenanceOptions, (id) {
+            //     if (mounted) setState(() => _selectedMaintenanceIds.remove(id));
+            //   }),
+            // ],
             const SizedBox(height: ArmoryConstants.fieldSpacing),
             DialogWidgets.buildTextField(
               context: context,
@@ -230,7 +303,6 @@ class _AddLoadoutFormState extends State<AddLoadoutForm> {
       ),
     );
   }
-
   Widget _buildChips(List<String> ids, List<DropdownOption> options, Function(String) onDelete) {
     return Align(
       alignment: Alignment.centerLeft,

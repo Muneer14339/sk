@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../armory/presentation/bloc/armory_bloc.dart';
+import '../../../../armory/presentation/bloc/armory_event.dart';
+import '../../../../armory/presentation/bloc/armory_state.dart';
+import '../../../../armory/presentation/widgets/common/common_delete_dilogue.dart';
+import '../../../../armory/presentation/widgets/common/common_widgets.dart';
+import '../../../../armory/presentation/widgets/navigation/grid_navigation_widget.dart';
+import '../../../../armory/presentation/widgets/navigation/list_navigation_widget.dart';
+import '../../../../armory/presentation/widgets/tab_widgets/ammunition_tab_widget.dart';
+import '../../../../armory/presentation/widgets/tab_widgets/firearms_tab_widget.dart';
+import '../../../../armory/presentation/widgets/tab_widgets/gear_tab_widget.dart';
+import '../../../../armory/presentation/widgets/tab_widgets/loadouts_tab_widget.dart';
+import '../../../../armory/presentation/widgets/tab_widgets/report_tab_widget.dart';
+import '../../../../armory/presentation/widgets/tab_widgets/tools_tab_widget.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../bloc/armory_bloc.dart';
-import '../../bloc/armory_event.dart';
-import '../../bloc/armory_state.dart';
-import '../common/common_delete_dilogue.dart';
-import '../common/common_widgets.dart';
-import 'report_tab_widget.dart';
-import '../navigation/grid_navigation_widget.dart';
-import '../navigation/list_navigation_widget.dart';
-import 'ammunition_tab_widget.dart';
-import 'firearms_tab_widget.dart';
-import 'gear_tab_widget.dart';
-import 'loadouts_tab_widget.dart';
-import 'tools_tab_widget.dart';
+
 
 class EnhancedArmoryTabView extends StatefulWidget {
   const EnhancedArmoryTabView({super.key});
@@ -53,8 +54,15 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
     }
   }
 
+  // Replace _onTabChanged method (line ~50)
   void _onTabChanged(int index) {
     if (mounted) {
+      // Hide form if open to preserve data state
+      final state = context.read<ArmoryBloc>().state;
+      if (state is ShowingAddForm) {
+        context.read<ArmoryBloc>().add(const HideFormEvent());
+      }
+
       setState(() {
         _selectedTabIndex = index;
         if (AppConfig.navigationStyle == NavigationStyle.list) {
@@ -62,6 +70,23 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
         }
       });
     }
+  }
+
+  void _navigateToAddAmmo() {
+    setState(() {
+      _selectedTabIndex = 1; // Ammunition tab index
+      if (AppConfig.navigationStyle == NavigationStyle.list) {
+        _showListContent = true;
+      }
+    });
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        context.read<ArmoryBloc>().add(
+          ShowAddFormEvent(tabType: ArmoryTabType.ammunition),
+        );
+      }
+    });
   }
 
   void _onBackToList() {
@@ -104,6 +129,17 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
 
   Map<ArmoryTabType, int> _getCounts(ArmoryState state) {
     if (state is ArmoryDataLoaded) {
+      return {
+        ArmoryTabType.firearms: state.firearms.length,
+        ArmoryTabType.ammunition: state.ammunition.length,
+        ArmoryTabType.gear: state.gear.length,
+        ArmoryTabType.tools: state.tools.length,
+        ArmoryTabType.maintenence : state.maintenance.length,
+        ArmoryTabType.loadouts: state.loadouts.length,
+        ArmoryTabType.report: state.firearms.length + state.ammunition.length + state.gear.length + state.tools.length +state.maintenance.length +state.loadouts.length,
+      };
+    } else if (state is ShowingAddForm) {
+      // ✅ ShowingAddForm se bhi counts nikalo
       return {
         ArmoryTabType.firearms: state.firearms.length,
         ArmoryTabType.ammunition: state.ammunition.length,
@@ -250,7 +286,10 @@ class _EnhancedArmoryTabViewState extends State<EnhancedArmoryTabView> {
       case ArmoryTabType.tools:
         return ToolsTabWidget(userId: userId!);
       case ArmoryTabType.loadouts:
-        return LoadoutsTabWidget(userId: userId!);
+        return LoadoutsTabWidget(
+          userId: userId!,
+          onNavigateToAddAmmo: _navigateToAddAmmo, // ADD THIS
+        );
       case ArmoryTabType.report:
         return ReportTabWidget(userId: userId!);
       case ArmoryTabType.maintenence:

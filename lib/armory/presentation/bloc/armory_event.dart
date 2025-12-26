@@ -22,7 +22,12 @@ class LoadAllDataEvent extends ArmoryEvent {
   @override
   List<Object?> get props => [userId];
 }
+class GetFirebaseRawData extends ArmoryEvent {
+  const GetFirebaseRawData();
 
+  @override
+  List<Object?> get props => [];
+}
 class AddFirearmEvent extends ArmoryEvent {
   final String userId;
   final ArmoryFirearm firearm;
@@ -141,4 +146,55 @@ class ShowAddFormEvent extends ArmoryEvent {
 
 class HideFormEvent extends ArmoryEvent {
   const HideFormEvent();
+}
+
+// lib/armory/presentation/bloc/armory_event.dart - ADD these events
+class SyncLocalToRemoteEvent extends ArmoryEvent {
+  final String userId;
+  const SyncLocalToRemoteEvent({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+class SyncRemoteToLocalEvent extends ArmoryEvent {
+  final String userId;
+  const SyncRemoteToLocalEvent({required this.userId});
+
+  @override
+  List<Object?> get props => [userId];
+}
+
+// lib/armory/presentation/bloc/armory_event.dart - ADD these events after existing delete events
+
+class DeleteFirearmWithDependenciesEvent extends ArmoryEvent {
+  final String userId;
+  final ArmoryFirearm firearm;
+  final List<String> dependentLoadoutIds;
+  final List<String> dependentAmmunitionIds;
+
+  const DeleteFirearmWithDependenciesEvent({
+    required this.userId,
+    required this.firearm,
+    required this.dependentLoadoutIds,
+    required this.dependentAmmunitionIds,
+  });
+
+  @override
+  List<Object?> get props => [userId, firearm, dependentLoadoutIds, dependentAmmunitionIds];
+}
+
+class DeleteAmmunitionWithDependenciesEvent extends ArmoryEvent {
+  final String userId;
+  final ArmoryAmmunition ammunition;
+  final List<String> dependentLoadoutIds;
+
+  const DeleteAmmunitionWithDependenciesEvent({
+    required this.userId,
+    required this.ammunition,
+    required this.dependentLoadoutIds,
+  });
+
+  @override
+  List<Object?> get props => [userId, ammunition, dependentLoadoutIds];
 }

@@ -2,7 +2,7 @@
 import 'package:equatable/equatable.dart';
 
 class ArmoryFirearm extends Equatable {
-  final String? id;
+   String? id;
   final String type;
   final String make;
   final String model;
@@ -44,10 +44,10 @@ class ArmoryFirearm extends Equatable {
   final String? modifications;
   final String? accessoriesIncluded;
   final String? storageLocation;
-  final List<String> photos;
+  final String? photos;
   final DateTime dateAdded;
 
-  const ArmoryFirearm({
+   ArmoryFirearm({
     this.id,
     required this.type,
     required this.make,
@@ -86,7 +86,7 @@ class ArmoryFirearm extends Equatable {
     this.modifications,
     this.accessoriesIncluded,
     this.storageLocation,
-    this.photos = const [],
+    this.photos = '',
     required this.dateAdded,
   });
 

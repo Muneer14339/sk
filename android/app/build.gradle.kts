@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "com.tlc.pulseSkadi"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

@@ -2,7 +2,7 @@
 import 'package:equatable/equatable.dart';
 
 class ArmoryAmmunition extends Equatable {
-  final String? id;
+   String? id;
   final String brand;
   final String? line;
   final String caliber;
@@ -41,7 +41,7 @@ class ArmoryAmmunition extends Equatable {
   // Add this field in the class:
   final String? bulletDiameter; // in inches
 
-  const ArmoryAmmunition({
+   ArmoryAmmunition({
     this.id,
     required this.brand,
     this.line,

@@ -3,7 +3,6 @@ import 'package:dartz/dartz.dart';
 import '../../../core/error/failures.dart';
 import '../../../core/usecases/usecase.dart';
 import '../repositories/armory_repository.dart';
-import '../entities/armory_gear.dart';
 
 class DeleteGearUseCase implements UseCase<void, DeleteGearParams> {
   final ArmoryRepository repository;

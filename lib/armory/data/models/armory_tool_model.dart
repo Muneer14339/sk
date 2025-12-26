@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/armory_tool.dart';
 
 class ArmoryToolModel extends ArmoryTool {
-  const ArmoryToolModel({
+   ArmoryToolModel({
     super.id,
     required super.name,
     super.category,
@@ -15,6 +15,13 @@ class ArmoryToolModel extends ArmoryTool {
   });
 
   factory ArmoryToolModel.fromMap(Map<String, dynamic> map, String id) {
+     DateTime? safeToDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) return DateTime.tryParse(value);
+      if (value is DateTime) return value;
+      return null;
+    }
     return ArmoryToolModel(
       id: id,
       name: map['name'] ?? '',
@@ -22,7 +29,7 @@ class ArmoryToolModel extends ArmoryTool {
       quantity: map['quantity'] ?? 1,
       status: map['status'] ?? 'available',
       notes: map['notes'],
-      dateAdded: (map['dateAdded'] as Timestamp).toDate(),
+      dateAdded: safeToDate(map['dateAdded']) ?? DateTime.now(),
     );
   }
 
@@ -33,7 +40,7 @@ class ArmoryToolModel extends ArmoryTool {
       'quantity': quantity,
       'status': status,
       'notes': notes,
-      'dateAdded': Timestamp.fromDate(dateAdded),
+      'dateAdded':dateAdded.millisecondsSinceEpoch,
     };
   }
 }

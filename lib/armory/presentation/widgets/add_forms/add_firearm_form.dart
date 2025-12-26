@@ -26,18 +26,24 @@ class AddFirearmForm extends StatefulWidget {
   State<AddFirearmForm> createState() => _AddFirearmFormState();
 }
 
+// REPLACE entire state class - line ~30 se start hota hai
+
 class _AddFirearmFormState extends State<AddFirearmForm> {
   final _formKey = GlobalKey<FormState>();
   final _controllers = <String, TextEditingController>{};
   final _dropdownValues = <String, String?>{};
   final _errors = <String, String>{};
 
+  // Initialize as empty mutable lists
   List<DropdownOption> _firearmBrands = [];
   List<DropdownOption> _firearmModels = [];
   List<DropdownOption> _firearmGenerations = [];
   List<DropdownOption> _firearmMakes = [];
   List<DropdownOption> _firearmMechanisms = [];
   List<DropdownOption> _calibers = [];
+
+  // For multiple caliber selection
+  List<String> _selectedCalibers = [];
 
   @override
   void initState() {
@@ -50,10 +56,24 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     return orientation == Orientation.landscape;
   }
 
+
+  // REPLACE _loadBrandsForType method (line ~78)
   void _loadBrandsForType(String type) {
     setState(() {
-      _clearAllDependentDropdowns();
+      _firearmBrands = [];
+      _firearmModels = [];
+      _firearmGenerations = [];
+      _firearmMakes = [];
+      _firearmMechanisms = [];
+      _calibers = [];
+      _selectedCalibers = []; // Clear selected calibers
+      _dropdownValues['brand'] = null;
+      _dropdownValues['model'] = null;
+      _dropdownValues['generation'] = null;
+      _dropdownValues['make'] = null;
+      _dropdownValues['firingMechanism'] = null;
     });
+
     context.read<DropdownBloc>().add(
       LoadDropdownEvent(
         key: 'firearm_brands',
@@ -63,13 +83,23 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     );
   }
 
+// REPLACE _loadModelsForBrand method (line ~100)
   void _loadModelsForBrand(String brand) {
     setState(() {
-      _firearmModels.clear();
-      _clearDependentDropdowns(['model', 'generation', 'caliber', 'firingMechanism', 'make']);
+      _firearmModels = [];
+      _firearmGenerations = [];
+      _calibers = [];
+      _firearmMechanisms = [];
+      _firearmMakes = [];
+      _selectedCalibers = []; // Clear selected calibers
+      _dropdownValues['model'] = null;
+      _dropdownValues['generation'] = null;
+      _dropdownValues['firingMechanism'] = null;
+      _dropdownValues['make'] = null;
     });
 
     final filterBrand = DialogWidgets.isCustomValue(brand) ? '' : brand;
+
     context.read<DropdownBloc>().add(
       LoadDropdownEvent(
         key: 'firearm_models',
@@ -77,15 +107,32 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
         filterValue: filterBrand,
       ),
     );
+
+    // Load calibers for brand
+    context.read<DropdownBloc>().add(
+      LoadDropdownEvent(
+        key: 'firearm_calibers',
+        type: DropdownType.calibers,
+        filterValue: filterBrand,
+      ),
+    );
   }
 
+// REPLACE _loadGenerationsForModel method (line ~130)
   void _loadGenerationsForModel(String model) {
     setState(() {
-      _firearmGenerations.clear();
-      _clearDependentDropdowns(['generation', 'caliber', 'firingMechanism', 'make']);
+      _firearmGenerations = [];
+      _calibers = [];
+      _firearmMechanisms = [];
+      _firearmMakes = [];
+      _selectedCalibers = []; // Clear selected calibers
+      _dropdownValues['generation'] = null;
+      _dropdownValues['firingMechanism'] = null;
+      _dropdownValues['make'] = null;
     });
 
     final filterModel = DialogWidgets.isCustomValue(model) ? '' : model;
+
     context.read<DropdownBloc>().add(
       LoadDropdownEvent(
         key: 'firearm_generations',
@@ -93,12 +140,26 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
         filterValue: filterModel,
       ),
     );
+
+    // Load calibers for model
+    context.read<DropdownBloc>().add(
+      LoadDropdownEvent(
+        key: 'firearm_calibers',
+        type: DropdownType.calibers,
+        filterValue: filterModel,
+      ),
+    );
   }
 
-  void _loadCalibersForSelection(String generation) {
+// REPLACE _loadCalibersForGeneration method (line ~160)
+  void _loadCalibersForGeneration(String generation) {
     setState(() {
-      _calibers.clear();
-      _clearDependentDropdowns(['caliber', 'firingMechanism', 'make']);
+      _calibers = [];
+      _firearmMechanisms = [];
+      _firearmMakes = [];
+      _selectedCalibers = []; // Clear selected calibers
+      _dropdownValues['firingMechanism'] = null;
+      _dropdownValues['make'] = null;
     });
 
     final filterGeneration = DialogWidgets.isCustomValue(generation) ? '' : generation;
@@ -111,25 +172,85 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     );
   }
 
-  void _loadFiringMechanismsForSelection(String caliber) {
+  void _onBrandChanged(String? value) {
+    setState(() => _dropdownValues['brand'] = value);
+    if (value != null) {
+      _loadModelsForBrand(value);
+    }
+  }
+
+  void _onModelChanged(String? value) {
+    setState(() => _dropdownValues['model'] = value);
+    if (value != null) {
+      _loadGenerationsForModel(value);
+    }
+  }
+
+  void _onGenerationChanged(String? value) {
+    setState(() => _dropdownValues['generation'] = value);
+    if (value != null) {
+      _loadCalibersForGeneration(value);
+    }
+  }
+
+  void _onCaliberSelected(String? caliber) {
+    if (caliber == null || _selectedCalibers.contains(caliber)) return;
     setState(() {
-      _firearmMechanisms.clear();
-      _clearDependentDropdowns(['firingMechanism', 'make']);
+      _selectedCalibers.add(caliber);
+    });
+    _loadFiringMechanismsForCalibers();
+  }
+
+  void _onCaliberRemoved(String caliber) {
+    setState(() {
+      _selectedCalibers.remove(caliber);
+    });
+    if (_selectedCalibers.isNotEmpty) {
+      _loadFiringMechanismsForCalibers();
+    } else {
+      setState(() {
+        _firearmMechanisms = [];
+        _firearmMakes = [];
+        _dropdownValues['firingMechanism'] = null;
+        _dropdownValues['make'] = null;
+      });
+    }
+  }
+
+  void _loadFiringMechanismsForCalibers() {
+    if (_selectedCalibers.isEmpty) return;
+
+    setState(() {
+      _firearmMechanisms = [];
+      _firearmMakes = [];
+      _dropdownValues['firingMechanism'] = null;
+      _dropdownValues['make'] = null;
     });
 
-    final filterCaliber = DialogWidgets.isCustomValue(caliber) ? '' : caliber;
+    // Use comma-separated calibers for filtering
+    final caliberString = _selectedCalibers.map((c) =>
+        DialogWidgets.getDisplayValue(c)
+    ).join(',');
+
     context.read<DropdownBloc>().add(
       LoadDropdownEvent(
         key: 'firearm_mechanisms',
         type: DropdownType.firearmFiringMechanisms,
-        filterValue: filterCaliber,
+        filterValue: caliberString,
       ),
     );
   }
 
+  void _onFiringMechanismChanged(String? value) {
+    setState(() => _dropdownValues['firingMechanism'] = value);
+    if (value != null) {
+      _loadMakesForSelection(value);
+    }
+  }
+
   void _loadMakesForSelection(String firingMechanism) {
     setState(() {
-      _firearmMakes.clear();
+      _firearmMakes = [];
       _dropdownValues['make'] = null;
     });
 
@@ -141,79 +262,6 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
         filterValue: filterMechanism,
       ),
     );
-  }
-
-  void _clearAllDependentDropdowns() {
-    _firearmBrands.clear();
-    _firearmModels.clear();
-    _firearmGenerations.clear();
-    _firearmMakes.clear();
-    _firearmMechanisms.clear();
-    _calibers.clear();
-    _dropdownValues['brand'] = null;
-    _dropdownValues['model'] = null;
-    _dropdownValues['generation'] = null;
-    _dropdownValues['make'] = null;
-    _dropdownValues['firingMechanism'] = null;
-    _dropdownValues['caliber'] = null;
-  }
-
-  void _clearDependentDropdowns(List<String> fields) {
-    for (final field in fields) {
-      _dropdownValues[field] = null;
-      switch (field) {
-        case 'model':
-          _firearmModels.clear();
-          break;
-        case 'generation':
-          _firearmGenerations.clear();
-          break;
-        case 'caliber':
-          _calibers.clear();
-          break;
-        case 'firingMechanism':
-          _firearmMechanisms.clear();
-          break;
-        case 'make':
-          _firearmMakes.clear();
-          break;
-      }
-    }
-  }
-
-  void _onBrandChanged(String? value) {
-    setState(() => _dropdownValues['brand'] = value);
-    if (value != null) {
-      _loadModelsForBrand(value);
-    }
-  }
-
-  void _onModelChanged(String? value) {
-    setState(() => _dropdownValues['model'] = value);
-    if (value != null && _dropdownValues['brand'] != null) {
-      _loadGenerationsForModel(value);
-    }
-  }
-
-  void _onGenerationChanged(String? value) {
-    setState(() => _dropdownValues['generation'] = value);
-    if (value != null) {
-      _loadCalibersForSelection(value);
-    }
-  }
-
-  void _onCaliberChanged(String? value) {
-    setState(() => _dropdownValues['caliber'] = value);
-    if (value != null) {
-      _loadFiringMechanismsForSelection(value);
-    }
-  }
-
-  void _onFiringMechanismChanged(String? value) {
-    setState(() => _dropdownValues['firingMechanism'] = value);
-    if (value != null) {
-      _loadMakesForSelection(value);
-    }
   }
 
   void _initializeControllers() {
@@ -257,6 +305,7 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     super.dispose();
   }
 
+  // BUILD METHOD - SAME AS BEFORE with caliber section updated
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -328,6 +377,7 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
       child: Form(
         key: _formKey,
         child: CommonWidgets.buildResponsiveLayout(context, [
+          // Type dropdown
           DialogWidgets.buildDropdownField(
             context: context,
             label: 'Firearm Type *',
@@ -344,6 +394,8 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             },
             isRequired: true,
           ),
+
+          // Brand dropdown
           BlocBuilder<DropdownBloc, DropdownState>(
             builder: (context, dropdownState) {
               final isLoading = dropdownState is DropdownLoading &&
@@ -362,31 +414,35 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
               );
             },
           ),
+
+          // Model dropdown (optional)
           BlocBuilder<DropdownBloc, DropdownState>(
             builder: (context, dropdownState) {
               final isLoading = dropdownState is DropdownLoading &&
                   dropdownState.loadingKey == 'firearm_models';
               return DialogWidgets.buildDropdownFieldWithCustom(
                 context: context,
-                label: 'Model *',
+                label: 'Model',
                 value: _dropdownValues['model'],
                 options: _firearmModels,
                 onChanged: _onModelChanged,
                 customFieldLabel: 'Model',
                 customHintText: 'e.g., Custom Model Name',
-                isRequired: true,
+                isRequired: false,
                 isLoading: isLoading,
                 enabled: _dropdownValues['brand'] != null,
               );
             },
           ),
+
+          // Generation dropdown (optional)
           BlocBuilder<DropdownBloc, DropdownState>(
             builder: (context, dropdownState) {
               final isLoading = dropdownState is DropdownLoading &&
                   dropdownState.loadingKey == 'firearm_generations';
               return DialogWidgets.buildDropdownFieldWithCustom(
                 context: context,
-                label: 'Generation *',
+                label: 'Generation',
                 value: _dropdownValues['generation'],
                 options: _firearmGenerations,
                 onChanged: _onGenerationChanged,
@@ -394,72 +450,110 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
                 customHintText: 'e.g., Gen 5, Mk II',
                 isLoading: isLoading,
                 enabled: _dropdownValues['model'] != null,
-                isRequired: true,
+                isRequired: false,
               );
             },
           ),
+
+          // Calibers dropdown with chips
           BlocBuilder<DropdownBloc, DropdownState>(
             builder: (context, dropdownState) {
               final isLoading = dropdownState is DropdownLoading &&
                   dropdownState.loadingKey == 'firearm_calibers';
-              return DialogWidgets.buildDropdownFieldWithCustom(
-                context: context,
-                label: 'Caliber *',
-                value: _dropdownValues['caliber'],
-                options: _calibers,
-                onChanged: _onCaliberChanged,
-                customFieldLabel: 'Caliber',
-                customHintText: 'e.g., .300 WinMag',
-                isRequired: true,
-                isLoading: isLoading,
-                enabled: _dropdownValues['brand'] != null,
-                customValueFormatter: (customValue) {
-                  final firearmType = _dropdownValues['type'];
-                  if (firearmType != null && firearmType.isNotEmpty) {
-                    return '$customValue ($firearmType)';
-                  }
-                  return customValue;
-                },
-                validator: (value) => CaliberValidator.validate(value),
+              final showCaliber = _dropdownValues['brand'] != null;
+// 👇 NEW: Unique key jo brand/model/generation change par dropdown reset karega
+              final caliberKey = '${_dropdownValues['brand']}_${_dropdownValues['model']}_${_dropdownValues['generation']}';
+
+              return Column(
+                key: ValueKey(caliberKey), // 👈 CRITICAL: Yeh line add karo
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DialogWidgets.buildDropdownFieldWithCustom(
+                    context: context,
+                    label: 'Calibers *',
+                    value: null,
+                    options: _calibers,
+                    onChanged: _onCaliberSelected,
+                    customFieldLabel: 'Caliber',
+                    customHintText: 'e.g., .300 WinMag',
+                    isRequired: false,
+                    isLoading: isLoading,
+                    keepSearchable: true,
+                    enabled: showCaliber,
+                    customValueFormatter: (customValue) {
+                      final firearmType = _dropdownValues['type'];
+                      if (firearmType != null && firearmType.isNotEmpty) {
+                        return '$customValue ($firearmType)';
+                      }
+                      return customValue;
+                    },
+                    validator: (value) => CaliberValidator.validate(value),
+                  ),
+                  if (_selectedCalibers.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _selectedCalibers.map((caliber) {
+                        return Chip(
+                          label: Text(
+                            DialogWidgets.getDisplayValue(caliber),
+                            style: AppTheme.labelMedium(context).copyWith(fontSize: 13),
+                          ),
+                          backgroundColor: AppTheme.surfaceVariant(context),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: AppTheme.border(context)),
+                          ),
+                          deleteIcon: Icon(Icons.close, size: 18, color: AppTheme.textSecondary(context)),
+                          onDeleted: () => _onCaliberRemoved(caliber),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
               );
             },
           ),
+
+          // Firing Mechanism dropdown
           BlocBuilder<DropdownBloc, DropdownState>(
             builder: (context, dropdownState) {
               final isLoading = dropdownState is DropdownLoading &&
                   dropdownState.loadingKey == 'firearm_mechanisms';
               return DialogWidgets.buildDropdownFieldWithCustom(
                 context: context,
-                label: 'Firing Mechanism *',
+                label: 'Firing Mechanism',
                 value: _dropdownValues['firingMechanism'],
                 options: _firearmMechanisms,
                 onChanged: _onFiringMechanismChanged,
                 customFieldLabel: 'Firing Mechanism',
                 customHintText: 'e.g., Custom Action',
                 isLoading: isLoading,
-                enabled: _dropdownValues['type'] != null,
-                isRequired: true,
+                enabled: _selectedCalibers.isNotEmpty,
               );
             },
           ),
+
+          // Make dropdown
           BlocBuilder<DropdownBloc, DropdownState>(
             builder: (context, dropdownState) {
               final isLoading = dropdownState is DropdownLoading &&
                   dropdownState.loadingKey == 'firearm_makes';
               return DialogWidgets.buildDropdownFieldWithCustom(
                 context: context,
-                label: 'Make *',
+                label: 'Make',
                 value: _dropdownValues['make'],
                 options: _firearmMakes,
                 onChanged: (value) => setState(() => _dropdownValues['make'] = value),
                 customFieldLabel: 'Make',
                 customHintText: 'e.g., Custom Make',
-                isRequired: true,
                 isLoading: isLoading,
-                enabled: _dropdownValues['type'] != null,
+                enabled: _dropdownValues['firingMechanism'] != null,
               );
             },
           ),
+
           DialogWidgets.buildTextField(
             context: context,
             label: 'Nickname/Identifier *',
@@ -467,9 +561,10 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             isRequired: true,
             maxLength: 20,
           ),
+
           DialogWidgets.buildDropdownField(
             context: context,
-            label: 'Status *',
+            label: 'Status',
             value: _dropdownValues['status'],
             options: const [
               DropdownOption(value: 'available', label: 'Available'),
@@ -479,12 +574,14 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
             onChanged: (value) => setState(() => _dropdownValues['status'] = value),
             isRequired: true,
           ),
+
           DialogWidgets.buildTextField(
             context: context,
             label: 'Serial Number',
             controller: _controllers['serial']!,
             maxLength: 20,
           ),
+
           _shouldUseGridLayout
               ? SizedBox(
             width: double.infinity,
@@ -517,9 +614,6 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     final requiredDropdowns = {
       'type': 'Firearm type is required',
       'brand': 'Brand is required',
-      'model': 'Model is required',
-      'make': 'Make is required',
-      'caliber': 'Caliber is required',
       'status': 'Status is required',
     };
 
@@ -529,6 +623,16 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
         hasErrors = true;
       }
     });
+
+    if (_selectedCalibers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('At least one caliber is required'),
+          backgroundColor: AppTheme.error(context),
+        ),
+      );
+      return;
+    }
 
     final nickname = _controllers['nickname']?.text.trim() ?? '';
     if (nickname.isEmpty) {
@@ -541,14 +645,18 @@ class _AddFirearmFormState extends State<AddFirearmForm> {
     final firearm = ArmoryFirearm(
       type: _dropdownValues['type']!,
       make: DialogWidgets.getDisplayValue(_dropdownValues['make']),
-      model: DialogWidgets.getDisplayValue(_dropdownValues['model']),
-      caliber: DialogWidgets.getDisplayValue(_dropdownValues['caliber']),
+      model: _dropdownValues['model'] != null
+          ? DialogWidgets.getDisplayValue(_dropdownValues['model'])
+          : '',
+      caliber: _selectedCalibers.map((c) => DialogWidgets.getDisplayValue(c)).join(', '),
       nickname: nickname,
       status: _dropdownValues['status']!,
       serial: _controllers['serial']?.text.trim(),
       notes: _controllers['notes']?.text.trim(),
       brand: DialogWidgets.getDisplayValue(_dropdownValues['brand']),
-      generation: DialogWidgets.getDisplayValue(_dropdownValues['generation']),
+      generation: _dropdownValues['generation'] != null
+          ? DialogWidgets.getDisplayValue(_dropdownValues['generation'])
+          : '',
       firingMechanism: DialogWidgets.getDisplayValue(_dropdownValues['firingMechanism']),
       dateAdded: DateTime.now(),
     );

@@ -111,4 +111,19 @@ class ShowingAddForm extends ArmoryState {
     maintenance,
   ];
 }
+// lib/armory/presentation/bloc/armory_state.dart - ADD these states
+class SyncInProgress extends ArmoryState {
+  final String message;
+  const SyncInProgress({required this.message});
 
+  @override
+  List<Object?> get props => [message];
+}
+
+class SyncCompleted extends ArmoryState {
+  final String message;
+  const SyncCompleted({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}

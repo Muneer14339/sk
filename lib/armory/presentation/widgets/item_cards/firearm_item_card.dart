@@ -15,7 +15,7 @@ class FirearmItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return CommonItemCard(
       item: firearm,
-      title: '${firearm.make} ${firearm.model}',
+      title: '${firearm.brand} ${firearm.model}',
 
   showDelete: showDelete,  // ADD
       details: [

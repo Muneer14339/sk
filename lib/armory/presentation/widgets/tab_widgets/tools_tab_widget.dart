@@ -87,10 +87,10 @@ class ToolsTabWidget extends StatelessWidget {
                     Flexible(
                       child: Text('Tools & Maintenance', style: AppTheme.titleLarge(context), overflow: TextOverflow.ellipsis),
                     ),
-                    if (totalItems > 0) ...[
-                      const SizedBox(width: 8),
-                      CommonWidgets.buildCountBadge(context, totalItems, 'items'),
-                    ],
+                    // if (totalItems > 0) ...[
+                    //   const SizedBox(width: 8),
+                    //   CommonWidgets.buildCountBadge(context, totalItems, 'items'),
+                    // ],
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -172,6 +172,7 @@ class ToolsTabWidget extends StatelessWidget {
       title: 'Tools & Equipment',
       subtitle: 'cleaning kits, torque wrenches, chronographs',
       initiallyExpanded: tools.isNotEmpty,
+      count: tools.length, // ✅ ADD
       children: [ResponsiveGridWidget(children: toolCards)],
     );
   }
@@ -184,6 +185,7 @@ class ToolsTabWidget extends StatelessWidget {
       title: 'Maintenance Logs',
       subtitle: 'cleaning, lubrication, repairs, inspections',
       initiallyExpanded: maintenance.isNotEmpty,
+      count: maintenance.length, // ✅ ADD
       children: [ResponsiveGridWidget(children: maintenanceCards)],
     );
   }

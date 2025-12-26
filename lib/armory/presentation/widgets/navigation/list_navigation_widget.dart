@@ -1,10 +1,12 @@
-// ===== list_navigation_widget.dart =====
+
 import 'package:flutter/material.dart';
+
+
 import '../../../../core/theme/app_theme.dart';
 import '../../bloc/armory_state.dart';
-import '../common/armory_constants.dart';
 import '../common/common_delete_dilogue.dart';
-import '../tab_widgets/enhanced_armory_tab_view.dart';
+
+
 
 class ListNavigationWidget extends StatelessWidget {
   final int selectedTabIndex;
@@ -25,44 +27,28 @@ class ListNavigationWidget extends StatelessWidget {
     final items = _getTabItems();
     final orientation = MediaQuery.of(context).orientation;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final itemHeight = (constraints.maxHeight - (items.length - 1) * 4) / items.length;
-        final basePadding = itemHeight * 0.08;
-        final iconSize = itemHeight * 0.35;
-        final fontSize = itemHeight * 0.22;
-        final countFontSize = itemHeight * 0.18;
+    return Container(
+ 
+      padding: const EdgeInsets.all(12),
+      child: ListView.separated(
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (context, index) {
+          final tabItem = items[index];
+          final isActive = selectedTabIndex >= 0 && selectedTabIndex == index;
 
-        return Container(
-          padding: EdgeInsets.all(basePadding),
-          child: Column(
-            children: items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final tabItem = entry.value;
-              final isActive = selectedTabIndex >= 0 && selectedTabIndex == index;
-              final isLast = index == items.length - 1;
-
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: isLast ? 0 : 4),
-                  child: _buildListItem(
-                    context: context,
-                    tabItem: tabItem,
-                    isActive: isActive,
-                    onTap: () => onTabChanged(index),
-                    orientation: orientation,
-                    itemHeight: itemHeight,
-                    iconSize: iconSize,
-                    fontSize: fontSize,
-                    countFontSize: countFontSize,
-                    basePadding: basePadding,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        );
-      },
+          return SizedBox(
+            height: 60, // ✅ Fixed tab height
+            child: _buildListItem(
+              context: context,
+              tabItem: tabItem,
+              isActive: isActive,
+              onTap: () => onTabChanged(index),
+              orientation: orientation,
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -72,32 +58,28 @@ class ListNavigationWidget extends StatelessWidget {
     required bool isActive,
     required VoidCallback onTap,
     required Orientation orientation,
-    required double itemHeight,
-    required double iconSize,
-    required double fontSize,
-    required double countFontSize,
-    required double basePadding,
   }) {
+    const double iconSize = 28;
+    const double fontSize = 16;
+    const double countFontSize = 14;
+    const double borderRadius = 10;
+    const double horizontalPadding = 16;
+
     final showIcons = orientation == Orientation.portrait;
-    final itemPadding = basePadding * 1;
 
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: ArmoryConstants.mediumDuration,
-        padding: EdgeInsets.symmetric(
-          horizontal: itemPadding,
-          vertical: itemPadding * 0.6,
-        ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
         decoration: BoxDecoration(
           color: isActive
-              ? AppTheme.primary(context).withOpacity(0.1)
-              : AppTheme.surface(context),
-          borderRadius: BorderRadius.circular(basePadding),
+              ? AppTheme.primary(context).withOpacity(0.2)
+              : AppTheme.background(context),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
             color: isActive
-                ? AppTheme.primary(context).withOpacity(0.3)
-                : AppTheme.border(context),
+                ? AppTheme.primary(context).withOpacity(0.2)
+              : AppTheme.background(context),
           ),
         ),
         child: Row(
@@ -109,30 +91,26 @@ class ListNavigationWidget extends StatelessWidget {
                     Container(
                       decoration: BoxDecoration(
                         color: isActive
-                            ? AppTheme.primary(context).withOpacity(0.1)
-                            : AppTheme.surfaceVariant(context),
-                        borderRadius: BorderRadius.circular(basePadding * 0.75),
+                            ? AppTheme.primary(context).withOpacity(0.2)
+              : AppTheme.background(context),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: EdgeInsets.all(basePadding * 0.5),
+                      padding: const EdgeInsets.all(8),
                       child: Icon(
                         tabItem.icon,
                         size: iconSize,
-                        color: isActive
-                            ? AppTheme.primary(context)
-                            : AppTheme.textPrimary(context),
+                        color: AppTheme.textPrimary(context),
                       ),
                     ),
-                  if (showIcons) SizedBox(width: basePadding),
+                  if (showIcons) const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       tabItem.title,
                       style: TextStyle(
                         fontSize: fontSize,
-                        color: isActive
-                            ? AppTheme.primary(context)
-                            : AppTheme.textPrimary(context),
-                        fontWeight:
-                        isActive ? FontWeight.w600 : FontWeight.w500,
+                        color: AppTheme.textPrimary(context),
+                        fontWeight: FontWeight.bold,
+                           
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -147,36 +125,30 @@ class ListNavigationWidget extends StatelessWidget {
                 if (tabItem.count > 0)
                   Container(
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? AppTheme.primary(context).withOpacity(0.1)
-                          : AppTheme.surfaceVariant(context),
-                      borderRadius: BorderRadius.circular(basePadding * 1.25),
+                      color: AppTheme.primary(context).withOpacity(0.2),
+                    shape: BoxShape.circle,
                       border: Border.all(
-                        color: isActive
-                            ? AppTheme.primary(context).withOpacity(0.3)
-                            : AppTheme.border(context),
+                        color: AppTheme.primary(context).withOpacity(0.2),
                       ),
                     ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: basePadding * 0.75,
-                      vertical: basePadding * 0.25,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
                     child: Text(
                       tabItem.count.toString(),
                       style: TextStyle(
                         fontSize: countFontSize,
-                        color: isActive
-                            ? AppTheme.primary(context)
-                            : AppTheme.textSecondary(context),
-                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary(context),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                if (showIcons) SizedBox(width: basePadding * 0.5),
+                if (showIcons) const SizedBox(width: 8),
                 if (showIcons)
                   Icon(
                     Icons.chevron_right,
-                    size: iconSize * 0.85,
+                    size: 20,
                     color: isActive
                         ? AppTheme.primary(context)
                         : AppTheme.textSecondary(context),
@@ -212,7 +184,3 @@ class TabItemInfo {
     required this.count,
   });
 }
-
-// ===== grid_navigation_widget.dart =====
-
-// ===== FORM WRAPPER PATTERN =====

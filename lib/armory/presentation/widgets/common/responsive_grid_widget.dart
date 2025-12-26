@@ -1,6 +1,6 @@
-// lib/armory/presentation/widgets/common/responsive_grid_widget.dart
 import 'package:flutter/material.dart';
 
+// ===== responsive_grid_widget.dart =====
 class ResponsiveGridWidget extends StatelessWidget {
   final List<Widget> children;
   final bool forceGrid;
@@ -10,17 +10,27 @@ class ResponsiveGridWidget extends StatelessWidget {
     super.key,
     required this.children,
     this.forceGrid = false,
-    this.spacing = 10,
+    this.spacing = 0,
   });
+
+  bool _shouldUseGridLayout(BuildContext context) {
+    if (forceGrid) return true;
+    final orientation = MediaQuery.of(context).orientation;
+    return orientation == Orientation.landscape;
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (children.isEmpty) return const SizedBox.shrink();
+    if (children.isEmpty) {
+      return const Center(
+        child: Text(
+          'No items',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
 
-    final orientation = MediaQuery.of(context).orientation;
-    final shouldUseGrid = forceGrid || orientation == Orientation.landscape;
-
-    if (!shouldUseGrid) {
+    if (!_shouldUseGridLayout(context)) {
       return Column(
         children: children.expand((child) => [
           child,
@@ -29,30 +39,35 @@ class ResponsiveGridWidget extends StatelessWidget {
       );
     }
 
-    final rows = <Widget>[];
+    final List<Widget> rows = [];
     for (int i = 0; i < children.length; i += 2) {
-      final rowChildren = <Widget>[
-        Expanded(child: children[i]),
-      ];
-
       if (i + 1 < children.length) {
-        rowChildren.add(SizedBox(width: spacing));
-        rowChildren.add(Expanded(child: children[i + 1]));
-      } else {
-        rowChildren.add(const Expanded(child: SizedBox()));
-      }
-
-      rows.add(
-        Padding(
-          padding: EdgeInsets.only(bottom: i + 2 < children.length ? spacing : 0),
-          child: IntrinsicHeight(
+        rows.add(
+          IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: rowChildren,
+              children: [
+                Expanded(child: children[i]),
+                SizedBox(width: spacing),
+                Expanded(child: children[i + 1]),
+              ],
             ),
           ),
-        ),
-      );
+        );
+      } else {
+        rows.add(
+          Row(
+            children: [
+              Expanded(child: children[i]),
+              const Expanded(child: SizedBox()),
+            ],
+          ),
+        );
+      }
+
+      if (i + 2 < children.length) {
+        rows.add(SizedBox(height: spacing));
+      }
     }
 
     return Column(children: rows);

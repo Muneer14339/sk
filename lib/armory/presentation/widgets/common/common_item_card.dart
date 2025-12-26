@@ -4,12 +4,6 @@ import '../../../domain/entities/armory_ammunition.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'tappable_item_wrapper.dart';
 
-// lib/armory/presentation/widgets/common/common_item_card.dart
-import 'package:flutter/material.dart';
-import '../../../domain/entities/armory_firearm.dart';
-import '../../../domain/entities/armory_ammunition.dart';
-import '../../../../core/theme/app_theme.dart';
-import 'tappable_item_wrapper.dart';
 
 class CommonItemCard extends StatelessWidget {
   final dynamic item;
@@ -43,6 +37,7 @@ class CommonItemCard extends StatelessWidget {
       firearm: firearm,
       ammunition: ammunition,
       child: Container(
+        margin: const EdgeInsets.only(bottom: 10,top: 10,right: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: AppTheme.surfaceVariant(context),

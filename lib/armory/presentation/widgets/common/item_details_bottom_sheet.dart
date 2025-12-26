@@ -226,11 +226,23 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
 
     final gearMap = {for (var g in state.gear) if (g.id != null) g.id!: g};
     final toolMap = {for (var t in state.tools) if (t.id != null) t.id!: t};
-    final maintenanceMap = {for (var m in state.maintenance) if (m.id != null) m.id!: m};
+    // final maintenanceMap = {for (var m in state.maintenance) if (m.id != null) m.id!: m};
 
-    final gearItems = loadout.gearIds.map((id) => gearMap[id]).whereType().toList();
-    final toolItems = loadout.toolIds.map((id) => toolMap[id]).whereType().toList();
-    final maintenanceItems = loadout.maintenanceIds.map((id) => maintenanceMap[id]).whereType().toList();
+    final gearItems = loadout.gearIds
+        .where((id) => id != null && gearMap[id] != null)
+        .map((id) => gearMap[id]!)
+        .toList();
+
+    final toolItems = loadout.toolIds
+        .where((id) => id != null && toolMap[id] != null)
+        .map((id) => toolMap[id]!)
+        .toList();
+
+    // final maintenanceItems = loadout.maintenanceIds
+    //     .where((id) => id != null && maintenanceMap[id] != null)
+    //     .map((id) => maintenanceMap[id]!)
+    //     .toList();
+
 
     return Container(
       width: double.infinity,
@@ -274,12 +286,12 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
             toolItems.length,
             List<Widget>.from(toolItems.map((tool) => ToolItemCard(tool: tool, userId: widget.userId, showDelete: false))),
           ),
-          const SizedBox(height: 10),
-          _buildExpandableSection(
-            'MAINTENANCE',
-            maintenanceItems.length,
-            List<Widget>.from(maintenanceItems.map((m) => MaintenanceItemCard(maintenance: m, userId: widget.userId, showDelete: false))),
-          ),
+          // const SizedBox(height: 10),
+          // _buildExpandableSection(
+          //   'MAINTENANCE',
+          //   maintenanceItems.length,
+          //   List<Widget>.from(maintenanceItems.map((m) => MaintenanceItemCard(maintenance: m, userId: widget.userId, showDelete: false))),
+          // ),
         ],
       ),
     );
@@ -578,19 +590,19 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet>
       child: SafeArea(
         child: Row(
           children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary(context),
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text('Edit', style: AppTheme.button(context).copyWith(fontSize: 14, fontWeight: FontWeight.w700)),
-              ),
-            ),
-            const SizedBox(width: 10),
+            // Expanded(
+            //   child: ElevatedButton(
+            //     onPressed: () => Navigator.pop(context),
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: AppTheme.primary(context),
+            //       foregroundColor: Colors.black,
+            //       padding: const EdgeInsets.symmetric(vertical: 12),
+            //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            //     ),
+            //     child: Text('Edit', style: AppTheme.button(context).copyWith(fontSize: 14, fontWeight: FontWeight.w700)),
+            //   ),
+            // ),
+            // const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {

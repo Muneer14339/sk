@@ -63,17 +63,18 @@ class _AddAmmunitionFormState extends State<AddAmmunitionForm> {
 
   void _loadBrandForCalibers(String caliber) {
     setState(() {
-      _ammunitionBrands.clear();
-      _bulletTypes.clear();
+      _ammunitionBrands = [];  // 👈 CHANGE
+      _bulletTypes = [];       // 👈 CHANGE
       _dropdownValues['brand'] = null;
       _dropdownValues['bulletType'] = null;
     });
+    final caliberValue = DialogWidgets.isCustomValue(caliber) ? '' : caliber;
 
     context.read<DropdownBloc>().add(
       LoadDropdownEvent(
         key: 'ammunition_brands',
         type: DropdownType.ammunitionBrands,
-        filterValue: caliber,
+        filterValue: caliberValue,
       ),
     );
   }
@@ -180,6 +181,29 @@ class _AddAmmunitionFormState extends State<AddAmmunitionForm> {
     return orientation == Orientation.landscape;
   }
 
+  void _onCaliberChanged(String? value) {
+    setState(() => _dropdownValues['caliber'] = value);
+    if (value != null) _loadBrandForCalibers(value);
+    final diameter = CaliberCalculator.calculateBulletDiameter(value, null);
+    if (diameter != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Bullet Diameter: $diameter"'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No diameter Found'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Widget _buildForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
@@ -195,29 +219,7 @@ class _AddAmmunitionFormState extends State<AddAmmunitionForm> {
                 label: 'Caliber *',
                 value: _dropdownValues['caliber'],
                 options: _calibers,
-                onChanged: (value) {
-                  setState(() => _dropdownValues['caliber'] = value);
-                  final diameter = CaliberCalculator.calculateBulletDiameter(value, null);
-                  if (diameter != null && mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Bullet Diameter: $diameter"'),
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('No diameter Found'),
-                        duration: Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-
-                  if (value != null) _loadBrandForCalibers(value);
-                },
+                onChanged: _onCaliberChanged,
                 customFieldLabel: 'Caliber',
                 customHintText: 'e.g., .300 WinMag, 6.5 PRC',
                 isRequired: true,
@@ -253,14 +255,19 @@ class _AddAmmunitionFormState extends State<AddAmmunitionForm> {
             maxLength: 20,
             hintText: 'e.g., Gold Medal Match, V-Max',
           ),
-          if (_dropdownValues['caliber'] != null)
-            BlocBuilder<DropdownBloc, DropdownState>(
+          BlocBuilder<DropdownBloc, DropdownState>(
               builder: (context, dropdownState) {
                 final isLoading = dropdownState is DropdownLoading &&
                     dropdownState.loadingKey == 'ammunition_bullet_types';
+                // Auto-select first value if null
+                if (_dropdownValues['bulletType'] == null && _bulletTypes.isNotEmpty) {
+                  _dropdownValues['bulletType'] = _bulletTypes.first.value; // <-- only the string
+                  _controllers['bullet']?.text =
+                      DialogWidgets.getDisplayValue(_bulletTypes.first.value);
+                }
                 return DialogWidgets.buildDropdownFieldWithCustom(
                   context: context,
-                  label: 'Bullet Weight & Type *',
+                  label: 'Bullet Weight & Type',
                   value: _dropdownValues['bulletType'],
                   options: _bulletTypes,
                   onChanged: (value) {
@@ -271,24 +278,22 @@ class _AddAmmunitionFormState extends State<AddAmmunitionForm> {
                   },
                   customFieldLabel: 'Bullet Type',
                   customHintText: 'e.g., 77gr TMK, 168gr ELD-M',
-                  isRequired: true,
                   isLoading: isLoading,
-                  enabled: _dropdownValues['caliber'] != null,
+                  enabled: _dropdownValues['brand'] != null,
                 );
               },
             ),
           DialogWidgets.buildResponsiveRow(context, [
             DialogWidgets.buildTextField(
               context: context,
-              label: 'Quantity (rounds) *',
+              label: 'Quantity (rounds)',
               controller: _controllers['quantity']!,
-              isRequired: true,
               keyboardType: TextInputType.number,
               hintText: '20',
             ),
             DialogWidgets.buildDropdownField(
               context: context,
-              label: 'Status *',
+              label: 'Status',
               value: _dropdownValues['status'],
               options: const [
                 DropdownOption(value: 'available', label: 'Available'),

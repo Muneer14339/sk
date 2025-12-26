@@ -43,19 +43,31 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
     _controllers['rounds']?.text = '0';
   }
 
-  List<DropdownOption> _getAssetOptions(ArmoryDataLoaded state) {
+  List<DropdownOption> _getAssetOptions(ArmoryState state) {
+    List firearms = [];
+    List gear = [];
+
+    // Extract data from both states
+    if (state is ArmoryDataLoaded) {
+      firearms = state.firearms;
+      gear = state.gear;
+    } else if (state is ShowingAddForm) {
+      firearms = state.firearms;
+      gear = state.gear;
+    }
+
     if (_assetType == 'firearm') {
-      return state.firearms
+      return firearms
           .map((firearm) => DropdownOption(
         value: firearm.id!,
         label: '${firearm.nickname} (${firearm.make} ${firearm.model})',
       ))
           .toList();
     } else if (_assetType == 'gear') {
-      return state.gear
-          .map((gear) => DropdownOption(
-        value: gear.id!,
-        label: '${gear.model} (${gear.category})',
+      return gear
+          .map((g) => DropdownOption(
+        value: g.id!,
+        label: '${g.model} (${g.category})',
       ))
           .toList();
     }
@@ -81,7 +93,11 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Flexible(child: _buildForm(state)),
-            _buildActions(state),
+            BlocBuilder<ArmoryBloc, ArmoryState>(
+              builder: (context, state) {
+                return _buildActions(state);
+              },
+            ),
           ],
         );
       },
@@ -121,7 +137,8 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
   }
 
   Widget _buildForm(ArmoryState state) {
-    final assetOptions = state is ArmoryDataLoaded ? _getAssetOptions(state) : <DropdownOption>[];
+    final assetOptions = _getAssetOptions(state); // Direct call, no conditional
+
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(ArmoryConstants.dialogPadding),
@@ -270,7 +287,7 @@ class _AddMaintenanceFormState extends State<AddMaintenanceForm> {
 
   void _saveMaintenance() {
     if (!_formKey.currentState!.validate()) return;
-
+print("Working");
     if (_assetType == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

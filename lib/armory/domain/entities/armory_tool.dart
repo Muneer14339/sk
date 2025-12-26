@@ -2,7 +2,7 @@
 import 'package:equatable/equatable.dart';
 
 class ArmoryTool extends Equatable {
-  final String? id;
+   String? id;
   final String name;
   final String? category;
   final int quantity;
@@ -10,7 +10,7 @@ class ArmoryTool extends Equatable {
   final String? notes;
   final DateTime dateAdded;
 
-  const ArmoryTool({
+   ArmoryTool({
     this.id,
     required this.name,
     this.category,

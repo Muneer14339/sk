@@ -31,3 +31,12 @@ class LogoutRequested extends AuthEvent {
 class CheckLoginStatus extends AuthEvent {
   const CheckLoginStatus();
 }
+
+class PasswordResetRequested extends AuthEvent {
+  final String email;
+
+  const PasswordResetRequested({required this.email});
+
+  @override
+  List<Object> get props => [email];
+}

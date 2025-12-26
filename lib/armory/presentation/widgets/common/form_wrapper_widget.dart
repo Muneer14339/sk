@@ -105,10 +105,10 @@ class FormWrapperWidget extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (itemCount != null) ...[
-                      const SizedBox(width: 8),
-                      CommonWidgets.buildCountBadge(context, itemCount, 'items'),
-                    ],
+                    // if (itemCount != null) ...[
+                    //   const SizedBox(width: 8),
+                    //   CommonWidgets.buildCountBadge(context, itemCount, 'items'),
+                    // ],
                   ],
                 ),
                 const SizedBox(height: 4),
